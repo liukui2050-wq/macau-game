@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>人日·華夏誕辰｜思辨倡議 H5｜史料卡·思辨答題·勳章冊</title>
+<meta property="og:title" content="人日·華夏誕辰｜史料卡·思辨答題·勳章冊">
+<meta property="og:image" content="https://www.liukui2050.com/share-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:description" content="正月初七，人人有份的生日。十站思辨答題，解鎖史料卡與勳章，簽署倡議書。">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+:root{
+--macau-green:#0E7A5F;
+--macau-green-deep:#0A5A47;
+--macau-green-light:#E6F3E6;
+--rice-white:#F8F5F0;
+--rice-white-soft:#F1EBE0;
+--gold:#C8A24E;
+--gold-light:#E3D3A6;
+--text:#1F3831;
+--text-soft:#4A5A53;
+--line:#D9CFB8;
+--data-brick:#B54E42;
+--data-steel:#3E6FA3;
+--data-moss:#3F8A5F;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-font-smoothing:antialiased}
+body{
+font-family:"Noto Sans TC","PingFang TC","Microsoft YaHei",sans-serif;
+background:var(--rice-white);color:var(--text);
+font-size:17px;line-height:1.7;min-height:100vh;padding-bottom:48px;
+}
+header{
+background:linear-gradient(180deg,var(--macau-green-deep) 0%,var(--macau-green) 100%);
+color:var(--rice-white);padding:38px 20px 28px;text-align:center;
+position:relative;border-bottom:4px solid var(--gold);overflow:hidden;
+}
+header .fret-mark{position:absolute;right:18px;top:50%;transform:translateY(-50%);width:54px;height:38px;opacity:.92}
+header .fret-mark .thunder{stroke:var(--gold)}
+header .fret-mark .gap{fill:var(--macau-green-deep)}
+header h1{
+font-size:clamp(28px,6.5vw,38px);letter-spacing:4px;
+color:var(--rice-white);font-weight:700;
+text-shadow:0 1px 4px rgba(0,0,0,.42);
+}
+header p{margin-top:10px;font-size:15px;color:var(--gold-light);opacity:.95}
+header .sub{margin-top:6px;font-size:21px;font-weight:600;color:var(--gold);letter-spacing:2px}
+#compare-chart{width:100%;height:340px;background:var(--macau-green-light);border-bottom:1px solid var(--line)}
+.progress-bar{background:var(--rice-white-soft);padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.progress-title{display:flex;justify-content:space-between;align-items:center;font-size:15px;color:var(--text-soft);margin-bottom:9px;flex-wrap:wrap;gap:8px}
+.progress-title b{color:var(--macau-green-deep);font-size:18px}
+.lotus-row{
+display:flex;gap:6px;overflow-x:auto;padding:4px 0 6px;margin-top:8px;
+scrollbar-width:none;-ms-overflow-style:none;
+}
+.lotus-row::-webkit-scrollbar{height:3px;background:transparent}
+.lotus-item{
+font-size:22px;opacity:0.22;transition:all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+filter:grayscale(100%);flex:0 0 auto;
+}
+.lotus-item.active{opacity:1;filter:grayscale(0);animation:lotusBounce 2.2s ease-in-out infinite}
+.lotus-item.complete{transform:scale(1.25)}
+@keyframes lotusBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.progress-track{width:100%;height:12px;background:#e3dcc8;border-radius:99px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--macau-green) 0%,var(--gold) 100%);border-radius:99px;transition:width .5s ease}
+.card-container{max-width:960px;margin:0 auto;padding:22px 16px 0}
+.station-card{
+background:#FDFBF7;border:1px solid var(--line);border-radius:16px;
+padding:26px;margin-bottom:20px;
+box-shadow:0 6px 18px rgba(14,122,95,.08);position:relative;overflow:hidden;
+}
+.station-card::before{
+content:"";position:absolute;left:0;top:0;width:6px;height:100%;
+background:linear-gradient(180deg,var(--macau-green) 0%,var(--gold) 100%);
+}
+.station-card::after{
+content:"";position:absolute;right:14px;bottom:14px;width:30px;height:30px;opacity:.5;
+background:
+linear-gradient(var(--gold),var(--gold)) center/100% 3px no-repeat,
+linear-gradient(90deg,var(--gold),var(--gold)) center/3px 100% no-repeat,
+linear-gradient(var(--gold),var(--gold)) 0 0/9px 9px no-repeat,
+linear-gradient(var(--gold),var(--gold)) 100% 0/9px 9px no-repeat,
+linear-gradient(var(--gold),var(--gold)) 0 100%/9px 9px no-repeat,
+linear-gradient(var(--gold),var(--gold)) 100% 100%/9px 9px no-repeat;
+}
+.station-number{
+display:inline-block;background:var(--macau-green);color:var(--rice-white);
+font-size:14px;padding:5px 12px;border-radius:99px;margin-bottom:12px;letter-spacing:1px;font-weight:600;
+}
+.station-card h2{font-size:23px;color:var(--macau-green-deep);margin-bottom:12px;padding-left:6px;line-height:1.5}
+.station-card h2 .end-tag{
+display:inline-block;background:var(--gold);color:var(--macau-green-deep);
+font-size:13px;padding:3px 10px;border-radius:99px;margin-left:8px;vertical-align:middle;font-weight:700;
+}
+.story-block{
+background:var(--macau-green-light);border-left:4px solid var(--macau-green);
+padding:15px 17px;border-radius:10px;
+font-size:16px;line-height:1.85;color:var(--text);margin-bottom:16px;white-space:pre-line;
+}
+/* ========== 史料卡（竖条型 · 横向滑動 + 滑條） ========== */
+.source-strip-wrap{
+  margin-bottom:16px;background:#FDFBF7;border:1px solid var(--line);border-radius:14px;
+  padding:16px 16px 12px;box-shadow:inset 0 1px 8px rgba(14,122,95,.06);
+}
+/* 史料卡切换按钮 */
+.strip-toggle-btn{
+  width:100%;background:var(--macau-green);color:var(--rice-white);
+  border:none;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .2s;margin-bottom:12px;letter-spacing:1px;
+}
+.strip-toggle-btn:hover{background:var(--macau-green-deep);filter:brightness(1.05);}
+.strip-toggle-btn.active{background:var(--gold);color:var(--macau-green-deep);}
+.source-strip-head{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:6px;
+}
+.source-strip-title{font-size:15px;font-weight:700;color:var(--macau-green-deep);letter-spacing:1px}
+.source-strip-hint{font-size:12px;color:var(--text-soft);background:var(--rice-white-soft);
+  border:1px solid var(--line);padding:3px 10px;border-radius:99px;animation:hintPulse 2s ease-in-out infinite}
+@keyframes hintPulse{0%,100%{opacity:.6}50%{opacity:1}}
+.source-strip{
+  display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;
+  padding:4px 2px 10px;scrollbar-width:thin;scrollbar-color:var(--gold) transparent;
+}
+.source-strip::-webkit-scrollbar{height:0;background:transparent}
+.strip-card{
+  flex:0 0 78%;max-width:300px;min-height:250px;scroll-snap-align:start;
+  border-radius:12px;padding:14px;display:flex;flex-direction:column;
+  border:1px solid var(--line);position:relative;overflow:hidden;
+}
+.strip-card::before{
+  content:"";position:absolute;left:0;top:0;width:100%;height:5px;
+  background:linear-gradient(90deg,var(--macau-green),var(--gold));
+}
+.strip-no{
+  font-size:12px;font-weight:700;color:var(--gold);background:var(--macau-green-deep);
+  padding:3px 10px;border-radius:99px;align-self:flex-start;margin-bottom:10px;letter-spacing:1px;
+}
+.strip-body{flex:1;display:flex;flex-direction:column;gap:8px}
+.strip-label{font-size:12.5px;font-weight:700;color:var(--macau-green-deep);margin-bottom:2px}
+.strip-name{font-size:16px;font-weight:700;color:var(--macau-green-deep);line-height:1.5}
+.strip-name .en{font-size:12px;color:var(--text-soft);font-weight:400;margin-left:4px}
+.strip-bio{font-size:13px;line-height:1.7;color:var(--text);overflow-y:auto}
+.strip-foreign{font-size:13.5px;font-style:italic;line-height:1.75;color:var(--text);
+  border-left:3px solid var(--gold);padding-left:10px}
+.strip-zh{font-size:14px;line-height:1.75;color:var(--macau-green-deep);font-weight:700}
+.strip-ref{font-size:12.5px;line-height:1.7;color:var(--text-soft);flex:1}
+.strip-open-btn{
+  margin-top:auto;width:100%;background:var(--macau-green);color:var(--rice-white);
+  border:none;border-radius:10px;padding:10px;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .2s;
+}
+.strip-open-btn:hover{background:var(--macau-green-deep)}
+/* 各竖条差异化配色 */
+.person-strip{background:linear-gradient(180deg,#FFF8E0 0%,#FDFBF7 60%)}
+.quote-strip{background:linear-gradient(180deg,#FFF3D0 0%,#FDFBF7 60%)}
+.ref-strip{background:linear-gradient(180deg,#FFF5E0 0%,#FDFBF7 60%)}
+/* 竖条滑條 */
+.strip-scrollbar{
+  height:6px;background:var(--rice-white-soft);border-radius:99px;margin-top:6px;position:relative;overflow:hidden;
+}
+.strip-scrollbar-thumb{
+  position:absolute;left:0;top:0;height:100%;width:30%;border-radius:99px;
+  background:linear-gradient(90deg,var(--macau-green),var(--gold));transition:left .1s,width .1s;
+}
+@media(max-width:520px){
+  .strip-card{flex:0 0 82%;min-height:230px}
+}
+.person-card{background:linear-gradient(180deg,var(--macau-green-light) 0%,var(--rice-white-soft) 100%);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:16px}
+.person-card .person-name{font-size:18px;color:var(--macau-green-deep);font-weight:700;margin-bottom:6px}
+.person-card .person-name .en{font-size:14px;color:var(--text-soft);font-weight:400;margin-left:6px}
+.person-bio{font-size:14.5px;line-height:1.8;color:var(--text)}
+.lang-tag{display:inline-block;background:var(--macau-green-deep);color:var(--gold-light);font-size:13px;padding:3px 12px;border-radius:99px;margin-top:10px;font-weight:700}
+.open-quote-btn{width:100%;background:var(--gold);color:var(--macau-green-deep);border:none;border-radius:10px;padding:12px;font-weight:700;font-size:16px;cursor:pointer;margin-bottom:14px}
+.open-quote-btn:hover{filter:brightness(1.05);}
+/* ========== 史料卡彈窗 ========== */
+.quote-modal{display:none;position:fixed;inset:0;background:rgba(10,45,35,.85);z-index:100;align-items:stretch;justify-content:stretch;padding:0}
+.quote-modal.show{display:flex}
+.quote-card{width:100%;height:100%;max-width:none;border:none;border-radius:0;background:var(--rice-white);position:relative;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
+.quote-card h3{margin:24px 24px 12px;color:var(--macau-green-deep);font-size:20px;line-height:1.5}
+.quote-meta{margin:6px 24px;font-size:14px;color:var(--text-soft)}
+.quote-foreign{margin:10px 24px;font-style:italic;color:var(--text);font-size:15px;line-height:1.7}
+.quote-zh-main{margin:8px 24px;font-size:17px;font-weight:700;color:var(--macau-green-deep);line-height:1.7}
+.quote-desc{margin:10px 24px 14px;font-size:14px;color:var(--text-soft);line-height:1.7}
+.quote-ref{margin:6px 24px;font-size:14px;color:var(--text-soft)}
+.quote-close{width:100%;padding:14px;background:var(--macau-green);color:var(--rice-white);border:none;margin-top:auto;font-size:16px;font-weight:700;cursor:pointer;position:sticky;bottom:0}
+.quote-card::-webkit-scrollbar{width:10px}
+.quote-card::-webkit-scrollbar-track{background:var(--rice-white-soft)}
+.quote-card::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold),var(--macau-green));border-radius:99px}
+/* ========== 蓮花裝飾 ========== */
+.lotus-svg-inline{display:block;margin:0 auto;width:96px;height:96px;animation:lotusFloat 5s ease-in-out infinite;}
+.lotus-svg-inline.sm{width:56px;height:56px;}
+.lotus-corner{position:absolute;font-size:30px;opacity:.22;pointer-events:none;z-index:0;animation:lotusFloat 6s ease-in-out infinite;}
+.lotus-corner.tl{top:-6px;left:-6px;}
+.lotus-corner.tr{top:-6px;right:-6px;animation-delay:1.5s;}
+.lotus-corner.bl{bottom:-6px;left:-6px;animation-delay:3s;}
+.lotus-corner.br{bottom:-6px;right:-6px;animation-delay:4.5s;}
+.quote-card > *,.report-card > *,.koi-card > *{position:relative;z-index:1;}
+.quote-card,.report-card,.koi-card{position:relative;}
+@keyframes lotusFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(10deg)}}
+/* ========== 思辨答題 ========== */
+.question-block{background:#FDFBF7;border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+.question-block h4{font-size:18px;color:var(--macau-green-deep);margin-bottom:12px}
+.asker-badge{display:inline-block;background:var(--macau-green-deep);color:var(--gold-light);font-size:14px;padding:4px 12px;border-radius:99px;margin-bottom:12px;font-weight:700}
+.asker-voice{font-size:14px;color:var(--text-soft);background:var(--rice-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.7}
+.question-text{font-size:17px;line-height:1.8;margin-bottom:14px}
+.options{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.option{background:#FDFBF7;border:2px solid var(--line);border-radius:10px;padding:13px 15px;font-size:15.5px;text-align:left;cursor:pointer;transition:.2s;color:var(--text)}
+.option:hover{border-color:var(--gold)}
+.option.active{border-color:var(--macau-green);background:var(--macau-green-light);color:var(--macau-green-deep);font-weight:700}
+.note{background:var(--gold);color:var(--macau-green-deep);padding:12px 14px;border-radius:10px;font-size:15px;line-height:1.7;display:none;font-weight:700}
+.note.show{display:block}
+.note.wrong{background:rgba(181,78,66,.12);border:1px solid var(--data-brick);color:var(--data-brick)}
+/* ========== 認知陷阱·逐卡彈窗 ========== */
+.trap-modal{position:fixed;inset:0;background:rgba(10,45,35,.72);display:none;align-items:center;justify-content:center;z-index:320;padding:16px}
+.trap-modal.show{display:flex}
+.trap-card{width:100%;max-width:460px;background:var(--rice-white);border-radius:22px;border:3px solid var(--gold);padding:26px 22px 20px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative;overflow-y:auto;overflow-x:hidden;max-height:88vh;animation:pop .4s ease;-webkit-overflow-scrolling:touch}
+.trap-card::-webkit-scrollbar{width:8px}
+.trap-card::-webkit-scrollbar-track{background:var(--rice-white-soft);border-radius:99px}
+.trap-card::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold) 0%,var(--macau-green) 100%);border-radius:99px}
+.trap-head{text-align:center;margin-bottom:14px;}
+.trap-head .trap-epi{font-size:13px;color:var(--gold);letter-spacing:2px;font-weight:700}
+.trap-head h3{color:var(--macau-green-deep);font-size:20px;margin:6px 0 2px;line-height:1.4}
+.trap-station{display:inline-block;background:var(--macau-green);color:var(--rice-white);font-size:12px;padding:3px 12px;border-radius:99px;margin-top:6px;font-weight:700}
+.trap-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:12px;margin-bottom:10px;font-size:15px;line-height:1.7}
+.trap-row .ico{flex:0 0 auto;font-size:20px;line-height:1;padding-top:1px}
+.trap-row.wrong-row{background:rgba(181,78,66,.09);border-left:4px solid var(--data-brick)}
+.trap-row.right-row{background:rgba(14,122,95,.09);border-left:4px solid var(--macau-green)}
+.trap-row .lbl{font-weight:700;margin-right:4px}
+.trap-row.wrong-row .lbl{color:var(--data-brick)}
+.trap-row.right-row .lbl{color:var(--macau-green-deep)}
+.trap-tip{background:linear-gradient(135deg,#FFF6E0,#F5E6C8);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;margin:6px 0 16px;font-size:14px;line-height:1.75;color:var(--text)}
+.trap-tip .lbl{color:var(--macau-green-deep);font-weight:700}
+.trap-nav{display:flex;align-items:center;gap:10px;margin-top:4px}
+.trap-nav .trap-progress{flex:1;text-align:center;font-size:13px;color:var(--text-soft)}
+.trap-nav button{border:none;border-radius:12px;padding:11px 16px;font-size:15px;font-weight:700;cursor:pointer}
+.trap-prev{background:var(--gold-light);color:var(--macau-green-deep)}
+.trap-next{background:var(--macau-green);color:var(--rice-white);flex:1}
+.trap-goto{background:var(--gold);color:var(--macau-green-deep);width:100%;margin-top:10px}
+.trap-close{width:100%;background:transparent;color:var(--text-soft);border:none;margin-top:8px;font-size:13px;cursor:pointer;text-decoration:underline}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+/* ========== 勳章報告 ========== */
+.report-modal{position:fixed;inset:0;background:rgba(10,45,35,.75);display:none;align-items:center;justify-content:center;z-index:300;padding:16px}
+.report-modal.show{display:flex}
+.report-card{width:100%;max-width:460px;background:var(--rice-white);border-radius:20px;border:3px solid var(--gold);padding:24px;max-height:88vh;overflow-y:auto}
+.report-card h2{color:var(--macau-green-deep);font-size:24px;margin-bottom:6px;text-align:center}
+.report-card .sub{text-align:center;color:var(--text-soft);font-size:14px;margin-bottom:18px}
+.report-score{text-align:center;margin-bottom:18px}
+.report-score .score-ring{font-size:42px;font-weight:700;color:var(--macau-green-deep)}
+.report-score .level{font-size:20px;font-weight:700;color:var(--gold);margin-top:6px}
+.report-badges{margin-bottom:18px}
+.report-badges h4{font-size:16px;color:var(--macau-green-deep);margin-bottom:8px}
+.badge-list{display:flex;flex-wrap:wrap;gap:8px}
+.badge{background:linear-gradient(135deg,#FFF6E0,#F5E6C8);color:var(--macau-green-deep);border:1px solid var(--gold);padding:6px 12px;border-radius:99px;font-size:13px;font-weight:600}
+.badge.lock{background:#eee;color:#999;border:1px solid #ccc}
+.report-seals{margin-bottom:18px}
+.report-seals h4{font-size:16px;color:var(--macau-green-deep);margin-bottom:8px}
+.seal-list{display:flex;flex-wrap:wrap;gap:8px}
+.seal{background:var(--gold);color:var(--macau-green-deep);padding:6px 12px;border-radius:99px;font-size:13px;font-weight:700}
+.report-actions{display:flex;gap:10px;margin-top:20px}
+.report-actions button{flex:1;padding:12px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer}
+.btn-review{background:var(--macau-green);color:#fff}
+.btn-share{background:var(--gold);color:var(--macau-green-deep)}
+.report-card::-webkit-scrollbar{width:8px}
+.report-card::-webkit-scrollbar-track{background:var(--rice-white-soft);border-radius:99px}
+.report-card::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold) 0%,var(--macau-green) 100%);border-radius:99px}
+.lotus-deco{position:absolute;font-size:28px;opacity:.18;pointer-events:none;z-index:0;animation:lotusFloat 6s ease-in-out infinite;}
+.lotus-tl{top:-8px;left:-8px;animation-delay:0s;}
+.lotus-tr{top:-8px;right:-8px;animation-delay:1.5s;}
+.lotus-bl{bottom:-8px;left:-8px;animation-delay:3s;}
+.lotus-br{bottom:-8px;right:-8px;animation-delay:4.5s;}
+.lotus-center{top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;opacity:.04;animation:lotusFloat 8s ease-in-out infinite;}
+.report-card h2,.report-card .sub,.report-score,.report-badges,.report-seals,.report-actions,.report-footer{position:relative;z-index:1;}
+.score-ring{font-size:52px;font-weight:700;color:var(--macau-green-deep);text-shadow:0 0 20px rgba(200,162,78,.4);line-height:1.2;}
+.lotus-divider{text-align:center;font-size:18px;color:var(--gold);margin:12px 0 8px;opacity:.7;letter-spacing:8px;}
+.report-footer{text-align:center;margin:16px 0 20px;}
+.report-quote{font-size:14px;color:var(--text-soft);line-height:1.8;font-style:italic;}
+.report-wrong-cards{margin-bottom:18px}
+.report-wrong-cards h4{font-size:16px;color:var(--macau-green-deep);margin-bottom:8px}
+.wrong-card-list{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;padding-right:6px;-webkit-overflow-scrolling:touch}
+.wrong-card-list::-webkit-scrollbar{width:8px}
+.wrong-card-list::-webkit-scrollbar-track{background:var(--rice-white-soft);border-radius:99px}
+.wrong-card-list::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--data-brick) 0%,var(--gold) 100%);border-radius:99px}
+.wrong-card-item{background:var(--rice-white);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.7}
+.wrong-card-header{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.wrong-card-num{background:var(--data-brick);color:#fff;font-size:11px;padding:1px 6px;border-radius:4px;font-weight:700}
+.wrong-card-station{font-size:12px;color:var(--text-soft);font-weight:700}
+.wrong-card-title{font-size:14px;font-weight:700;color:var(--macau-green-deep)}
+.wrong-card-choice,.wrong-card-answer{margin-bottom:4px}
+.wrong-card-choice .lbl,.wrong-card-answer .lbl{font-weight:700}
+.wrong-card-choice .wrong-text{color:var(--data-brick)}
+.wrong-card-answer .right-text{color:var(--macau-green-deep)}
+.review-empty{text-align:center;color:var(--text-soft);font-size:15px;padding:20px 0}
+/* ========== 其他組件 ========== */
+.point-list{list-style:none;margin-bottom:6px}
+.point-list li{
+position:relative;padding:9px 12px 9px 34px;font-size:15.5px;line-height:1.75;margin-bottom:8px;
+background:var(--rice-white);border:1px solid var(--line);border-radius:10px;
+}
+.point-list li::before{
+content:"🪷";position:absolute;left:10px;top:9px;font-size:15px;
+}
+.callout{
+background:linear-gradient(135deg,#FFF6E0,#F5E6C8);border:1px solid var(--gold);border-radius:12px;
+padding:14px 16px;font-size:15px;line-height:1.8;color:var(--text);
+}
+.callout b{color:var(--macau-green-deep)}
+.proposal-block{
+background:#ffffff;
+border:1px solid var(--line);
+border-radius:12px;
+padding:20px;
+margin:16px 0;
+white-space:pre-wrap;
+font-size:15px;
+line-height:1.85;
+color:var(--text);
+box-shadow:inset 0 1px 8px rgba(14,122,95,.08);
+}
+.sign-input-wrap{margin:16px 0;display:flex;flex-direction:column;gap:10px}
+.sign-input-wrap label{font-size:15px;font-weight:bold;color:var(--macau-green-deep)}
+.sign-input-wrap input{
+padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:16px;
+background:#fff;transition:border .25s ease;
+}
+.sign-input-wrap input:focus{outline:none;border-color:var(--macau-green)}
+.btn-copy{
+width:100%;background:var(--gold);color:var(--macau-green-deep);border:none;border-radius:12px;
+padding:14px;font-size:16px;font-weight:700;margin-top:10px;cursor:pointer;
+transition:all .2s ease;
+}
+.btn-copy:hover{filter:brightness(1.04)}
+.btn-copy:active{transform:scale(0.985)}
+.btn-copy:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+/* 簽署區操作按鈕 */
+.sign-action-btn{
+  width:100%;background:var(--gold);color:var(--macau-green-deep);border:none;border-radius:12px;
+  padding:14px 16px;font-size:16px;font-weight:700;cursor:pointer;
+  transition:all .2s ease;box-shadow:0 2px 8px rgba(200,162,78,.15);
+}
+.sign-action-btn:hover{filter:brightness(1.06);box-shadow:0 4px 12px rgba(200,162,78,.25)}
+.sign-action-btn:active{transform:scale(0.985)}
+.sign-action-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none}
+.next-btn{
+width:100%;background:var(--macau-green);color:var(--rice-white);border:none;border-radius:12px;
+padding:15px;font-size:17px;font-weight:700;margin-top:16px;cursor:pointer;letter-spacing:1px;
+transition:all .2s ease;
+}
+.next-btn:hover{background:var(--macau-green-deep)}
+.next-btn:active{transform:scale(0.985)}
+.next-btn.finish{background:linear-gradient(90deg,var(--macau-green) 0%,var(--gold) 100%);color:var(--macau-green-deep)}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:14px;color:var(--text-soft)}
+.card-footer .index{background:var(--rice-white-soft);border:1px solid var(--line);padding:5px 12px;border-radius:99px}
+.compare-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:14.5px}
+.compare-table th{background:var(--macau-green);color:var(--rice-white);padding:10px 8px;font-size:14px;letter-spacing:1px}
+.compare-table th:nth-child(2){background:var(--macau-green-deep)}
+.compare-table th:nth-child(3){background:var(--gold);color:var(--macau-green-deep)}
+.compare-table td{padding:10px 8px;border:1px solid var(--line);text-align:center;line-height:1.6;vertical-align:middle}
+.compare-table td:first-child{font-weight:700;color:var(--macau-green-deep);background:var(--macau-green-light)}
+.compare-table tr:nth-child(even) td:not(:first-child){background:#FDFBF7}
+.final-hero{
+background:linear-gradient(180deg,var(--macau-green-deep) 0%,var(--macau-green) 100%);
+border-radius:16px;padding:34px 24px;text-align:center;color:var(--rice-white);
+margin-bottom:20px;border:3px solid var(--gold);position:relative;overflow:hidden;
+}
+.final-hero::before{
+content:"";position:absolute;left:-20px;right:-20px;bottom:-40px;height:110px;
+background:repeating-linear-gradient(90deg,var(--gold) 0 12px,transparent 12px 24px);
+opacity:.3;border-radius:50%;filter:blur(2px);
+}
+.final-hero .big{font-size:52px;margin-bottom:8px;animation:floatY 4s ease-in-out infinite}
+.final-hero h2{font-size:26px;letter-spacing:3px;margin-bottom:10px}
+.final-hero p{font-size:15px;line-height:1.9;color:var(--gold-light);max-width:560px;margin:0 auto 12px;position:relative;z-index:1}
+.final-hero .motto{font-size:17px;font-weight:700;color:var(--gold);letter-spacing:2px}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.lotus-top{text-align:center;font-size:36px;line-height:1.3;animation:floatY 4s ease-in-out infinite;margin-bottom:4px}
+.lotus-bottom{display:flex;justify-content:center;gap:12px;font-size:17px;opacity:.85;margin:12px 0 4px;animation:floatY 5s ease-in-out infinite}
+.tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.tag{background:var(--macau-green-light);color:var(--macau-green-deep);border:1px solid var(--macau-green);padding:7px 13px;border-radius:99px;font-size:13.5px}
+.tag.gold{background:var(--gold);color:var(--macau-green-deep);border-color:var(--gold);font-weight:700}
+footer.renri-footer{
+max-width:960px;margin:28px auto 0;padding:20px 16px 0;
+text-align:center;color:var(--text-soft);font-size:13px;line-height:1.8;border-top:1px solid var(--line);
+}
+footer.renri-footer b{color:var(--macau-green-deep)}
+.mini-watermark{position:fixed;top:12px;right:12px;width:54px;height:54px;opacity:.5;z-index:900;pointer-events:none;animation:watermarkFloat 8s ease-in-out infinite}
+@keyframes watermarkFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(3deg)}}
+/* 通用彈窗 */
+.modal{display:none;position:fixed;inset:0;background:rgba(10,45,35,.75);z-index:1200;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.modal-card{width:100%;max-width:460px;background:#fff;border-radius:20px;padding:28px 24px;text-align:center;
+box-shadow:0 10px 40px rgba(0,0,0,.2);animation:pop .4s ease;max-height:88vh;overflow-y:auto;
+}
+.modal-card::-webkit-scrollbar{width:8px}
+.modal-card::-webkit-scrollbar-track{background:var(--rice-white-soft);border-radius:99px}
+.modal-card::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold),var(--macau-green));border-radius:99px}
+.modal-card h3{font-size:22px;color:var(--macau-green-deep);margin-bottom:10px}
+.modal-card p{color:var(--text-soft);margin-bottom:20px;line-height:1.7}
+.modal-btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.modal-btn-row button{flex:1;min-width:120px}
+/* 粒子蓮花慶祝畫布 */
+#particleCanvas{position:fixed;inset:0;z-index:1300;display:none;pointer-events:auto}
+#particleCanvas.show{display:block}
+/* canvas海報預覽區 */
+.poster-preview{margin-top:14px}
+#posterCanvas{max-width:100%;border-radius:12px;border:1px solid var(--line);background:#fff}
+.share-btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.share-btn-row .btn-copy{margin-top:0;flex:1;min-width:130px}
+/* 首次進入彈窗 */
+.hint-modal{display:none;position:fixed;inset:0;background:rgba(10,45,35,.75);z-index:500;align-items:center;justify-content:center;padding:16px}
+.hint-modal.show{display:flex}
+.hint-card{width:100%;max-width:540px;background:var(--rice-white);border:2px solid var(--gold);border-radius:16px;padding:26px 24px 20px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.4);max-height:88vh;overflow-y:auto;animation:pop .45s ease}
+.hint-card::-webkit-scrollbar{width:8px}
+.hint-card::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold),var(--macau-green));border-radius:99px}
+.hint-card .fret-mark{position:absolute;top:12px;right:12px;width:52px;height:38px}
+.hint-card h2{margin:4px 0 4px;color:var(--macau-green-deep);font-size:21px;text-align:center;letter-spacing:2px;line-height:1.5}
+.hint-card .h-sub{text-align:center;font-size:13.5px;color:var(--gold);font-weight:700;letter-spacing:3px;margin-bottom:14px}
+.hint-section{margin:12px 0;padding:12px 14px;background:#FDFBF7;border:1px solid var(--line);border-radius:12px;border-left:4px solid var(--macau-green)}
+.hint-section.gold{border-left-color:var(--gold)}
+.hint-section .h-title{font-size:15px;font-weight:700;color:var(--macau-green-deep);margin-bottom:5px}
+.hint-section p{font-size:14px;line-height:1.8;color:var(--text)}
+.hint-feedback{margin-top:14px;font-size:12.5px;color:var(--text-soft);line-height:1.6;text-align:center}
+.hint-feedback a{color:var(--macau-green-deep);text-decoration:underline}
+.hint-check{display:flex;align-items:center;gap:8px;margin-top:14px;padding:0 10px;font-size:13.5px;color:var(--text-soft);cursor:pointer}
+.hint-check input[type=checkbox]{accent-color:var(--macau-green);width:16px;height:16px;cursor:pointer}
+.hint-start{width:calc(100% - 20px);margin:16px 10px 8px;background:linear-gradient(90deg,var(--macau-green) 0%,var(--macau-green-deep) 100%);color:var(--rice-white);border:none;border-radius:12px;padding:15px;font-size:17px;font-weight:700;cursor:pointer;letter-spacing:2px;transition:filter .2s}
+.hint-start:hover{filter:brightness(1.08)}
+.hint-about{
+width:calc(100% - 20px);margin:10px 10px 0;background:var(--rice-white);
+color:var(--macau-green-deep);border:2px dashed var(--gold);
+border-radius:12px;padding:13px;font-size:14.5px;font-weight:700;
+cursor:pointer;letter-spacing:1px;transition:all .2s;
+}
+.hint-about:hover{background:var(--gold-light);border-style:solid}
+.warn{color:var(--data-brick)}
+/* 項目說明彈窗 */
+.about-modal{display:none;position:fixed;inset:0;background:rgba(10,45,35,.82);z-index:600;align-items:center;justify-content:center;padding:16px}
+.about-modal.show{display:flex}
+.about-card{
+width:100%;max-width:560px;max-height:88vh;background:var(--rice-white);
+border:2px solid var(--gold);border-radius:16px;position:relative;
+box-shadow:0 24px 70px rgba(0,0,0,.45);
+display:flex;flex-direction:column;animation:popIn .45s ease;
+}
+.about-card .fret-mark{position:absolute;top:12px;right:12px;width:50px;height:36px;opacity:.85}
+.about-card .lotus-top{margin-top:14px}
+.about-card h2{margin:2px 0;color:var(--macau-green-deep);font-size:22px;text-align:center;letter-spacing:2px}
+.about-card .h-sub{text-align:center;font-size:12.5px;color:var(--gold);font-weight:700;letter-spacing:2px;margin-bottom:12px}
+.about-nav{
+display:flex;gap:6px;flex-wrap:wrap;justify-content:center;
+padding:8px 14px;background:var(--macau-green-light);
+border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.about-nav a{
+font-size:13px;color:var(--text-soft);text-decoration:none;
+padding:6px 11px;border-radius:99px;border:1px solid transparent;
+transition:all .2s;white-space:nowrap;
+}
+.about-nav a:hover{color:var(--macau-green-deep)}
+.about-nav a.active{
+background:var(--macau-green);color:var(--rice-white);font-weight:700;
+}
+.about-body{
+flex:1;overflow-y:auto;padding:6px 20px 4px;
+scroll-behavior:smooth;
+scrollbar-width:thin;scrollbar-color:var(--gold) var(--rice-white-soft);
+}
+.about-body::-webkit-scrollbar{width:8px}
+.about-body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold),var(--macau-green));border-radius:99px}
+.about-body section{padding:16px 0;border-bottom:1px dashed var(--line)}
+.about-body section:last-child{border-bottom:none}
+.about-body h3{
+font-size:17px;color:var(--macau-green-deep);margin-bottom:8px;
+letter-spacing:1px;position:sticky;top:0;background:var(--rice-white);padding:4px 0;
+}
+.about-body p{font-size:14.5px;line-height:1.85;color:var(--text);margin-bottom:8px}
+.about-body ul{list-style:none;margin:0}
+.about-body ul li{
+position:relative;padding:7px 0 7px 20px;font-size:14.5px;line-height:1.8;color:var(--text);
+border-bottom:1px solid rgba(217,207,184,.4);
+}
+.about-body ul li:last-child{border-bottom:none}
+.about-body ul li::before{
+content:"🪷";position:absolute;left:0;top:7px;font-size:11px;opacity:.8;
+}
+.about-body ul li strong{color:var(--macau-green-deep)}
+.about-body a{color:var(--macau-green-deep);text-decoration:underline}
+.about-footer{
+padding:12px 20px 18px;border-top:1px solid var(--line);
+background:linear-gradient(180deg,transparent,var(--rice-white-soft));
+}
+.about-close{
+width:100%;background:linear-gradient(90deg,var(--macau-green) 0%,var(--macau-green-deep) 100%);
+color:var(--rice-white);border:none;border-radius:12px;padding:14px;
+font-size:16px;font-weight:700;cursor:pointer;letter-spacing:2px;margin-top:10px;
+transition:filter .2s;
+}
+.about-close:hover{filter:brightness(1.08)}
+/* 魚躍龍門終章 */
+.koi-modal{position:fixed;inset:0;background:rgba(10,45,35,.72);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.koi-modal.show{display:flex}
+.koi-card{width:100%;max-width:400px;background:var(--rice-white);border-radius:24px;overflow:hidden;position:relative;border:3px solid var(--gold);box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .45s ease;max-height:88vh;display:flex;flex-direction:column}
+.koi-header{height:180px;background:radial-gradient(circle at 30% 30%,var(--gold-light) 0%,transparent 26%),linear-gradient(180deg,var(--macau-green-deep) 0%,var(--macau-green) 100%);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.koi-header::before{content:"";position:absolute;left:-20px;right:-20px;bottom:-40px;height:120px;background:repeating-linear-gradient(90deg,var(--gold) 0 12px,transparent 12px 24px);opacity:.35;border-radius:50%;filter:blur(2px)}
+.koi-fish{font-size:68px;position:relative;z-index:2;animation:fish 1.6s ease-in-out infinite}
+@keyframes fish{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(6deg)}}
+.longmen{position:absolute;top:24px;right:24px;background:var(--gold);color:var(--macau-green-deep);padding:6px 12px;border-radius:99px;font-size:13px;font-weight:700;z-index:3}
+.koi-body{padding:26px 24px 22px;text-align:center;overflow-y:auto;flex:1}
+.koi-body h2{color:var(--macau-green-deep);font-size:26px;letter-spacing:2px;margin-bottom:8px}
+.koi-body .sub{color:var(--text-soft);font-size:15px;margin-bottom:14px}
+.koi-body p{font-size:15.5px;line-height:1.8;color:var(--text);margin-bottom:14px}
+.gold-lotus{font-size:44px;margin:10px 0 6px}
+.modal-buttons{display:flex;gap:10px;position:sticky;bottom:0;background:linear-gradient(180deg,rgba(248,245,240,0),var(--rice-white) 32%);padding-top:12px}
+.modal-buttons button{flex:1;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-primary{background:var(--macau-green);color:var(--rice-white)}
+.btn-secondary{background:var(--gold);color:var(--macau-green-deep)}
+@media(max-width:520px){
+.compare-table{font-size:12.2px}
+.compare-table td,.compare-table th{padding:6px 3px}
+.lotus-item{font-size:20px}
+}
+/* Toast通知系统 */
+.toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--macau-green-deep);color:var(--rice-white);padding:12px 24px;border-radius:12px;font-size:15px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transform:translateY(-10px);transition:all .3s ease;pointer-events:auto;max-width:90vw;text-align:center;border:1px solid var(--gold)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.error{background:var(--data-brick);border-color:var(--data-brick)}
+.toast.success{background:var(--macau-green);border-color:var(--macau-green)}
+/* prefers-reduced-motion 无障碍 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .lotus-item.active{animation:none}
+  .lotus-svg-inline,.lotus-corner,.lotus-deco,.lotus-top,.lotus-bottom,.koi-fish,.mini-watermark{animation:none}
+}
+/* will-change 性能提示 */
+.lotus-item.active,.lotus-svg-inline,.lotus-corner,.lotus-deco,.koi-fish,.mini-watermark{will-change:transform,opacity}
+@media (prefers-reduced-motion: reduce) {
+  .lotus-item.active,.lotus-svg-inline,.lotus-corner,.lotus-deco,.koi-fish,.mini-watermark{will-change:auto}
+}
+</style>
+</head>
+<body>
+<!-- 粒子慶祝畫布 -->
+<canvas id="particleCanvas"></canvas>
+<!-- 開啟頁彈窗【文本已替換為後者文檔內容】 -->
+<div class="hint-modal" id="hintModal">
+<div class="hint-card">
+<svg class="fret-mark" viewBox="0 0 84 62" aria-hidden="true">
+<g fill="none" stroke="#C8A24E" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24" /></g>
+<rect x="72" y="4" width="4" height="4" fill="#C8A24E" />
+</svg>
+<div class="lotus-top" style="font-size:38px">🪷</div>
+<h2>人日 · 華夏誕辰</h2>
+<div class="h-sub">— 開啟頁 · 十站倡議 · 點亮蓮花 · 簽署倡議書 —</div>
+<div class="hint-section">
+<div class="h-title">🌊 歡迎來到正月初七</div>
+<p>漢代《占書》記載：正月一日為雞，二日為狗……七日為人。兩千年來，正月初七一直是「人」自己的生日。只是後來，我們漸漸忘記了——這一天，人人都過生日。</p>
+</div>
+<div class="hint-section gold">
+<div class="h-title">📜 互動說明</div>
+<p>十個章節，每閱完一站點亮一朵蓮花🪷。抵達最後一站，填寫姓名生成<strong>簽名版倡議書</strong>，可複製、導出TXT、生成分享海報。看完，你就是人日的發起人之一。</p>
+</div>
+<div class="hint-section">
+<div class="h-title">🗺️ 你將走過的十站</div>
+<p>壹·人的誕辰 → 貳·聖誕對標 → 叁·人日來源 → 肆·傳統習俗 → 伍·非遺倡議 → 陸·法定節假日倡議 → 柒·全民狂歡 → 捌·全球華人 → 玖·AI時代與人的文明 → 拾·簽名版倡議書</p>
+</div>
+<div class="hint-section">
+<div class="h-title">🎁 你能帶走的</div>
+<p>兩千年文獻譜系、人日儀式圖譜、屬於你的簽名倡議書，以及一句問候：「人日快樂。」</p>
+</div>
+<div class="hint-section gold">
+<div class="h-title">⚠️ 提示</div>
+<p class="warn">本站為民間倡議草案，僅供文化倡議與公共討論，不代表官方立場；文獻引文建議以原典核對後再作學術引用。</p>
+</div>
+<div class="hint-feedback">史料勘誤、共建建議：<a href="mailto:liukui2050@gmail.com">liukui2050@gmail.com</a></div>
+<button class="hint-about" id="hintAboutBtn" type="button">📋 項目說明 · 定位 / 技術 / 隱私 / 版權 / 使用邊界</button>
+<label class="hint-check" id="hintCheckLabel">
+<input type="checkbox" id="hintDontShow">
+<span>【已停用】下次進入不再顯示本開啟頁</span>
+</label>
+<div class="lotus-bottom">🪷 🪷 🪷</div>
+<button class="hint-start" id="hintStartBtn">啟程 · 點亮蓮花</button>
+</div>
+</div>
+<!-- 項目說明彈窗 -->
+<div class="about-modal" id="aboutModal">
+<div class="about-card">
+<svg class="fret-mark" viewBox="0 0 84 62" aria-hidden="true">
+<g fill="none" stroke="#C8A24E" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24" /></g>
+<rect x="72" y="4" width="4" height="4" fill="#C8A24E" />
+</svg>
+<div class="lotus-top" style="font-size:34px">🪷</div>
+<h2>項目說明書</h2>
+<div class="h-sub">人日 · 華夏誕辰｜互動思辨倡議 H5</div>
+<div class="about-nav" id="aboutNav">
+<a href="#about-pos" class="active">項目定位</a>
+<a href="#about-tech">技術特點</a>
+<a href="#about-privacy">數據與隱私</a>
+<a href="#about-copy">版權聲明</a>
+<a href="#about-bound">使用邊界</a>
+</div>
+<div class="about-body" id="aboutBody">
+<section id="about-pos">
+<h3>🎯 一、項目定位</h3>
+<p>這是一份<strong>關於「正月初七 · 人日」的文化倡議草案</strong>，以互動 H5 形式呈現：把兩千年來散落在典籍中的「人」的誕辰，重新放回當代人的節日視野。</p>
+<ul>
+<li><strong>形式</strong>：史料卡閱讀 + 思辨答題 + 勳章印章冊 + 倡議書簽署，單人、移動端優先的互動體驗。</li>
+<li><strong>目的</strong>：喚起公眾對人日節俗的認知，推動「人日」納入非遺保護與公共討論議程，並提供可簽署、可轉發的倡議文本。</li>
+<li><strong>不是什麼</strong>：不是官方政令、不是宗教活動、不是學術機構結論、不具任何法律或行政效力。</li>
+<li><strong>署名</strong>：@liukui · 民間個人倡議，歡迎共建與勘誤。</li>
+</ul>
+</section>
+<section id="about-tech">
+<h3>⚙️ 二、技術特點</h3>
+<ul>
+<li><strong>純前端單文件</strong>：HTML + CSS + 原生 JavaScript，單一文件即可運行，無需安裝、無需後端服務。</li>
+<li><strong>零依賴部署</strong>：除圖表庫（ECharts，可選 CDN）外，所有互動邏輯自包含；斷網時核心閱讀與答題功能仍可用。</li>
+<li><strong>資料全部本地</strong>：題目、史料卡、評分、簽名均存於瀏覽器 localStorage，不上傳任何伺服器。</li>
+<li><strong>離線可用</strong>：載入一次後可離線閱讀與作答；海報生成使用 Canvas 本地繪製。</li>
+<li><strong>響應式設計</strong>：適配手機、平板、桌面端，字號與點擊區域均符合移動端可訪問性要求。</li>
+<li><strong>開源可改</strong>：結構清晰、無混淆代碼，可自行修改文字、配色與題目內容。</li>
+</ul>
+</section>
+<section id="about-privacy">
+<h3>🔒 三、數據與隱私</h3>
+<ul>
+<li><strong>不收集個人資料</strong>：本項目不設帳號、不追蹤用戶、不接入第三方統計（如 Google Analytics、埋點 SDK）。</li>
+<li><strong>資料留存於本機</strong>：作答進度、勳章、簽名姓名只寫入您設備的瀏覽器 localStorage，隨時可清除。</li>
+<li><strong>不聯網傳輸</strong>：簽名與倡議書僅在您本機生成、複製、下載或保存圖片，不會被發送到任何伺服器。</li>
+<li><strong>分享由您主導</strong>：「分享」按鈕調用的是系統原生分享介面，具體可見範圍取決於您使用的平台。</li>
+<li><strong>清除方式</strong>：清除瀏覽器快取／網站資料即可重置全部進度；勾選「不再顯示」也同樣以 localStorage 標記。</li>
+<li><strong>我們看不到您</strong>：項目維護者無法獲取任何一位使用者的作答紀錄或簽名內容。</li>
+</ul>
+</section>
+<section id="about-copy">
+<h3>©️ 四、版權聲明</h3>
+<ul>
+<li><strong>文本與設計</strong>：本 H5 的界面設計、互動結構、原創文案 © @liukui，採用 <strong>CC BY-NC‑SA 4.0</strong> 協議授權——署名、非商業、相同方式共享。</li>
+<li><strong>古籍引文</strong>：所引《占書》《荊楚歲時記》《北史·魏收傳》《太平御覽》《遵生八箋》《帝京景物略》等為中國古籍公版文獻，譯注僅供參考。</li>
+<li><strong>外文史料</strong>：如高延（J. J. M. de Groot）、祿是遒（H. Doré）等早期漢學著作多已進入公版；個別近人論著引文僅作節引，權利歸原作者所有。</li>
+<li><strong>圖像與圖標</strong>：界面圖標為 Unicode 字符與純 CSS/SVG 繪製，可自由使用；如您替換為第三方素材，請自行核實授權。</li>
+<li><strong>學術引用提示</strong>：倡議文本中的文獻引文建議以原典核對後再作正式引用，本頁譯文不作為唯一依據。</li>
+<li><strong>商用需授權</strong>：商業用途、改編出版、機構部署請先聯繫作者取得書面授權。</li>
+</ul>
+</section>
+<section id="about-bound">
+<h3>🚧 五、使用邊界</h3>
+<ul>
+<li><strong>年齡與內容</strong>：內容面向一般公眾，無不適齡元素；但涉及歷史文獻解讀，建議具備基礎閱讀能力者使用。</li>
+<li><strong>非醫療、非法律、非投資建議</strong>：本項目不提供任何專業意見，答題結果僅為文化思辨練習。</li>
+<li><strong>非官方立場</strong>：文中「倡議」為民間提案，不代表政府、宗教團體或任何機構的正式立場。</li>
+<li><strong>答題無標準答案之處</strong>：部分思辨題重在辨析認知偏差，選項設計意在暴露常見誤區，不代表唯一正解。</li>
+<li><strong>可訪問性</strong>：已考慮字號、對比度與點擊區域；若您使用輔助工具遇到障礙，歡迎回饋。</li>
+<li><strong>免責</strong>：本項目按「現狀」提供，作者不對因使用本項目產生的任何直接或間接損失承擔責任。</li>
+<li><strong>反饋渠道</strong>：史料勘誤、錯字、建議請寄 <a href="mailto:liukui2050@gmail.com">liukui2050@gmail.com</a>。</li>
+</ul>
+</section>
+</div>
+<div class="about-footer">
+<label class="hint-check" id="aboutCheckLabel">
+<input type="checkbox" id="aboutDontShow">
+<span>不再顯示本開啟頁（含項目說明）</span>
+</label>
+<button class="about-close" id="aboutCloseBtn" type="button">我已知悉，啟程</button>
+</div>
+</div>
+</div>
+<!-- 思辨報告彈窗 -->
+<div class="report-modal" id="reportModal">
+<div class="report-card">
+<div class="lotus-deco lotus-tl">🪷</div>
+<div class="lotus-deco lotus-tr">🪷</div>
+<div class="lotus-deco lotus-bl">🪷</div>
+<div class="lotus-deco lotus-br">🪷</div>
+<div class="lotus-deco lotus-center">🪷</div>
+<div class="lotus-top" style="font-size:34px;position:relative;z-index:1">🪷</div>
+<h2>思辨報告</h2>
+<div class="sub">人日·華夏誕辰 · 十站思辨</div>
+<div class="report-score">
+<div class="score-ring" id="reportScore">0 / 10</div>
+<div class="level" id="reportLevel"></div>
+<div class="lotus-divider">❁ ❁ ❁</div>
+</div>
+<div class="report-badges">
+<h4>🏅 成就勳章</h4>
+<div class="badge-list" id="badgeList"></div>
+</div>
+<div class="report-seals">
+<h4>🪶 十站印章冊</h4>
+<div class="seal-list" id="sealList"></div>
+</div>
+<div class="report-footer">
+<p class="report-quote">思辨非為推翻，是為看見全貌；<br>紀念人，是文明最大的事。</p>
+</div>
+<div class="report-wrong-cards">
+<h4>📚 思辨陷阱回顧</h4>
+<div class="wrong-card-list" id="wrongCardList"><div class="review-empty" id="wrongCardEmpty">暫無跳坑記錄，思辨完美。</div></div>
+</div>
+<div class="lotus-bottom" style="position:relative;z-index:1">🪷 🪷 🪷</div>
+<div class="report-actions">
+<button class="btn-review" onclick="openTrapCards();">🕳️ 思辨陷阱</button>
+<button class="btn-share" onclick="openProposalFromReport()">📜 签名倡议书</button>
+<button class="btn-share" onclick="downloadReportTxt()" style="background:var(--macau-green-light);color:var(--macau-green-deep)">📥 下載TXT</button>
+<button class="next-btn" style="background:var(--gold-light);color:var(--macau-green-deep);flex:1" onclick="goHome()">🏠 返回首頁</button>
+</div>
+</div>
+</div>
+<!-- 思辨陷阱·逐卡彈窗 -->
+<div class="trap-modal" id="trapModal">
+<div class="trap-card">
+<span class="lotus-corner tl">🪷</span>
+<span class="lotus-corner tr">🪷</span>
+<span class="lotus-corner bl">🪷</span>
+<span class="lotus-corner br">🪷</span>
+<div class="trap-head">
+<div class="trap-epi" id="trapEpi">跳坑最深 · 思辨陷阱回顧</div>
+<h3 id="trapTitle"></h3>
+<span class="trap-station" id="trapStation"></span>
+</div>
+<div id="trapBody"></div>
+<div class="trap-nav">
+<button class="trap-prev" id="trapPrev">‹ 上一題</button>
+<span class="trap-progress" id="trapProgress"></span>
+<button class="trap-next" id="trapNext">下一題 ›</button>
+</div>
+<button class="trap-goto" id="trapGoto">前往該站重新思考</button>
+<button class="trap-close" id="trapClose">返回報告</button>
+</div>
+</div>
+<!-- 史料卡彈窗 -->
+<div class="quote-modal" id="quoteModal">
+<div class="quote-card">
+<span class="lotus-corner tl">🪷</span>
+<span class="lotus-corner tr">🪷</span>
+<span class="lotus-corner bl">🪷</span>
+<span class="lotus-corner br">🪷</span>
+<h3 id="qTitle"></h3>
+<div class="quote-meta" id="qMeta"></div>
+<div class="quote-foreign" id="qForeign"></div>
+<div class="quote-zh-main" id="qZh"></div>
+<div class="quote-desc" id="qDesc"></div>
+<div class="quote-meta" id="qRef"></div>
+<button class="quote-close" onclick="closeQuote()">關閉史料卡</button>
+</div>
+</div>
+<!-- 魚躍龍門終章 -->
+<div class="koi-modal" id="koiModal">
+<div class="koi-card">
+<div class="koi-header">
+<svg style="position:absolute;top:10px;left:10px" width="56" height="42" viewBox="0 0 84 62">
+<g fill="none" stroke="#E3D3A6" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24" /></g>
+<rect x="72" y="4" width="4" height="4" fill="#C8A24E" />
+</svg>
+<div class="longmen">終章賀卡</div>
+<div class="koi-fish">🐟</div>
+</div>
+<div class="koi-body">
+<div class="gold-lotus" style="font-size:56px;animation:lotusFloat 4s ease-in-out infinite;">🪷</div>
+<h2 id="modalHead">人人如龍</h2>
+<div class="sub" id="modalSub">第拾站 · 簽名版倡議書</div>
+<p id="modalPara">恭喜你完成人日十站思辨探索。<br>從女娲造人到AI時代，你走完一場回望人本文明的思辨旅程。</p>
+<div class="tags">
+<span class="tag">十站集章完成</span>
+<span class="tag gold">思辨求真</span>
+<span class="tag">點亮蓮花</span>
+</div>
+<p style="font-size:13px;color:var(--text-soft)" id="modalNote">紀念「人」，是文明最大的事。</p>
+<div class="modal-buttons">
+<button class="btn-secondary" onclick="restart()">重新探索</button>
+<button class="btn-primary" onclick="closeAllModals();openReport();">查看思辨報告</button>
+<button class="next-btn" style="background:var(--gold-light);color:var(--macau-green-deep);flex:1" onclick="goHome()">🏠 返回首頁</button>
+</div>
+</div>
+</div>
+</div>
+<!-- 全部完成慶祝彈窗 -->
+<div class="modal" id="celebrateModal">
+<div class="modal-card">
+<div class="lotus-top" style="font-size:48px;margin-bottom:12px;animation:lotusBounce 1.8s infinite">🪷🪷🪷</div>
+<h3>🎉恭喜你，十朵蓮花全部點亮！</h3>
+<p>你已完整完成人日·華夏誕辰全部十站思辨答題，接下來可以簽署屬於你的倡議書，導出TXT、生成分享海報。</p>
+<button class="next-btn" style="margin:0" id="celebrateOkBtn">確認，繼續前往簽署頁</button>
+<button class="next-btn" style="background:var(--gold-light);color:var(--macau-green-deep);margin-top:10px" onclick="goHome()">🏠 返回首頁</button>
+</div>
+</div>
+<!-- 統計彈窗 -->
+<div class="modal" id="statModal">
+<div class="modal-card">
+<h3>📊 我的參與統計（僅本地瀏覽器）</h3>
+<div id="statBody"></div>
+<div class="modal-btn-row">
+<button class="btn-copy" id="statClearBtn">清除本地數據</button>
+<button class="next-btn" id="statCloseBtn">關閉</button>
+</div>
+</div>
+</div>
+<!-- 分享海報Canvas -->
+<canvas id="shareCanvas" width="1080" height="1920" style="display:none"></canvas>
+<svg class="mini-watermark" viewBox="0 0 84 62" aria-hidden="true">
+<g fill="none" stroke="#C8A24E" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24" /></g>
+<rect x="72" y="4" width="4" height="4" fill="#C8A24E" />
+</svg>
+<header>
+<svg class="fret-mark" viewBox="0 0 84 62" aria-hidden="true">
+<g fill="none" stroke="#C8A24E" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24" /></g>
+<rect x="72" y="4" width="4" height="4" fill="#C8A24E" />
+</svg>
+<div class="lotus-top" style="font-size:40px">🪷</div>
+<h1>人日 · 華夏誕辰</h1>
+<p>正月初七 · 人人有份的生日｜史料卡 · 思辨答題 · 勳章冊</p>
+<div class="sub">誕辰 · 溯源 · 守藝 · 倡議 · 狂歡 · 共生</div>
+</header>
+<div id="compare-chart"></div>
+<div class="progress-bar">
+<div class="progress-title">
+<span>思辨進度</span>
+<span><b id="currentIndex">1</b> / 10</span>
+</div>
+<div class="lotus-row" id="lotusRow"></div>
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+<div class="card-container" id="cardContainer"></div>
+<div class="card-container" id="finalArea" style="display:none">
+<div class="final-hero">
+<div class="big">🐟</div>
+<h2>人人如龍 · 人人有生日</h2>
+<p>從女媧第七日的泥土，到今日世界每一個人的誕辰——<br>人日不屬於某一族、某一國，它屬於全人類。</p>
+<div class="motto">「人日快樂」—— 願它成為世界的問候。</div>
+<div class="tags">
+<span class="tag gold">華夏誕辰</span>
+<span class="tag">全人類生日</span>
+<span class="tag">文明之禮</span>
+</div>
+<div class="lotus-bottom">🪷 🪷 🪷</div>
+</div>
+<button class="next-btn" onclick="restart()">重新閱覽十站倡議</button>
+<button class="next-btn" style="background:var(--gold-light);color:var(--macau-green-deep);margin-top:10px" onclick="goHome()">🏠 返回首頁(開啟彈窗)</button>
+</div>
+<footer class="renri-footer">
+<b>人日 · 華夏誕辰思辨倡議</b>｜正月初七 · 人人有份<br>
+本站文本為倡議草案，歡迎轉發與共議 · 🪷
+</footer>
+<script>
+// localStorage可用性检测与降级
+(function() {
+  var LS_KEY = '__renri_ls_test__';
+  var lsAvailable = true;
+  try { localStorage.setItem(LS_KEY, '1'); localStorage.removeItem(LS_KEY); }
+  catch (e) {
+    lsAvailable = false;
+    console.warn('[Renri] localStorage不可用');
+    setTimeout(function(){showToast && showToast('本地存储不可用，进度将无法保存','error',5000);}, 1000);
+  }
+  var _si = localStorage.setItem, _gi = localStorage.getItem, _ri = localStorage.removeItem;
+  localStorage.setItem = function(k, v) { if (!lsAvailable) return; try { _si.call(localStorage, k, v); } catch(e) {} };
+  localStorage.getItem = function(k) { if (!lsAvailable) return null; try { return _gi.call(localStorage, k); } catch(e) { return null; } };
+  localStorage.removeItem = function(k) { if (!lsAvailable) return; try { _ri.call(localStorage, k); } catch(e) {} };
+})();
+// Toast通知系统
+function showToast(message, type, duration) {
+  type = type || 'info'; duration = duration || 3000;
+  var container = document.getElementById('toastContainer');
+  if (!container) { container = document.createElement('div'); container.id = 'toastContainer'; container.className = 'toast-container'; document.body.appendChild(container); }
+  var toast = document.createElement('div'); toast.className = 'toast ' + type; toast.textContent = message; container.appendChild(toast);
+  requestAnimationFrame(function() { toast.classList.add('show'); });
+  setTimeout(function() { toast.classList.remove('show'); setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300); }, duration);
+}
+window.alert = function(msg) { showToast(String(msg), 'info', 3500); };
+// 全局错误捕获
+window.addEventListener('error', function(e) { console.warn('[Renri] 错误:', e.error ? e.error.message : e.message); });
+window.addEventListener('unhandledrejection', function(e) { console.warn('[Renri] 未处理Promise:', e.reason); });
+// ========= 粒子蓮花慶祝特效 =========
+const particleCanvas = document.getElementById('particleCanvas');
+const pCtx = particleCanvas.getContext('2d');
+let particleList = [];
+let particleRAF = null;
+function resizeParticleCanvas(){
+  if(!particleCanvas){ return; }
+  const w = window.innerWidth || document.documentElement.clientWidth || 360;
+  const h = window.innerHeight || document.documentElement.clientHeight || 640;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  particleCanvas.width = Math.max(1, Math.round(w * dpr));
+  particleCanvas.height = Math.max(1, Math.round(h * dpr));
+  particleCanvas.style.width = w + "px";
+  particleCanvas.style.height = h + "px";
+  if(pCtx){ pCtx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+}
+let _resizeRaf = null;
+function queueResizeParticle(){
+  if(_resizeRaf){ cancelAnimationFrame(_resizeRaf); }
+  _resizeRaf = requestAnimationFrame(function(){
+    resizeParticleCanvas();
+    if(particleList && particleList.length){
+      for(const p of particleList){
+        if(p && p.x > window.innerWidth) p.x = Math.random() * window.innerWidth;
+      }
+    }
+  });
+}
+resizeParticleCanvas();
+window.addEventListener('resize', queueResizeParticle);
+window.addEventListener('scroll', queueResizeParticle, {passive:true});
+particleCanvas.addEventListener("click",()=>{ stopParticleEffect(); });
+class LotusParticle{
+  constructor(){
+    this.reset();
+  }
+  reset(){
+    this.x = Math.random() * particleCanvas.width;
+    this.y = -60;
+    this.size = 18 + Math.random()*22;
+    this.speedY = 1.2 + Math.random()*2.2;
+    this.speedX = -1.2 + Math.random()*2.4;
+    this.rotate = Math.random()*Math.PI*2;
+    this.rotateSpeed = (Math.random()-0.5)*0.04;
+    this.alpha = 0.85;
+  }
+  update(){
+    this.y += this.speedY;
+    this.x += this.speedX;
+    this.rotate += this.rotateSpeed;
+    if(this.y>particleCanvas.height+40){
+      this.reset();
+    }
+  }
+  draw(){
+    pCtx.save();
+    pCtx.globalAlpha = this.alpha;
+    pCtx.translate(this.x,this.y);
+    pCtx.rotate(this.rotate);
+    pCtx.font = `${this.size}px sans-serif`;
+    pCtx.fillText('🪷',0,0);
+    pCtx.restore();
+  }
+}
+function startParticleEffect(count=35){
+  particleCanvas.classList.add('show');
+  particleList = [];
+  for(let i=0;i<count;i++){
+    particleList.push(new LotusParticle());
+  }
+  function tick(){
+    pCtx.clearRect(0,0,particleCanvas.width,particleCanvas.height);
+    for(let p of particleList){
+      p.update();p.draw();
+    }
+    particleRAF = requestAnimationFrame(tick);
+  }
+  tick();
+  setTimeout(()=>{stopParticleEffect();},3200);
+}
+function stopParticleEffect(){
+  if(particleRAF) cancelAnimationFrame(particleRAF);
+  particleCanvas.classList.remove('show');
+  particleList = [];
+}
+// ========= 本地統計模塊 =========
+const STAT_KEY = "renri_stat_v2";
+function getStat(){
+  try{
+    const raw = localStorage.getItem(STAT_KEY);
+    if(!raw){
+      const init = {
+        firstOpen:new Date().toISOString(),
+        completeAll:false,
+        litCount:0,
+        signCount:0
+      };
+      localStorage.setItem(STAT_KEY,JSON.stringify(init));
+      return init;
+    }
+    return JSON.parse(raw);
+  }catch(e){
+    return {firstOpen:new Date().toISOString(),completeAll:false,litCount:0,signCount:0};
+  }
+}
+function saveStat(obj){
+  try{
+    const s = getStat();
+    Object.assign(s,obj);
+    localStorage.setItem(STAT_KEY,JSON.stringify(s));
+  }catch(e){}
+}
+function clearStat(){
+  try{localStorage.removeItem(STAT_KEY);}catch(e){}
+}
+function renderStatModal(){
+  const s = getStat();
+  const el = document.getElementById("statBody");
+  if(!el) return;
+  el.innerHTML = `
+  <p>📅 首次打開：${new Date(s.firstOpen).toLocaleString()}</p>
+  <p>🪷 已點亮蓮花數：${s.litCount} / 10</p>
+  <p>✅ 是否完整通讀：${s.completeAll?"是":"否"}</p>
+  <p>✍️ 簽署倡議書次數：${s.signCount}</p>
+  <p style="font-size:13px;color:#888">*全部數據僅存於你的瀏覽器，不上傳網路</p>
+  `;
+}
+// ========= 狀態管理（localStorage） =========
+let current = 0;
+let score = 0;
+let wrong = [];
+let seals = [];
+let answered = {};
+// 签署相关全局变量
+let signNameGlobal = "";
+let signDateGlobal = "";
+let finalSignedText = "";
+// 点击锁
+let isClickLock = false;
+const STATE_KEY = "renri_game_state";
+function loadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem(STATE_KEY));
+    if(s){
+      current = s.current || 0;
+      score = s.score || 0;
+      wrong = s.wrong || [];
+      seals = s.seals || [];
+      answered = s.answered || {};
+    }
+    if(answered === null) answered = {};
+  }catch(e){
+    current = 0; score = 0; wrong = []; seals = []; answered = {};
+  }
+}
+function saveState(){
+  try{
+    localStorage.setItem(STATE_KEY, JSON.stringify({current, score, wrong, seals, answered}));
+  }catch(e){}
+}
+function recomputeStats(){
+  score = 0; wrong = []; seals = [];
+  data.forEach(function(d){
+    if(answered[d.id] !== undefined){
+      if(answered[d.id] === d.correct){
+        score++;
+        if(!seals.includes(d.seal)) seals.push(d.seal);
+      }else{
+        wrong.push({
+          id: d.id,
+          choice: answered[d.id],
+          answer: d.correct,
+          choiceText: d.options[answered[d.id]],
+          answerText: d.options[d.correct]
+        });
+      }
+    }
+  });
+}
+// ========= 工具函數 =========
+function safeStorageGet(key){try{return localStorage.getItem(key);}catch(e){return null;}}
+function safeStorageSet(key,val){try{localStorage.setItem(key,val);}catch(e){}}
+function safeStorageRemove(key){try{localStorage.removeItem(key);}catch(e){}}
+async function copyPlainText(text){
+ try{await navigator.clipboard.writeText(text);return true;}
+ catch(e){
+  const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);return true;
+ }
+}
+function downloadTxtFile(text,filename){
+ const blob = new Blob([text],{type:"text/plain;charset=utf-8"});
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement("a");
+ a.href = url;
+ a.download = filename;
+ document.body.appendChild(a);
+ a.click();
+ document.body.removeChild(a);
+ URL.revokeObjectURL(url);
+}
+// ========= 史料卡彈窗 =========
+const quoteModal = document.getElementById("quoteModal");
+function openQuote(idx){
+  const d = data[idx];
+  if(!d) return;
+  document.getElementById("qTitle").innerText = d.qTitle || d.title;
+  document.getElementById("qMeta").innerText = d.qMeta || "";
+  document.getElementById("qForeign").innerText = d.sourceText || d.foreign || "";
+  document.getElementById("qZh").innerText = d.sourceZh || d.zh || "";
+  document.getElementById("qDesc").innerText = d.qDesc || "";
+  document.getElementById("qRef").innerText = d.sourceRef ? "📚 出處：" + d.sourceRef : "";
+  quoteModal.classList.add("show");
+}
+function closeQuote(){
+  quoteModal.classList.remove("show");
+}
+// ========= 思辨陷阱·逐卡彈窗 =========
+let trapList = [];
+let trapIdx = 0;
+function renderTrapCard(){
+  if(!trapList || trapList.length === 0) return;
+  const w = trapList[trapIdx];
+  if(!w || !w.id) return;
+  const d = data[w.id - 1];
+  if(!d) return;
+  const choiceText = w.choiceText || d.options[w.choice] || "未知選項";
+  const answerText = w.answerText || d.options[d.correct] || "未知答案";
+  
+  document.getElementById("trapEpi").innerText = (trapIdx===0?"跳坑最深 · ":"") + "思辨陷阱回顧";
+  document.getElementById("trapTitle").innerText = d.title;
+  document.getElementById("trapStation").innerText = "第 " + w.id + " 站";
+  document.getElementById("trapProgress").innerText = (trapIdx+1) + " / " + trapList.length;
+  document.getElementById("trapBody").innerHTML = `
+    <div class="trap-row wrong-row">
+      <span class="ico">✗</span>
+      <span><span class="lbl">你的選擇：</span>${choiceText}</span>
+    </div>
+    <div class="trap-row right-row">
+      <span class="ico">✓</span>
+      <span><span class="lbl">正確路徑：</span>${answerText}</span>
+    </div>
+    <div class="trap-tip"><span class="lbl">💡 破坑關鍵：</span>${d.qDesc || "無可用提示"}</div>
+  `;
+  document.getElementById("trapPrev").style.visibility = trapIdx > 0 ? "visible" : "hidden";
+  const isLast = (trapIdx >= trapList.length - 1);
+  document.getElementById("trapNext").innerText = isLast ? "完成 ›" : "下一題 ›";
+  document.getElementById("trapGoto").style.display = "";
+  document.getElementById("trapGoto").innerText = "前往第 " + w.id + " 站重新思考";
+  document.getElementById("trapModal").classList.add("show");
+}
+function openTrapCards(){
+  closeAllModals();
+  trapList = (wrong || []).slice();
+  trapIdx = 0;
+  if(trapList.length === 0){
+    document.getElementById("trapEpi").innerText = "思辨陷阱 · 完美通關";
+    document.getElementById("trapTitle").innerText = "無坑可跳 · 完美思辨";
+    document.getElementById("trapStation").innerText = "🪷";
+    document.getElementById("trapProgress").innerText = "";
+    document.getElementById("trapBody").innerHTML = 
+      '<div class="trap-tip" style="text-align:center">十站走來，你沒有掉進任何一個思辨陷阱。這不是運氣，是你始終願意多想一步。—— 人日倡議發起人 為你喝采 🪷</div>';
+    document.getElementById("trapPrev").style.visibility = "hidden";
+    document.getElementById("trapNext").innerText = "完成 ›";
+    document.getElementById("trapGoto").style.display = "none";
+    document.getElementById("trapModal").classList.add("show");
+  }else{
+    renderTrapCard();
+  }
+}
+function closeTrap(){
+  document.getElementById("trapModal").classList.remove("show");
+}
+document.getElementById("trapPrev").onclick = function(){
+  if(trapIdx > 0){ trapIdx--; renderTrapCard(); }
+};
+document.getElementById("trapNext").onclick = function(){
+  if(trapIdx < trapList.length - 1){
+    trapIdx++; renderTrapCard();
+  }else{
+    closeTrap();
+    openReport();
+  }
+};
+document.getElementById("trapGoto").onclick = function(){
+  const st = trapList[trapIdx].id;
+  current = Math.min(Math.max(st - 1, 0), data.length - 1);
+  wrong = wrong.filter(x => x.id < st);
+  recomputeStats();
+  saveState();
+  closeAllModals();
+  renderCard();
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+document.getElementById("trapClose").onclick = function(){
+  closeTrap();
+  openReport();
+};
+// ========= 思辨報告 =========
+const reportModal = document.getElementById("reportModal");
+function openReport(){
+  closeAllModals();
+  const scoreEl = document.getElementById("reportScore");
+  const levelEl = document.getElementById("reportLevel");
+  if(scoreEl) scoreEl.innerText = score + " / 10";
+  if(levelEl) levelEl.innerText = score===10 ? "人日文脈守護者" : score>=7 ? "思辨行者" : score>=4 ? "初探門徑" : "剛剛啟程";
+  
+  const badges = [
+    {name:"初遇人日", ok:score>=1},
+    {name:"溯源求真", ok:score>=2},
+    {name:"民俗守藝", ok:score>=3},
+    {name:"破二元對立", ok:score>=4},
+    {name:"文明平視", ok:score>=5},
+    {name:"非遺倡議", ok:score>=6},
+    {name:"制度思辨", ok:score>=7},
+    {name:"全球視野", ok:score>=8},
+    {name:"人本反思", ok:score>=9},
+    {name:"人人如龍", ok:score===10}
+  ];
+  const badgeList = document.getElementById("badgeList");
+  if(badgeList){
+    badgeList.innerHTML = "";
+    badges.forEach(function(b){
+      const span = document.createElement("span");
+      span.className = "badge" + (b.ok ? "" : " lock");
+      span.innerText = b.name;
+      badgeList.appendChild(span);
+    });
+  }
+  
+  const sealList = document.getElementById("sealList");
+  if(sealList){
+    sealList.innerHTML = "";
+    data.forEach(function(d){
+      if(seals.includes(d.seal)){
+        const span = document.createElement("span");
+        span.className = "seal";
+        span.innerText = "🪷 " + d.seal;
+        sealList.appendChild(span);
+      }
+    });
+    if(seals.length === 0){
+      sealList.innerHTML = '<span class="badge lock">暫無印章 · 開始答題解鎖</span>';
+    }
+  }
+  
+  renderWrongCardsInReport();
+  if(reportModal){ reportModal.classList.add("show"); }
+}
+function renderWrongCardsInReport(){
+  const list = document.getElementById("wrongCardList");
+  const empty = document.getElementById("wrongCardEmpty");
+  if(!list) return;
+  list.innerHTML = "";
+  if(!wrong || wrong.length === 0){
+    if(empty) empty.style.display = "block";
+    return;
+  }
+  if(empty) empty.style.display = "none";
+  wrong.forEach((w, idx) => {
+    const d = data[w.id - 1];
+    if(!d) return;
+    const choiceText = w.choiceText || d.options[w.choice] || "未知選項";
+    const answerText = w.answerText || d.options[d.correct] || "未知答案";
+    const div = document.createElement("div");
+    div.className = "wrong-card-item";
+    div.innerHTML = `
+      <div class="wrong-card-header">
+        <span class="wrong-card-num">#${idx+1}</span>
+        <span class="wrong-card-station">第${w.id}站</span>
+        <span class="wrong-card-title">${d.title}</span>
+      </div>
+      <div class="wrong-card-choice"><span class="lbl">你的選擇：</span><span class="wrong-text">${choiceText}</span></div>
+      <div class="wrong-card-answer"><span class="lbl">正確路徑：</span><span class="right-text">${answerText}</span></div>
+    `;
+    list.appendChild(div);
+  });
+}
+function openProposalFromReport(){
+  closeAllModals();
+  const hintModal = document.getElementById("hintModal");
+  if(hintModal){ hintModal.classList.remove("show"); }
+  current = 9;
+  if(cardContainer){ cardContainer.style.display = "block"; }
+  const pb = document.querySelector(".progress-bar");
+  if(pb) pb.style.display = "block";
+  if(finalArea) finalArea.style.display = "none";
+  renderCard();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function downloadReportTxt(){
+  const level = score===10 ? "人日文脈守護者" : score>=7 ? "思辨行者" : score>=4 ? "初探門徑" : "剛剛啟程";
+  let txt = "人日·華夏誕辰｜思辨報告\n";
+  txt += "================================\n\n";
+  txt += "得分：" + score + " / 10\n";
+  txt += "等級：" + level + "\n\n";
+  txt += "🏅 成就勳章：\n";
+  const badges = [
+    {name:"初遇人日", ok:score>=1},
+    {name:"溯源求真", ok:score>=2},
+    {name:"民俗守藝", ok:score>=3},
+    {name:"破二元對立", ok:score>=4},
+    {name:"文明平視", ok:score>=5},
+    {name:"非遺倡議", ok:score>=6},
+    {name:"制度思辨", ok:score>=7},
+    {name:"全球視野", ok:score>=8},
+    {name:"人本反思", ok:score>=9},
+    {name:"人人如龍", ok:score===10}
+  ];
+  badges.forEach(function(b){
+    txt += "  " + (b.ok ? "✅" : "⬜") + " " + b.name + "\n";
+  });
+  txt += "\n🪶 十站印章冊：\n";
+  data.forEach(function(d){
+    if(seals.includes(d.seal)){
+      txt += "  🪷 " + d.seal + "\n";
+    }
+  });
+  if(seals.length === 0){
+    txt += "  暫無印章·開始答題解鎖\n";
+  }
+  txt += "\n📚 思辨陷阱回顧：\n";
+  if(wrong && wrong.length > 0){
+    wrong.forEach(function(w, idx){
+      const d = data[w.id - 1];
+      if(!d) return;
+      const choiceText = w.choiceText || (d.options[w.choice] || "未知選項");
+      const answerText = w.answerText || (d.options[d.correct] || "未知答案");
+      txt += "  #" + (idx+1) + " 第" + w.id + "站：" + d.title + "\n";
+      txt += "    你的選擇：" + choiceText + "\n";
+      txt += "    正確答案：" + answerText + "\n\n";
+    });
+  }else{
+    txt += "  暫無跳坑記錄，思辨完美。\n";
+  }
+  txt += "\n--------------------------------\n";
+  txt += "紀念「人」，是文明最大的事。\n";
+  
+  downloadTxtFile(txt, "人日_思辨報告.txt");
+  showToast("✅ TXT報告已開始下載");
+}
+function closeAllModals(){
+  document.querySelectorAll('.modal,.report-modal,.trap-modal,.quote-modal,.koi-modal').forEach(m => m.classList.remove('show'));
+}
+// ========= 分享海報 =========
+function generateShareCard(){
+  const c = document.getElementById("shareCanvas");
+  const ctx = c.getContext("2d");
+  const W = c.width, H = c.height;
+  const GREEN = "#0A5A47", GREEN2 = "#0E7A5F", GOLD = "#C8A24E", GOLD_L = "#E3D3A6", CREAM = "#F8F5F0", SOFT = "#4A5A53";
+  
+  ctx.fillStyle = CREAM; ctx.fillRect(0,0,W,H);
+  const grad = ctx.createLinearGradient(0,0,0,280);
+  grad.addColorStop(0,"#0A5A47"); grad.addColorStop(1,"#0E7A5F");
+  ctx.fillStyle = grad; ctx.fillRect(0,0,W,280);
+  
+  ctx.strokeStyle = GOLD; ctx.lineWidth = 4; ctx.strokeRect(30,30,W-60,H-60);
+  ctx.lineWidth = 1.5; ctx.strokeRect(45,45,W-90,H-90);
+  
+  ctx.textAlign = "center";
+  ctx.font = "bold 58px serif"; ctx.fillStyle = "#F8F5F0";
+  ctx.fillText("🪷 人日·華夏誕辰 🪷", W/2, 130);
+  ctx.font = "28px serif"; ctx.fillStyle = GOLD_L;
+  ctx.fillText("思辨報告 · 史料卡 · 勳章冊", W/2, 185);
+  ctx.font = "24px serif";
+  ctx.fillText("正月初七 · 人人有份的生日", W/2, 235);
+  
+  ctx.fillStyle = GREEN; ctx.font = "bold 96px serif";
+  ctx.fillText(score + " / 10", W/2, 400);
+  const level = score===10 ? "人日文脈守護者" : score>=7 ? "思辨行者" : score>=4 ? "初探門徑" : "剛剛啟程";
+  ctx.fillStyle = GOLD; ctx.font = "bold 34px serif";
+  ctx.fillText(level, W/2, 460);
+  ctx.font = "24px serif"; ctx.fillText("❁  ❁  ❁", W/2, 510);
+  
+  ctx.textAlign = "left";
+  ctx.fillStyle = GOLD; ctx.font = "bold 26px serif";
+  ctx.fillText("🏅 已獲得印章（" + seals.length + "）", 90, 580);
+  const colX = [80, 400, 720];
+  const chipW = 300;
+  seals.forEach(function(s, i){
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const x = colX[col];
+    const y = 600 + row * 65;
+    ctx.beginPath();
+    ctx.moveTo(x+32, y);
+    ctx.arcTo(x+chipW, y, x+chipW, y+55, 27);
+    ctx.arcTo(x+chipW, y+55, x, y+55, 27);
+    ctx.arcTo(x, y+55, x, y, 27);
+    ctx.arcTo(x, y, x+chipW, y, 27);
+    ctx.closePath();
+    ctx.fillStyle = "#FFF6E0"; ctx.fill();
+    ctx.strokeStyle = GOLD; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = GREEN2; ctx.font = "bold 20px serif"; ctx.textAlign = "center";
+    ctx.fillText("🪷 " + s, x + chipW/2, y + 34);
+    ctx.textAlign = "left";
+  });
+  
+  ctx.textAlign = "center";
+  ctx.fillStyle = SOFT; ctx.font = "italic 24px serif";
+  ctx.fillText("思辨非為推翻，是為看見全貌；", W/2, 1180);
+  ctx.fillText("紀念人，是文明最大的事。", W/2, 1220);
+  
+  function petal(len, wid, color){
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.bezierCurveTo(-wid,-len*0.45,-wid*0.55,-len,0,-len);
+    ctx.bezierCurveTo(wid*0.55,-len,wid,-len*0.45,0,0);
+    ctx.closePath();
+    ctx.fillStyle = color; ctx.fill();
+  }
+  function drawLotus(cx, cy, s, alpha){
+    ctx.save();
+    ctx.translate(cx, cy); ctx.globalAlpha = alpha;
+    const pk = ctx.createLinearGradient(0,0,0,-120*s);
+    pk.addColorStop(0,"#FF69B4"); pk.addColorStop(1,"#FFD7E4");
+    const gd = ctx.createLinearGradient(0,0,0,-70*s);
+    gd.addColorStop(0,"#E8A020"); gd.addColorStop(1,"#FFF5CC");
+    [[-52,110,26],[-26,120,28],[0,126,30],[26,120,28],[52,110,26]].forEach(function(p){
+      ctx.save(); ctx.rotate(p[0]*Math.PI/180); petal(p[1]*s,p[2]*s,pk); ctx.restore();
+    });
+    [[-24,80,18],[0,88,20],[24,80,18]].forEach(function(p){
+      ctx.save(); ctx.rotate(p[0]*Math.PI/180); petal(p[1]*s,p[2]*s,gd); ctx.restore();
+    });
+    ctx.beginPath(); ctx.arc(0,-6*s,9*s,0,Math.PI*2); ctx.fillStyle="#0E7A5F"; ctx.fill();
+    ctx.restore();
+  }
+  drawLotus(W/2, 1380, 1.2, 0.9);
+  drawLotus(W/2 - 200, 1390, 0.7, 0.7);
+  drawLotus(W/2 + 200, 1390, 0.7, 0.7);
+  
+  ctx.font = "22px serif"; ctx.fillStyle = GOLD;
+  ctx.fillText("— 人日快樂 · 人人有生日 —", W/2, H - 80);
+  ctx.font = "16px serif"; ctx.fillStyle = SOFT;
+  ctx.fillText("人日·華夏誕辰 民間文化倡議", W/2, H - 45);
+  const a = document.createElement("a");
+  a.href = c.toDataURL("image/png");
+  a.download = "人日_思辨報告_" + Date.now() + ".png";
+  a.click();
+}
+// ========= Canvas海報（簽署倡議書） =========
+function drawPosterCanvas(name, date){
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const w = 1080;
+  const h = 1920;
+  canvas.width = w; canvas.height = h;
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,"#0E7A5F");
+  grad.addColorStop(1,"#F1EBE0");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,w,h);
+  ctx.fillStyle="#ffffff";
+  ctx.globalAlpha=0.92;
+  ctx.fillRect(80,120,w-160,h-240);
+  ctx.globalAlpha=1;
+  ctx.fillStyle="#0A5A47";
+  ctx.font="bold 62px sans-serif";
+  ctx.textAlign="center";
+  ctx.fillText("🪷 人日·華夏誕辰 🪷",w/2,220);
+  ctx.font="34px sans-serif";
+  ctx.fillStyle="#1F3831";
+  ctx.fillText("民間倡議書簽署頁",w/2,290);
+  ctx.font="28px sans-serif";
+  ctx.fillText("簽署人："+name,w/2,420);
+  ctx.fillText("簽署日期："+date,w/2,470);
+  ctx.font="26px sans-serif";
+  ctx.fillStyle="#4A5A53";
+  ctx.textAlign="left";
+  const leftMargin = 120;
+  const lineH = 44;
+  const lines = [
+    "正月初七，古稱人日。",
+    "相傳女媧第七日摶土造人，",
+    "這是屬於全人類共同的誕辰。",
+    "",
+    "AI新時代，回望人之本源，",
+    "重視人的價值與人文傳統。",
+    "",
+    "願正月初七，成為尊重人、祝福人，",
+    "紀念全人類誕生的日子。",
+    "願「人日快樂」流傳四海。"
+  ];
+  let yPos = 560;
+  for(let l of lines){
+    ctx.fillText(l,leftMargin,yPos);yPos+=lineH;
+  }
+  ctx.textAlign="center";
+  ctx.font="bold 30px sans-serif";
+  ctx.fillStyle="#C8A24E";
+  ctx.fillText("🪷 民間文化倡議 🪷",w/2,yPos+80);
+  return canvas.toDataURL("image/png");
+}
+
+// ====================== 【數據】前1‑9站使用v2_優化版文本；第10站維持原版簽名倡議書不變 ======================
+const data = [
+{
+ id:1,
+ title:"第壹站｜人的誕辰 ~ 人日",
+ tag:"破題",
+ story:"【開場】爆竹聲遠，春盤初上。正月初七的清晨，華人家庭煮起七寶羹。\n旁白：這一天，不吃餃子、不吃年糕——這一天，是「人」自己的生日。\n《占書》有載：天地初開，以一日作雞、二日作狗……七日作人。\n於是正月初七，成了普天之下每一個人的誕辰。",
+ qTitle:"人日·001 史料卡片｜東方朔《占書》",
+ qMeta:"✅ 人日圖冊已收錄｜漢代",
+ foreign:"正月一日為雞，二日為狗，三日為豬，四日為羊，五日為牛，六日為馬，七日為人。",
+ zh:"正月裡，上帝於前六日造物畜，第七日造人——故初七為「人日」。",
+ ref:"📚 出處：東方朔《占書》（漢）；又見董勛《答問禮俗說》",
+ personName:"東方朔",
+ personEn:"Dongfang Shuo",
+ personBio:"東方朔（約公元前154年—前93年），西漢辭賦家、文學家，字曼倩，平原厭次（今山東惠民）人。曾任常侍郎、太中大夫等職。性格詼諧滑稽，被認為是《占書》的作者。",
+ sourceLang:"文言文",
+ q:"《占書》將正月初七定為「人日」——這意味著：",
+ options:[
+  "只有漢族人才有生日",
+  "每個人都有自己的生日，而全人類共享一個共同的生日",
+  "只有皇帝才能慶祝生日",
+  "生日是現代才有的概念"
+ ],
+ correct:1,
+ seal:"初遇人日"
+},
+{
+ id:2,
+ title:"第貳站｜聖誕對標：一場文明的平視",
+ tag:"思辨",
+ story:"【劇情】平安夜的城市燈火通明，而正月初七的街巷悄然如常。\n旁白：聖誕節紀念「神的誕辰」，全球狂歡；人日紀念「人的誕辰」，卻鮮有人知。\n一個紀念神，一個紀念人——並無高下，只缺一場平視的對話。",
+ qTitle:"人日·002 史料卡片｜聖誕與人日對照",
+ qMeta:"✅ 人日圖冊已收錄｜比較研究",
+ foreign:"Christmas celebrates the birth of the Divine; Renri celebrates the birth of Humanity.",
+ zh:"聖誕紀念神之誕辰，人日紀念人之誕辰——神性與人性，皆值得被紀念。",
+ ref:"📚 出處：倡議對照框架（本頁原創匯編）",
+ personName:"倡議對照框架",
+ personEn:"Comparative Framework",
+ personBio:"本頁原創匯編。通過將聖誕節與人日進行文明層面的對照，探討兩種誕辰紀念方式的異同，為人日尋找屬於自己的現代表達。",
+ sourceLang:"中英對照",
+ q:"將人日與聖誕節對標，核心目的應該是：",
+ options:[
+  "證明聖誕節比人日更好",
+  "複製聖誕節的所有商業模式",
+  "找到人日自己的表達方式，展開文明平視對話",
+  "讓人日取代聖誕節"
+ ],
+ correct:2,
+ seal:"文明平視",
+ table:true
+},
+{
+ id:3,
+ title:"第叁站｜人日來源：從女媧泥土到《占書》",
+ tag:"溯源",
+ story:"【劇情】洪荒畫卷展開：女媧摶土造人，七日而功成。\n旁白：俗說女媧造人，前六日造出雞犬豬羊牛馬，第七日造出人。\n漢代《占書》將其記入歲時，南朝梁代宗懍《荊楚歲時記》進一步載錄「剪綵為人」之俗。\n兩千年來，文獻脈絡從未中斷。",
+ qTitle:"人日·003 史料卡片｜宗懍《荊楚歲時記》",
+ qMeta:"✅ 人日圖冊已收錄｜南朝梁",
+ foreign:"正月七日為人日。以七種菜為羹，剪綵為人，或鏤金箔為人，以貼屏風，亦戴之頭鬢。",
+ zh:"正月初七為人日：以七種蔬菜作羹，剪彩帛為人形，貼於屏風或戴於頭鬢——名為「人勝」。",
+ ref:"📚 出處：宗懍《荊楚歲時記》（南朝梁）；董勛《答問禮俗說》（晉）",
+ personName:"宗懍",
+ personEn:"Zong Lin",
+ personBio:"宗懍（約499—約565），字元懍，南陽涅陽（今河南鎮平）人，南朝梁官員、學者。所著《荊楚歲時記》是中國現存最早的一部記載地域歲時民俗的專書，保存了大量六世紀楚地風俗。",
+ sourceLang:"文言文",
+ q:"《荊楚歲時記》記載人日「剪綵為人」的習俗，說明了什麼？",
+ options:[
+  "人日只有神話而無實際習俗",
+  "人日在南朝已有完整的儀式體系",
+  "剪綵只是現代人的發明",
+  "人日習俗是從日本傳入的"
+ ],
+ correct:1,
+ seal:"溯源求真"
+},
+{
+ id:4,
+ title:"第肆站｜傳統習俗：七寶羹裡的人間煙火",
+ tag:"守藝",
+ story:"【劇情】市井長街，人聲鼎沸。攤販高聲叫賣「七寶羹」，孩童頭戴彩勝奔跑而過。\n旁白：人日的習俗，全是「人的事」——吃羹是為人祈福，戴勝是為人招祥，登高是為人望遠。\n盛唐之時人日登高寄詩成為文人雅事，高適遠寄詩篇予杜甫，兩位大詩人借人日互訴情懷，傳為千古佳話。",
+ qTitle:"人日·004 史料卡片｜高適《人日寄杜二拾遺》",
+ qMeta:"✅ 人日圖冊已收錄｜唐代",
+ foreign:"人日題詩寄草堂，遙憐故人思故鄉。\n柳條弄色不忍見，梅花滿枝空斷腸。\n身在遠蜀無所預，心懷百憂復千慮。\n一臥東山三十春，豈知書劍苦窮辛。\n塞北相思何處所，江東流淚幾沾巾。\n龍鍾還作異鄉客，寂寞無人知此身。",
+ zh:"人日題詩寄草堂，遙憐故人思故鄉。柳條弄色不忍見，梅花滿枝空斷腸。\n身在遠蜀無所預，心懷百憂復千慮。一臥東山三十春，豈知書劍苦窮辛。\n塞北相思何處所，江東流淚幾沾巾。龍鍾還作異鄉客，寂寞無人知此身。",
+ ref:"📚 出處：《全唐詩》；杜甫酬和《追酬故高蜀州人日見寄》",
+ personName:"高適",
+ personEn:"Gao Shi",
+ personBio:"高適（約704—765），字達夫，渤海蓨（今河北景縣）人，唐代著名邊塞詩人。曾任刑部侍郎、散騎常侍等職。與岑參並稱「高岑」，與王之渙、王昌齡、岑參合稱「邊塞四詩人」。",
+ sourceLang:"文言文",
+ q:"高適在人日寄詩給杜甫，這一事例最能說明：",
+ options:[
+  "唐代文人完全不重視人日",
+  "人日在唐代是文人重要的文化時刻，承載情感交流",
+  "高適和杜甫只是普通朋友",
+  "人日詩歌只有這一首流傳"
+ ],
+ correct:1,
+ seal:"民俗守藝"
+},
+{
+ id:5,
+ title:"第伍站｜非遺倡議：為「人的誕辰」上戶口",
+ tag:"倡議",
+ story:"【劇情】檔案館的燈下，倡議書一頁頁加厚。\n旁白：二十四節氣已入非遺，端午、中秋共享人類非遺之名——人日，具備同等的文化完整性。\n它有神話源頭、有文獻譜系、有活態習俗、有詩歌傳統。缺的，只是一次鄭重的申報。",
+ qTitle:"人日·005 史料卡片｜非遺公約參照",
+ qMeta:"✅ 人日圖冊已收錄｜2003",
+ foreign:"Intangible heritage is not about the past alone — it is a living gift passed hand to hand.",
+ zh:"非遺不只是過去的遺存，更是手手相傳的活著的禮物——人日，正是這樣一份禮物。",
+ ref:"📚 參照：聯合國教科文組織《保護非物質文化遺產公約》（2003）",
+ personName:"聯合國教科文組織",
+ personEn:"UNESCO",
+ personBio:"聯合國教育、科學及文化組織（UNESCO），成立於1945年，致力於促進各國在教育、科學、文化和傳播方面的合作。2003年通過《保護非物質文化遺產公約》，為全球非遺保護確立了國際法律框架。",
+ sourceLang:"英文",
+ q:"根據非遺公約的核心精神，人日申報非遺的關鍵優勢在於：",
+ options:[
+  "它只存在於古籍中，已無人慶祝",
+  "它有神話、文獻、習俗、詩歌四重完整性，且部分習俗仍在傳承",
+  "它的歷史比聖誕節短",
+  "它只屬於中國一個地區"
+ ],
+ correct:1,
+ seal:"非遺倡議"
+},
+{
+ id:6,
+ title:"第陸站｜法定節假日倡議：把生日寫進日曆",
+ tag:"倡議",
+ story:"【劇情】日曆翻到正月初七，一個再普通不過的工作日。\n旁白：春節放假七天，初七往往是返工第一天——人日，恰好在狂歡結束之處醒來。\n港澳地區，紀念神、佛誕辰的聖誕節、佛誕節均納入公眾假期。神佛之誕可以成為公眾節慶，那麼紀念全人類誕生的人日，同樣具備制度層面討論的基礎。若能將人日設為法定紀念日：前半段團圓敬祖，最後一日留給「人」自己，春節的敘事才真正圓滿。",
+ qTitle:"人日·006 史料卡片｜港澳公眾假期制度",
+ qMeta:"✅ 人日圖冊已收錄｜制度研究",
+ foreign:"A civilization is measured by what it chooses to celebrate.",
+ zh:"一個文明的高度，體現在它選擇紀念什麼。",
+ ref:"📚 參照：我國《全國年節及紀念日放假辦法》；港澳公眾假期；國際人權日等紀念日設立先例",
+ personName:"制度研究",
+ personEn:"Institutional Study",
+ personBio:"本頁原創研究。參照港澳地區聖誕節、佛誕節作為公眾假日的制度先例，探討人日作為國家紀念日或法定假日的制度可行性路徑。",
+ sourceLang:"英文",
+ q:"推動人日成為法定紀念日的核心論據是：",
+ options:[
+  "宗教節日比人日更重要",
+  "既然神佛之誕已有公眾假日，人之誕辰理應獲得同等制度關注",
+  "人日應該取代所有其他節日",
+  "放假是唯一的推動方式"
+ ],
+ correct:1,
+ seal:"制度思辨"
+},
+{
+ id:7,
+ title:"第柒站｜全民狂歡：把人日過成節日",
+ tag:"行動",
+ story:"【劇情】廣場上，巨大的「人」字燈組點亮夜空。萬人齊撈魚生，聲浪一浪高過一浪。\n旁白：節日不是靠放假放成的，是靠「過」過出來的。\n聖誕有聖誕樹，人日為何不能有自己的儀式圖譜？",
+ qTitle:"人日·007 史料卡片｜儀式圖譜提案",
+ qMeta:"✅ 人日圖冊已收錄｜原創構想",
+ foreign:"Rituals are the grammar of celebration — give people the grammar, and they will write the festival.",
+ zh:"儀式是狂歡的語法。給人們語法，他們自會寫出節日。",
+ ref:"📚 本頁原創構想，歡迎各界人士補完",
+ personName:"儀式圖譜提案",
+ personEn:"Ritual Grammar Proposal",
+ personBio:"本頁原創構想。借鑒各類節日的儀式建構邏輯，為人日設計可操作的儀式圖譜：從飲食、服飾、城市空間到社交傳播，多維度構建人日的當代表達。",
+ sourceLang:"英文",
+ q:"關於節日形成的正確理解是：",
+ options:[
+  "只要政府宣布放假，節日就自動形成",
+  "節日靠人們的參與和創造「過」出來，需要屬於自己的儀式符號",
+  "節日必須有千年以上的歷史才算數",
+  "現代人不需要新的節日儀式"
+ ],
+ correct:1,
+ seal:"全民狂歡"
+},
+{
+ id:8,
+ title:"第捌站｜全球華人：一聲問候渡重洋",
+ tag:"共生",
+ story:"【劇情】從澳門到舊金山，從新加坡到巴黎——唐人街的人日燈籠次第亮起。\n旁白：春節已經走向世界，成為聯合國假日；人日，是春節送給世界的下一張請柬。\n對全球華人而言，這一天是文化認同的密碼；對世界而言，這是一天「人人有份」的溫柔。",
+ qTitle:"人日·008 史料卡片｜聯合國假日參照",
+ qMeta:"✅ 人日圖冊已收錄｜2023",
+ foreign:"From Macao to Melbourne, one greeting travels: Happy Birthday, Humanity.",
+ zh:"從澳門到墨爾本，一句問候跨海越洋：人日快樂——全人類，生日快樂。",
+ ref:"📚 參照：聯合國大會第78屆會議將春節列為聯合國假日（2023）",
+ personName:"聯合國大會",
+ personEn:"UN General Assembly",
+ personBio:"聯合國大會（UN General Assembly）是聯合國的主要審議、監督和審查機關。2023年通過決議將春節列為聯合國假日，標誌著中華文化在全球治理體系中獲得更多認可。",
+ sourceLang:"英文",
+ q:"人日相比其他傳統節日，在全球傳播中的獨特優勢是：",
+ options:[
+  "它只屬於華人族群",
+  "它「人之誕辰」的主題超越族群和國界，不涉宗教與政治",
+  "它需要大量商業投入才能推廣",
+  "它與西方節日完全衝突"
+ ],
+ correct:1,
+ seal:"全球視野"
+},
+{
+ id:9,
+ title:"第玖站｜AI時代與人的文明",
+ tag:"反思",
+ story:"【終章前置】數智浪潮奔湧，AI時代已經來臨。\n旁白：人工智慧快速迭代，我們擁有強大的工具，但工具永不等同於人本身。越是AI蓬勃發展的時代，我們越需要回望人自身的來源，尊重、紀念屬於人類自己的誕辰與數千年積澱的人文文明。\n人日，正是這樣一個提醒：一切技術最終都要回歸「人」的本位。\n女媧第七日捏出的人，此刻正站在屏幕前。\n這一天不屬於神，不屬於某一國，甚至不屬於某一族——它屬於每一個曾經誕生、正在生活、即將到來的人。\n聖誕是世界送給自己的宗教之禮；人日，是華夏文明送給全人類的人文之禮。\n願正月初七，成為世界日曆上溫柔的一頁——\n因為紀念「人」，是文明最大的事。",
+ qTitle:"人日·009 史料卡片｜AI時代之寄語",
+ qMeta:"✅ 人日圖冊已收錄｜當代",
+ foreign:"Technology serves humanity, not the other way round. Honor the birth of humankind.",
+ zh:"技術服務於人，而非人服從技術。我們應當紀念人類自身的誕生。",
+ ref:"📚 出處：全體發起人 · 敬上 🪷",
+ personName:"全體發起人",
+ personEn:"All Initiators",
+ personBio:"人日·華夏誕辰民間文化倡議發起人群體。值此AI新時代，呼籲全社會回望人本文明，紀念屬於人類自己的誕辰，守護人文價值與文明傳承。",
+ sourceLang:"英文",
+ q:"在AI時代，人日這一節日的深層意義在於：",
+ options:[
+  "反對一切科技發展",
+  "提醒我們技術最終要回歸「人」的本位，守護人的尊嚴與價值",
+  "證明AI不如人類",
+  "推動人類回到原始生活"
+ ],
+ correct:1,
+ seal:"人本反思"
+},
+// 第十站【維持原版不做任何修改】
+{
+ id:10,
+ title:"第拾站｜簽名版人日倡議書｜可複製轉發",
+ tag:"倡議書",
+ story:"【簽署頁】恭喜你點亮全部十朵蓮花🪷。\n請填寫你的名字，生成帶個人簽署的倡議書。簽名會保存在本地，下次打開自動讀取。\n生成之後支持：一鍵複製、💾導出TXT檔案、🖼️生成分享海報圖片、📤分享。",
+ quoteHead:"📄 人日（華夏人誕辰）民間倡議書【簽名版】",
+ foreign:"",
+ zh:"",
+ ref:"📌 填寫姓名，生成簽名倡議書，即可複製、下載、做海報分享",
+ proposalText:`#人日·華夏誕辰民間倡議書
+正月初七，古稱人日。漢代文獻《占書》記載：正月一日為雞，二日為狗，三日為豬，四日為羊，五日為牛，六日為馬，七日為人。
+相傳女媧第七日摶土造人，這一天是屬於全人類共同的誕辰。兩千年來，流傳食七寶羹、戴人勝、登高賦詩、撈魚生等民俗；高適、杜甫曾於人日往來酬唱，留下千古唐詩。
+值此AI來臨的新時代，技術飛速發展，我們更應回望人之本源，重視人的價值與人文傳統。為此我們發出民間倡議：
+一、傳播「人日快樂」問候。每年正月初七，向身邊親友互道「人日快樂」，重溫這份屬於所有人的生日祝福。
+二、復活簡易民俗：煮七寶羹、剪人勝、登高望遠，用輕儀式喚醒古老歲時記憶。
+三、呼籲學界、民俗團體開展研究討論，推動人日納入非物質文化遺產申報序列。
+四、參照港澳聖誕、佛誕節作為公眾假日的先例，展開關於人日作為國家紀念日的公共討論。
+五、面向全球華人與世界，傳播人日內涵：人日不專屬某一族群，它是華夏獻給全人類的人文禮物。
+願正月初七，成為一個尊重人、祝福人、紀念全人類誕生的日子。
+願「人日快樂」流傳四海。
+——民間文化倡議  🪷
+簽署人：{{SIGN_NAME}}
+簽署日期：{{SIGN_DATE}}`,
+ points:[],
+ callout:"<b>💡 行動提示：</b>填寫你的名字，生成簽名倡議書，再選擇複製 / TXT下載 / 生成海報分享。",
+ end:true
+}
+];
+
+// 渲染卡片函數
+function renderCard(){
+  const s = data[current];
+  currentIndex.textContent = current + 1;
+  progressFill.style.width = ((current+1)/data.length*100) + "%";
+  updateLotusLight();
+
+  let tableHtml = "";
+  if(s.table){
+    tableHtml = `
+    <table class="compare-table">
+      <tr><th>維度</th><th>聖誕節</th><th>人 日</th></tr>
+      <tr><td>紀念對象</td><td>神之誕辰</td><td>人之誕辰</td></tr>
+      <tr><td>文化根基</td><td>宗教傳統</td><td>人文精神</td></tr>
+      <tr><td>參與規模</td><td>全球數十億人</td><td>潛力：七十億人</td></tr>
+      <tr><td>核心儀式</td><td>聖誕樹 · 互贈禮物</td><td>七寶羹 · 人勝 · 撈魚生</td></tr>
+      <tr><td>當前狀態</td><td>全球性狂歡</td><td>沉睡的文明寶藏</td></tr>
+      <tr><td>未來可能</td><td>—</td><td>全人類的共同生日</td></tr>
+    </table>`;
+  }
+
+  let pointsHtml = "";
+  if(s.points && s.points.length>0){
+    pointsHtml = s.points.map(p=>`<li>${p}</li>`).join("");
+    pointsHtml = `<ul class="point-list">${pointsHtml}</ul>`;
+  }
+
+  let proposalHtml="";
+  if(s.proposalText){
+    const savedName = safeStorageGet("renriSignName")||"";
+    proposalHtml=`
+    <div class="sign-input-wrap">
+      <label>✍️ 你的簽署姓名 / 暱稱</label>
+      <input id="signNameInput" placeholder="請輸入名字，回車亦可生成" value="${savedName}">
+      <button class="btn-copy" id="genSignBtn">✨生成簽名版倡議書</button>
+    </div>
+    <div class="proposal-block" id="proposalRender">
+<em>請輸入姓名，點擊上方按鈕生成簽名倡議書</em>
+    </div>
+    <button class="btn-copy" id="copySignBtn" disabled>📋複製簽名倡議書</button>
+    <button class="btn-copy" id="downloadTxtBtn" disabled>💾下載TXT檔案</button>
+    <button class="btn-copy" id="genPosterBtn" disabled>🖼️生成分享海報</button>
+    <div class="share-btn-row">
+      <button class="btn-copy" id="shareTextBtn" disabled>📤分享文字</button>
+      <button class="btn-copy" id="shareUrlBtn">🔗複製頁面網址</button>
+    </div>
+    <button class="btn-copy" id="openStatBtn">📊我的參與統計</button>
+    <div class="poster-preview"></div>
+    `;
+  }
+
+  let questionBlockHtml = "";
+  let idxs;
+  if(!s.end){
+    idxs = s.options.map((_, i) => i);
+    for(let i = idxs.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
+    }
+    const newCorrect = idxs.indexOf(s.correct);
+    let optHtml = "";
+    idxs.forEach((orig, i)=>{
+      optHtml += `<button class="option" data-i="${i}">${String.fromCharCode(65+i)}. ${s.options[orig]}</button>`;
+    })
+    questionBlockHtml = `
+    <div class="question-block">
+      <h4>思辨題 · 由歷史人物親自發問</h4>
+      <span class="asker-badge">❓ 提問者：${s.personName}</span>
+      <div class="asker-voice">💭 ${s.q.substring(0, 70)}…</div>
+      <div class="question-text">${s.q}</div>
+      <div class="options">${optHtml}</div>
+      <div class="note" id="noteBox"></div>
+    </div>
+    `;
+  }
+
+  const _html = `
+  <div class="station-card">
+    <svg style="position:absolute;top:10px;right:10px" width="52" height="38" viewBox="0 0 84 62">
+      <g fill="none" stroke="#0E7A5F" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24" /></g>
+      <rect x="72" y="4" width="4" height="4" fill="#F8F5F0" />
+    </svg>
+    <span class="station-number">第 ${current+1} / ${data.length} 站 · ${s.tag}</span>
+    <h2>${s.title}${s.end?'<span class="end-tag">終章</span>':""}</h2>
+    <div class="story-block">${s.story}</div>
+
+    <button class="strip-toggle-btn" id="sourceStripToggle" type="button">📜 展開史料卡</button>
+    <div class="source-strip-wrap" id="sourceStripWrap" style="display:none;">
+      <div class="source-strip-head">
+        <span class="source-strip-title">📜 史料卡 · 人日圖冊</span>
+        <span class="source-strip-hint">← 左右滑動 →</span>
+      </div>
+      <div class="source-strip" id="sourceStrip">
+        <div class="strip-card person-strip">
+          <div class="strip-no">人日·${String(s.id).padStart(3,"0")}</div>
+          <div class="strip-body">
+            <div class="strip-label">史料提供者</div>
+            <div class="strip-name">🙋 ${s.personName??""}<span class="en">${s.personEn??""}</span></div>
+            <div class="strip-bio">${s.personBio??""}</div>
+          </div>
+        </div>
+        <div class="strip-card quote-strip">
+          <div class="strip-no">原文</div>
+          <div class="strip-body">
+            <div class="strip-label">◆ ${s.sourceLang??"文言文"} 原文引文</div>
+            <div class="strip-foreign">${s.foreign||""}</div>
+            <div class="strip-zh">${s.zh||""}</div>
+          </div>
+        </div>
+        <div class="strip-card ref-strip">
+          <div class="strip-no">出處</div>
+          <div class="strip-body">
+            <div class="strip-label">📚 出處</div>
+            <div class="strip-ref">${s.ref||s.sourceRef||""}</div>
+            <button class="strip-open-btn" onclick="openQuote(${current})">📖 打開完整史料卡</button>
+          </div>
+        </div>
+      </div>
+      <div class="strip-scrollbar">
+        <div class="strip-scrollbar-thumb" id="stripScrollbarThumb"></div>
+      </div>
+    </div>
+
+    ${tableHtml}
+    ${questionBlockHtml}
+    ${proposalHtml}
+
+    ${pointsHtml??""}
+    ${s.callout?`<div class="callout">${s.callout}</div>`:""}
+
+    <button class="next-btn ${s.end?"finish":""}" id="nextBtn">${s.end?"完成全部十站 · 人人如龍":"下一站 · "+(data[current+1]?.tag||"")}</button>
+    ${current>0?`<button class="next-btn" style="background:var(--gold-light);color:var(--macau-green-deep);margin-top:10px" onclick="goBack()">⬅ 返回上一站</button>`:""}
+    ${current>0&&s.end?`<button class="next-btn" style="background:#b8d8d0;color:var(--macau-green-deep);margin-top:10px" onclick="goHome()">🏠 返回首頁</button>`:""}
+    <div class="card-footer">
+      <span class="index">${current+1} / ${data.length}</span>
+      <span>${s.end?"金蓮花終章":"人日倡議 · 逐站推進"}</span>
+    </div>
+  </div>`;
+
+  if(!cardContainer) return;
+  cardContainer.innerHTML = _html;
+
+  if(!s.end){
+    document.querySelectorAll(".option").forEach(btn => {
+      btn.onclick = function(){
+        document.querySelectorAll(".option").forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+      };
+    });
+  }
+
+  if(s.proposalText){
+    bindProposalEvents(s);
+  }
+
+  const toggleBtn = document.getElementById('sourceStripToggle');
+  const stripWrap = document.getElementById('sourceStripWrap');
+  if(toggleBtn && stripWrap){
+    toggleBtn.addEventListener('click', function(){
+      const isHidden = stripWrap.style.display === 'none' || stripWrap.style.display === '';
+      if(isHidden){
+        stripWrap.style.display = 'block';
+        toggleBtn.textContent = '📜 收起史料卡';
+        toggleBtn.classList.add('active');
+        bindStripScroll();
+        updateStripScrollbar();
+      }else{
+        stripWrap.style.display = 'none';
+        toggleBtn.textContent = '📜 展開史料卡';
+        toggleBtn.classList.remove('active');
+      }
+    });
+  }
+
+  const nextBtn = document.getElementById("nextBtn");
+  nextBtn.onclick = async function(){
+    if(isClickLock) return;
+    isClickLock = true;
+    await new Promise(r=>setTimeout(r,300));
+    isClickLock = false;
+
+    if(s.end){
+      celebrateModal.classList.add("show");
+      startParticleEffect(35);
+    }else{
+      const activeOpt = document.querySelector(".option.active");
+      if(!activeOpt){ alert("請先選擇一個選項"); return; }
+      const choiceIdx = parseInt(activeOpt.dataset.i);
+      answered[s.id] = idxs[choiceIdx];
+      recomputeStats();
+      saveState();
+
+      const realAnswerIdx = idxs[choiceIdx];
+      const isCorrect = realAnswerIdx === s.correct;
+      const noteBox = document.getElementById("noteBox");
+      if(noteBox){
+        if(isCorrect){
+          noteBox.className = "note show";
+          noteBox.innerHTML = `✅ 正解：${s.options[s.correct]}｜🪷 獲得印章：${s.seal}`;
+        }else{
+          noteBox.className = "note show wrong";
+          noteBox.innerHTML = `✗ 你的選擇不正確。正解是：${s.options[s.correct]}｜💡 ${s.q.substring(0,90)}…`;
+        }
+      }
+      setTimeout(()=>{
+        current++;
+        renderCard();
+        window.scrollTo({top:0,behavior:"smooth"});
+      },1300);
+    }
+  };
+}
+
+function bindProposalEvents(s){
+  const tplRaw = s.proposalText;
+  const nameInp = document.getElementById('signNameInput');
+  const genBtn = document.getElementById('genSignBtn');
+  const copyBtn = document.getElementById('copySignBtn');
+  const dlBtn = document.getElementById('downloadTxtBtn');
+  const posterBtn = document.getElementById('genPosterBtn');
+  const shareTextBtn = document.getElementById('shareTextBtn');
+  const shareUrlBtn = document.getElementById('shareUrlBtn');
+  const openStatBtn = document.getElementById('openStatBtn');
+  const renderBox = document.getElementById('proposalRender');
+  const previewDiv = document.querySelector(".poster-preview");
+  let finalText = "";
+
+  function handleGen(){
+    let name = (nameInp.value || "匿名參與者").trim();
+    safeStorageSet("renriSignName", name);
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+    finalText = tplRaw.replace(/{{SIGN_NAME}}/g, name).replace(/{{SIGN_DATE}}/g, dateStr);
+    finalSignedText = finalText;
+    signNameGlobal = name;
+    signDateGlobal = dateStr;
+    renderBox.innerText = finalText;
+
+    copyBtn.disabled = false;
+    dlBtn.disabled = false;
+    posterBtn.disabled = false;
+    shareTextBtn.disabled = false;
+
+    const st = getStat();
+    st.signCount += 1;
+    saveStat(st);
+    showToast("✅ 簽名倡議書已生成！", "success",2200);
+  }
+
+  genBtn.onclick = handleGen;
+  nameInp.onkeydown = function(e){
+    if(e.key === "Enter") handleGen();
+  };
+
+  copyBtn.onclick = async function(){
+    if(!finalSignedText){ showToast("請先生成簽名倡議書","error");return; }
+    await copyPlainText(finalSignedText);
+    showToast("✅簽名倡議書已複製！","success");
+  };
+  dlBtn.onclick = function(){
+    if(!finalSignedText){ showToast("請先生成簽名倡議書","error");return; }
+    downloadTxtFile(finalSignedText,`人日_簽名倡議書_${signNameGlobal}_${signDateGlobal}.txt`);
+    showToast("✅TXT檔案已開始下載","success");
+  };
+  posterBtn.onclick = function(){
+    if(!signNameGlobal){ showToast("請先生成簽名倡議書","error");return; }
+    const imgUrl = drawPosterCanvas(signNameGlobal, signDateGlobal);
+    previewDiv.innerHTML = `<h4 style="margin:8px 0">🖼️海報預覽（長按圖片可保存）</h4><img id="posterCanvas" src="${imgUrl}" style="max-width:100%;border-radius:12px">`;
+    showToast("✅海報已生成，長按圖片保存","success",3000);
+  };
+  shareTextBtn.onclick = async function(){
+    if(!finalSignedText){ showToast("請先生成簽名倡議書","error");return; }
+    const shareTitle = "🪷人日·華夏誕辰｜我簽署了人日民間倡議書";
+    const shareDesc = finalSignedText.substring(0,180)+"……\n完整內容見本H5";
+    const shareData = {title:shareTitle,text:shareDesc,url:location.href};
+    try{
+      if(navigator.share && navigator.canShare(shareData)){
+        await navigator.share(shareData);
+      }else{
+        throw new Error("no share");
+      }
+    }catch(err){
+      await copyPlainText(shareTitle+"\n"+shareDesc+"\n"+location.href);
+      showToast("已複製分享文本，直接貼上即可","info");
+    }
+  };
+  shareUrlBtn.onclick = async function(){
+    await copyPlainText(location.href);
+    showToast("✅頁面網址已複製","success");
+  };
+  openStatBtn.onclick = function(){
+    renderStatModal();
+    statModal.classList.add("show");
+  };
+}
+
+function bindStripScroll(){
+  const strip = document.getElementById("sourceStrip");
+  if(!strip) return;
+  strip.removeEventListener("scroll", updateStripScrollbar);
+  strip.addEventListener("scroll", updateStripScrollbar, {passive:true});
+}
+function updateStripScrollbar(){
+  const strip = document.getElementById("sourceStrip");
+  const thumb = document.getElementById("stripScrollbarThumb");
+  if(!strip || !thumb) return;
+  if(strip.scrollWidth <= strip.clientWidth){
+    thumb.style.width = "100%";
+    thumb.style.left = "0";
+    return;
+  }
+  const ratio = strip.clientWidth / strip.scrollWidth;
+  const thumbW = Math.max(ratio * 100,20);
+  const maxScroll = strip.scrollWidth - strip.clientWidth;
+  const moved = strip.scrollLeft / maxScroll;
+  const maxLeft = 100 - thumbW;
+  thumb.style.width = thumbW + "%";
+  thumb.style.left = (moved * maxLeft) + "%";
+}
+
+function goBack(){
+  if(current>0){
+    current--;
+    renderCard();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+}
+// ========== 返回首頁 ==========
+function goHome(){
+  safeStorageRemove("renri_hint_read");
+  safeStorageRemove("renriSignName");
+  current = 0;
+  const cardContainer = document.getElementById("cardContainer");
+  if(cardContainer) cardContainer.style.display = "none";
+  const pb = document.querySelector(".progress-bar");
+  if(pb) pb.style.display = "none";
+  const finalArea = document.getElementById("finalArea");
+  if(finalArea) finalArea.style.display = "none";
+  const hintModal = document.getElementById("hintModal");
+  if(hintModal) hintModal.classList.add("show");
+  initLotus();
+}
+
+function restart(){
+  current = 0;
+  if(cardContainer) cardContainer.style.display = "block";
+  const pb = document.querySelector(".progress-bar");
+  if(pb) pb.style.display = "block";
+  if(finalArea) finalArea.style.display = "none";
+  renderCard();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+celebrateOkBtn.onclick = function(){
+  celebrateModal.classList.remove("show");
+  if(cardContainer) cardContainer.style.display = "none";
+  const pb = document.querySelector(".progress-bar");
+  if(pb) pb.style.display = "none";
+  if(finalArea) finalArea.style.display = "block";
+  window.scrollTo({top:0,behavior:"smooth"});
+};
+statCloseBtn.onclick = function(){ statModal.classList.remove("show"); };
+statClearBtn.onclick = function(){
+  if(confirm("確定要清除全部本地統計數據？此操作無法復原")){
+    clearStat(); renderStatModal(); showToast("✅本地統計已清除","success");
+  }
+};
+
+// 首頁彈窗按鈕
+hintStartBtn.addEventListener("click",function(){
+  // 重置進度為第一頁
+  current = 0;
+  score = 0;
+  wrong = [];
+  seals = [];
+  answered = {};
+  safeStorageSet("renri_hint_read", hintDontShow.checked ? "1" : "");
+  hintModal.classList.remove("show");
+  renderCard();
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+hintCheckLabel.addEventListener("click",function(e){
+  if(e.target.tagName!=="INPUT") hintDontShow.checked = !hintDontShow.checked;
+});
+
+// header七次點擊喚起開啟頁
+let _tapCount=0,_tapTimer=null;
+document.addEventListener("click",function(e){
+  const h1=document.querySelector("header h1");
+  if(h1&&h1.contains(e.target)){
+    _tapCount++;
+    clearTimeout(_tapTimer);
+    _tapTimer=setTimeout(()=>{_tapCount=0;},1500);
+    if(_tapCount>=7){
+      safeStorageRemove("renri_hint_read");
+      _tapCount=0;
+      hintModal.classList.add("show");
+    }
+  }
+});
+
+//項目說明彈窗
+hintAboutBtn.addEventListener("click",function(){
+  aboutModal.classList.add("show");
+});
+aboutCloseBtn.addEventListener("click",function(){
+  aboutModal.classList.remove("show");
+});
+
+// ========== 蓮花初始化與更新 ==========
+function initLotus(){
+  const lotusRow = document.getElementById("lotusRow");
+  if(!lotusRow) return;
+  lotusRow.innerHTML = "";
+  for(let i = 0; i < 10; i++){
+    const span = document.createElement("span");
+    span.className = "lotus-item";
+    span.innerText = "🪷";
+    span.dataset.idx = i;
+    lotusRow.appendChild(span);
+  }
+}
+function updateLotusLight(){
+  const items = document.querySelectorAll(".lotus-item");
+  for(let i = 0; i < items.length; i++){
+    items[i].classList.toggle("active", i <= current);
+    items[i].classList.toggle("complete", current === 9 && i === 9);
+  }
+  const stat = getStat();
+  stat.litCount = Math.max(stat.litCount, current + 1);
+  if(current === 9){
+    stat.completeAll = true;
+    if(navigator.vibrate){ navigator.vibrate([20,80,20]); }
+  }
+  saveStat(stat);
+}
+
+function showHintIfNeeded(){
+  initLotus();
+  // 每次都顯示開啟頁，確保從第一頁開始
+  hintModal.classList.add("show");
+}
+// 兼容 DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function(){
+  // 如果 window.onload 还没触发，确保基础元素就绪
+});
+window.onload = function(){
+  loadState();
+  showHintIfNeeded();
+  const chartDom = document.getElementById("compare-chart");
+  if(window.echarts){
+    const chart = echarts.init(chartDom);
+    const chartOption = {
+      grid:{top:44,left:60,right:40,bottom:60},
+      legend:{top:8,textStyle:{color:"#1F3831",fontSize:12},data:["全球認知度","儀式豐富度","普世性潛力"]},
+      tooltip:{trigger:"axis",backgroundColor:"#0E7A5F",borderColor:"#C8A24E",textStyle:{color:"#fff"}},
+      xAxis:{
+        type:"category",
+        data:["聖誕節","佛誕節","春節","人 日"],
+        axisLine:{lineStyle:{color:"#0E7A5F"}},
+        axisLabel:{color:"#1F3831",fontSize:13,fontWeight:"bold"}
+      },
+      yAxis:{
+        type:"value",
+        max:100,
+        name:"文明光譜",
+        nameTextStyle:{color:"#0E7A5F"},
+        splitLine:{lineStyle:{color:"#dcd3c8"}},
+        axisLabel:{color:"#666"}
+      },
+      series:[
+        {
+          name:"全球認知度",
+          type:"bar",
+          barWidth:"22%",
+          itemStyle:{color:"#B54E42",borderRadius:[6,6,0,0]},
+          label:{show:true,position:"top",color:"#B54E42",fontSize:11},
+          data:[95,60,80,8]
+        },
+        {
+          name:"儀式豐富度",
+          type:"bar",
+          barWidth:"22%",
+          itemStyle:{color:"#C8A24E",borderRadius:[6,6,0,0]},
+          label:{show:true,position:"top",color:"#8a6d2a",fontSize:11},
+          data:[85,75,95,70]
+        },
+        {
+          name:"普世性潛力",
+          type:"line",
+          smooth:true,
+          symbol:"circle",
+          symbolSize:9,
+          itemStyle:{color:"#0E7A5F",borderColor:"#C8A24E",borderWidth:2},
+          lineStyle:{color:"#0E7A5F",width:3},
+          areaStyle:{
+            color:new echarts.graphic.LinearGradient(0,0,0,1,[
+              {offset:0,color:"rgba(14,122,95,.45)"},
+              {offset:1,color:"rgba(232,245,233,.05)"}
+            ])
+          },
+          label:{show:true,position:"top",color:"#0E7A5F",fontSize:11},
+          data:[70,65,75,98]
+        }
+      ]
+    };
+    chart.setOption(chartOption);
+    let resizeTimer;
+    window.addEventListener("resize",()=>{
+      clearTimeout(resizeTimer);
+      resizeTimer=setTimeout(()=>{
+        chart.resize();
+        resizeParticleCanvas();
+      },150);
+    });
+  }
+};
+</script>
+
+<div style="text-align:center;margin:3rem 0;">
+  <a href="index.html" style="background:#0E7A5F;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;">返回總首頁</a>
+</div>
+
+</body>
+</html>

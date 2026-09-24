@@ -1,0 +1,2266 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, user-scalable=yes, viewport-fit=cover"/>
+
+<!-- ===================== OpenGraph / 社交分享 ===================== -->
+<meta property="og:title" content="思辨遊戲·破壁求真｜澳門世遺16站思辨體驗">
+<meta property="og:description" content="一場基於原始史料的互動思辨H5，走過澳門16個世遺地點，辨識歷史認知陷阱。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://你的域名/share-cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<!-- ============================================================ -->
+
+<title>思辨遊戲·破壁求真｜@liukui</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+/* ============================================================
+EPI GUI 視覺系統 · 思辨遊戲·破壁求真（修复版）
+六元素：淺草綠 / 澳門綠 / 米白 / 思辨金 / 斷點回紋 / (4:3 畫區契約)
+白標金副：header h1 = 純白加粗  ;  .sub = 思辨金
+============================================================ */
+:root{
+--macau-green:#0E7A5F;
+--macau-green-deep:#0A5A47;
+--macau-green-light:#E6F3E6;
+--rice-white:#F8F5F0;
+--rice-white-soft:#F1EBE0;
+--gold:#C8A24E;
+--gold-light:#E3D3A6;
+--text:#1F3831;
+--text-soft:#4A5A53;
+--line:#D9CFB8;
+--data-brick:#B54E42;
+--data-steel:#3E6FA3;
+--data-moss:#3F8A5F;
+--data-char:#555555;
+--data-yellow:#C99A2E;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{
+font-family:"Noto Sans TC","PingFang TC","Microsoft YaHei",sans-serif;
+background:var(--rice-white);color:var(--text);
+font-size:17px;line-height:1.7;min-height:100vh;padding-bottom:48px;
+}
+header{
+background:linear-gradient(180deg,var(--macau-green-deep) 0%,var(--macau-green) 100%);
+color:var(--rice-white);padding:34px 20px 26px;text-align:center;
+position:relative;border-bottom:4px solid var(--gold);
+overflow:hidden;
+}
+header .fret-mark{
+position:absolute;right:18px;top:50%;transform:translateY(-50%);
+width:54px;height:38px;opacity:.92;
+}
+header .fret-mark .thunder{stroke:var(--gold);}
+header .fret-mark .gap{fill:var(--macau-green-deep);}
+header h1{
+font-size:clamp(26px,6vw,34px);letter-spacing:3px;
+color:var(--rice-white);font-weight:700;
+text-shadow:0 1px 4px rgba(0,0,0,.42);
+}
+header p{margin-top:10px;font-size:16px;color:var(--gold-light);opacity:.95}
+header .sub{margin-top:6px;font-size:20px;font-weight:600;color:var(--gold);letter-spacing:1px}
+.lang-switch{position:absolute;top:16px;left:16px;right:auto}
+.lang-switch button{
+background:var(--gold);color:var(--macau-green-deep);
+border:none;border-radius:20px;padding:7px 14px;
+font-size:14px;font-weight:700;cursor:pointer;
+box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+#timeline-chart{width:100%;height:360px;background:var(--macau-green-light);border-bottom:1px solid var(--line)}
+.progress-bar{background:var(--rice-white-soft);padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.progress-title{display:flex;justify-content:space-between;align-items:center;font-size:16px;color:var(--text-soft);margin-bottom:9px}
+.progress-title b{color:var(--macau-green-deep);font-size:18px}
+.progress-track{width:100%;height:12px;background:#e3dcc8;border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--macau-green) 0%,var(--gold) 100%);border-radius:99px;transition:width .4s ease}
+.card-container{max-width:1100px;margin:0 auto;padding:22px 16px 0}
+/* ---------- 站點卡片 ---------- */
+.station-card{
+background:#FDFBF7;border:1px solid var(--line);border-radius:16px;
+padding:26px;margin-bottom:20px;
+box-shadow:0 6px 18px rgba(14,122,95,.08);position:relative;overflow:hidden;
+}
+.station-card::before{
+content:"";position:absolute;left:0;top:0;width:6px;height:100%;
+background:linear-gradient(180deg,var(--macau-green) 0%,var(--gold) 100%);
+}
+.station-card::after{
+content:"";position:absolute;right:14px;bottom:14px;
+width:30px;height:30px;opacity:.5;
+background:
+linear-gradient(var(--gold),var(--gold)) center/100% 3px no-repeat,
+linear-gradient(90deg,var(--gold),var(--gold)) center/3px 100% no-repeat,
+linear-gradient(var(--gold),var(--gold)) 0 0/9px 9px no-repeat,
+linear-gradient(var(--gold),var(--gold)) 100% 0/9px 9px no-repeat,
+linear-gradient(var(--gold),var(--gold)) 0 100%/9px 9px no-repeat,
+linear-gradient(var(--gold),var(--gold)) 100% 100%/9px 9px no-repeat;
+}
+.station-number{
+display:inline-block;background:var(--macau-green);color:var(--rice-white);
+font-size:14px;padding:5px 12px;border-radius:99px;margin-bottom:12px;letter-spacing:1px;font-weight:600;
+}
+.station-card h2{font-size:22px;color:var(--macau-green-deep);margin-bottom:12px;padding-left:6px;line-height:1.5}
+.station-card h2 .end-tag{
+display:inline-block;background:var(--gold);color:var(--macau-green-deep);
+font-size:13px;padding:3px 10px;border-radius:99px;margin-left:8px;vertical-align:middle;font-weight:700;
+}
+.story-block{
+background:var(--macau-green-light);border-left:4px solid var(--macau-green);
+padding:15px 17px;border-radius:10px;
+font-size:16.5px;line-height:1.8;color:var(--text);margin-bottom:16px;white-space:pre-line;
+}
+.open-quote-btn{
+width:100%;background:var(--gold);color:var(--macau-green-deep);
+border:none;border-radius:10px;padding:12px;font-weight:700;font-size:16px;cursor:pointer;margin-bottom:14px;
+}
+.open-quote-btn:hover{filter:brightness(1.05);}
+/* ---------- 引文彈窗 ---------- */
+.quote-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;align-items:center;justify-content:center;padding:16px}
+.quote-modal.show{display:flex}
+.quote-card{width:100%;max-width:540px;border:2px solid var(--gold);border-radius:14px;padding:20px;background:var(--rice-white);position:relative;max-height:88vh;overflow-y:auto}
+.quote-card h3{margin:0 0 10px;color:var(--macau-green-deep);font-size:19px;line-height:1.5}
+.quote-meta{margin:4px 0;font-size:14px;color:var(--text-soft)}
+.quote-foreign{margin:8px 0;font-style:italic;color:var(--text);font-size:15px;line-height:1.7}
+.quote-zh-main{margin:6px 0;font-size:17px;font-weight:700;color:var(--macau-green-deep);line-height:1.7}
+.quote-desc{margin:10px 0 14px;font-size:14px;color:var(--text-soft);line-height:1.7}
+.quote-close{width:100%;padding:11px;background:var(--macau-green);color:var(--rice-white);border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer}
+
+/* ===================== 蓮花組件（沿用終章賀卡 🪷 風格，全局可複用） ===================== */
+/* SVG 蓮花：粉金花瓣 + 綠萼，居中裝飾 */
+.lotus-svg-inline{display:block;margin:0 auto;width:96px;height:96px;animation:lotusFloat 5s ease-in-out infinite;}
+.lotus-svg-inline.sm{width:56px;height:56px;}
+.lotus-svg-inline.lg{width:130px;height:130px;}
+/* 角落漂浮蓮花（彈窗四角裝飾） */
+.lotus-corner{position:absolute;font-size:30px;opacity:.22;pointer-events:none;z-index:0;animation:lotusFloat 6s ease-in-out infinite;}
+.lotus-corner.tl{top:-6px;left:-6px;}
+.lotus-corner.tr{top:-6px;right:-6px;animation-delay:1.5s;}
+.lotus-corner.bl{bottom:-6px;left:-6px;animation-delay:3s;}
+.lotus-corner.br{bottom:-6px;right:-6px;animation-delay:4.5s;}
+/* 讓彈窗內正文始終在蓮花圖層之上 */
+.quote-card > *, .review-card > *, .report-card > *, .modal > *{position:relative;z-index:1;}
+.quote-card, .review-card, .report-card, .koi-card{position:relative;}
+
+/* ===================== 認知陷阱·逐卡彈窗（圖7 樣式：一錯題一卡） ===================== */
+.trap-modal{position:fixed;inset:0;background:rgba(10,45,35,.72);display:none;align-items:center;justify-content:center;z-index:320;padding:16px}
+.trap-modal.show{display:flex}
+.trap-card{width:100%;max-width:460px;background:var(--rice-white);border-radius:22px;border:3px solid var(--gold);padding:26px 22px 20px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative;overflow-y:auto;overflow-x:hidden;max-height:88vh;animation:pop .4s ease;-webkit-overflow-scrolling:touch}
+.trap-card::-webkit-scrollbar{width:8px}
+.trap-card::-webkit-scrollbar-track{background:var(--rice-white-soft);border-radius:99px}
+.trap-card::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold) 0%,var(--macau-green) 100%);border-radius:99px}
+.trap-card::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--macau-green) 0%,var(--gold) 100%)}
+.trap-card{scrollbar-width:thin;scrollbar-color:var(--gold) var(--rice-white-soft)}
+.trap-head{text-align:center;margin-bottom:14px;}
+.trap-head .trap-epi{font-size:13px;color:var(--gold);letter-spacing:2px;font-weight:700}
+.trap-head h3{color:var(--macau-green-deep);font-size:20px;margin:6px 0 2px;line-height:1.4}
+.trap-station{display:inline-block;background:var(--macau-green);color:var(--rice-white);font-size:12px;padding:3px 12px;border-radius:99px;margin-top:6px;font-weight:700}
+.trap-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:12px;margin-bottom:10px;font-size:15px;line-height:1.7}
+.trap-row .ico{flex:0 0 auto;font-size:20px;line-height:1;padding-top:1px}
+.trap-row.wrong-row{background:rgba(181,78,66,.09);border-left:4px solid var(--data-brick)}
+.trap-row.right-row{background:rgba(14,122,95,.09);border-left:4px solid var(--macau-green)}
+.trap-row .lbl{font-weight:700;margin-right:4px}
+.trap-row.wrong-row .lbl{color:var(--data-brick)}
+.trap-row.right-row .lbl{color:var(--macau-green-deep)}
+.trap-tip{background:linear-gradient(135deg,#FFF6E0,#F5E6C8);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;margin:6px 0 16px;font-size:14px;line-height:1.75;color:var(--text)}
+.trap-tip .lbl{color:var(--macau-green-deep);font-weight:700}
+.trap-nav{display:flex;align-items:center;gap:10px;margin-top:4px}
+.trap-nav .trap-progress{flex:1;text-align:center;font-size:13px;color:var(--text-soft)}
+.trap-nav button{border:none;border-radius:12px;padding:11px 16px;font-size:15px;font-weight:700;cursor:pointer}
+.trap-prev{background:var(--gold-light);color:var(--macau-green-deep)}
+.trap-next{background:var(--macau-green);color:var(--rice-white);flex:1}
+.trap-goto{background:var(--gold);color:var(--macau-green-deep);width:100%;margin-top:10px}
+.trap-close{width:100%;background:transparent;color:var(--text-soft);border:none;margin-top:8px;font-size:13px;cursor:pointer;text-decoration:underline}
+.trap-empty{text-align:center;color:var(--text-soft);font-size:15px;padding:30px 0}
+
+/* ---------- 提問區 ---------- */
+.question-block{background:#FDFBF7;border:1px solid var(--line);border-radius:12px;padding:18px}
+.question-block h4{font-size:18px;color:var(--macau-green-deep);margin-bottom:12px}
+.asker-badge{display:inline-block;background:var(--macau-green-deep);color:var(--gold-light);font-size:14px;padding:4px 12px;border-radius:99px;margin-bottom:12px;font-weight:700}
+.asker-voice{font-size:14px;color:var(--text-soft);background:var(--rice-white);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.7}
+.person-card{background:linear-gradient(180deg,var(--macau-green-light) 0%,var(--rice-white-soft) 100%);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-bottom:16px}
+.person-card .person-name{font-size:18px;color:var(--macau-green-deep);font-weight:700;margin-bottom:6px}
+.person-card .person-name .en{font-size:14px;color:var(--text-soft);font-weight:400;margin-left:6px}
+.person-bio{font-size:14.5px;line-height:1.8;color:var(--text)}
+.lang-tag{display:inline-block;background:var(--macau-green-deep);color:var(--gold-light);font-size:13px;padding:3px 12px;border-radius:99px;margin-top:10px;font-weight:700}
+.source-block{border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:10px;padding:13px 15px;margin-bottom:16px;background:#FDFBF7}
+.source-block .src-head{font-size:14px;color:var(--text-soft);margin-bottom:7px;font-weight:700}
+.source-block .src-lang{color:var(--macau-green-deep)}
+.source-text{font-size:15px;font-style:italic;line-height:1.8;color:var(--text);margin-bottom:8px}
+.source-zh{font-size:15.5px;line-height:1.8;color:var(--macau-green-deep);font-weight:700;margin-bottom:8px}
+.source-ref{font-size:13px;line-height:1.7;color:var(--text-soft)}
+.question-text{font-size:17px;line-height:1.8;margin-bottom:14px}
+.options{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.option{background:#FDFBF7;border:2px solid var(--line);border-radius:10px;padding:13px 15px;font-size:15.5px;text-align:left;cursor:pointer;transition:.2s;color:var(--text)}
+.option:hover{border-color:var(--gold)}
+.option.active{border-color:var(--macau-green);background:var(--macau-green-light);color:var(--macau-green-deep);font-weight:700}
+.note{background:var(--gold);color:var(--macau-green-deep);padding:12px 14px;border-radius:10px;font-size:15px;line-height:1.7;display:none;font-weight:700}
+.note.show{display:block}
+.next-btn{width:100%;background:var(--macau-green);color:var(--rice-white);border:none;border-radius:12px;padding:16px;font-size:18px;font-weight:700;margin-top:16px;cursor:pointer;letter-spacing:1px}
+.next-btn:hover{background:var(--macau-green-deep)}
+.next-btn.finish{background:linear-gradient(90deg,var(--macau-green) 0%,var(--gold) 100%);color:var(--macau-green-deep)}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:14px;color:var(--text-soft)}
+.card-footer .index{background:var(--rice-white-soft);border:1px solid var(--line);padding:5px 12px;border-radius:99px}
+.back-btn{
+background:var(--gold-light);color:var(--macau-green-deep);
+border:none;border-radius:10px;padding:10px 14px;
+font-size:14px;font-weight:700;cursor:pointer;
+margin-top:10px;
+}
+/* ---------- 終章·魚躍龍門 ---------- */
+.modal{position:fixed;inset:0;background:rgba(10,45,35,.72);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.modal.show{display:flex}
+.koi-card{width:100%;max-width:400px;background:var(--rice-white);border-radius:24px;overflow:hidden;position:relative;border:3px solid var(--gold);box-shadow:0 20px 60px rgba(0,0,0,.35);animation:pop .45s ease;max-height:88vh;display:flex;flex-direction:column}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.koi-header{height:180px;background:radial-gradient(circle at 30% 30%,var(--gold-light) 0%,transparent 26%),linear-gradient(180deg,var(--macau-green-deep) 0%,var(--macau-green) 100%);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.koi-header::before{content:"";position:absolute;left:-20px;right:-20px;bottom:-40px;height:120px;background:repeating-linear-gradient(90deg,var(--gold) 0 12px,transparent 12px 24px);opacity:.35;border-radius:50%;filter:blur(2px)}
+.koi-fish{font-size:68px;position:relative;z-index:2;animation:fish 1.6s ease-in-out infinite}
+@keyframes fish{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(6deg)}}
+.longmen{position:absolute;top:24px;right:24px;background:var(--gold);color:var(--macau-green-deep);padding:6px 12px;border-radius:99px;font-size:13px;font-weight:700;z-index:3}
+.koi-body{padding:26px 24px 22px;text-align:center;overflow-y:auto;flex:1}
+.koi-body h2{color:var(--macau-green-deep);font-size:26px;letter-spacing:2px;margin-bottom:8px}
+.koi-body .sub{color:var(--text-soft);font-size:15px;margin-bottom:14px}
+.koi-body p{font-size:15.5px;line-height:1.8;color:var(--text);margin-bottom:14px}
+.gold-lotus{font-size:44px;margin:10px 0 6px}
+/* 上下蓮花元件：沿用終章賀卡風格，開啟頁/史料卡/報告/勳章頁通用 */
+.lotus-top{text-align:center;font-size:40px;line-height:1.3;animation:lotusFloat 4s ease-in-out infinite;margin-bottom:4px}
+.lotus-bottom{display:flex;justify-content:center;gap:12px;font-size:17px;opacity:.85;margin:12px 0 4px;animation:lotusFloat 5s ease-in-out infinite}
+.tags{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px}
+.tag{background:var(--macau-green-light);color:var(--macau-green-deep);border:1px solid var(--macau-green);padding:7px 13px;border-radius:99px;font-size:13.5px}
+.tag.gold{background:var(--gold);color:var(--macau-green-deep);border-color:var(--gold);font-weight:700}
+.modal-buttons{display:flex;gap:10px;position:sticky;bottom:0;background:linear-gradient(180deg,rgba(248,245,240,0),var(--rice-white) 32%);padding-top:12px}
+.modal-buttons button{flex:1;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-primary{background:var(--macau-green);color:var(--rice-white)}
+.btn-secondary{background:var(--gold);color:var(--macau-green-deep)}
+/* ---------- 思辨報告 ---------- */
+.report-modal{position:fixed;inset:0;background:rgba(10,45,35,.75);display:none;align-items:center;justify-content:center;z-index:300;padding:16px}
+.report-modal.show{display:flex}
+.report-card{width:100%;max-width:460px;background:var(--rice-white);border-radius:20px;border:3px solid var(--gold);padding:24px;max-height:88vh;overflow-y:auto}
+.report-card h2{color:var(--macau-green-deep);font-size:24px;margin-bottom:6px;text-align:center}
+.report-card .sub{text-align:center;color:var(--text-soft);font-size:14px;margin-bottom:18px}
+.report-score{text-align:center;margin-bottom:18px}
+.report-score .score-ring{font-size:42px;font-weight:700;color:var(--macau-green-deep)}
+.report-score .level{font-size:20px;font-weight:700;color:var(--gold);margin-top:6px}
+.report-badges{margin-bottom:18px}
+.report-badges h4{font-size:16px;color:var(--macau-green-deep);margin-bottom:8px}
+.badge-list{display:flex;flex-wrap:wrap;gap:8px}
+.badge{background:linear-gradient(135deg,#FFF6E0,#F5E6C8);color:var(--macau-green-deep);border:1px solid var(--gold);padding:6px 12px;border-radius:99px;font-size:13px;font-weight:600}
+.badge.lock{background:#eee;color:#999;border:1px solid #ccc}
+.report-seals h4{font-size:16px;color:var(--macau-green-deep);margin-bottom:8px}
+.seal-list{display:flex;flex-wrap:wrap;gap:8px}
+.seal{background:var(--gold);color:var(--macau-green-deep);padding:6px 12px;border-radius:99px;font-size:13px;font-weight:700}
+.report-actions{display:flex;gap:10px;margin-top:20px}
+.report-actions button{flex:1;padding:12px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer}
+.report-actions .btn-review{background:var(--macau-green);color:#fff}
+.report-actions .btn-share{background:var(--gold);color:var(--macau-green-deep)}
+
+
+/* ---------- 思辨報告·蓮花裝飾 ---------- */
+.report-card{position:relative;overflow-x:hidden;overflow-y:auto;}
+/* 思辨報告自定義滾動條樣式 */
+.report-card::-webkit-scrollbar,.hint-card::-webkit-scrollbar,.quote-card::-webkit-scrollbar,.koi-body::-webkit-scrollbar{width:8px}
+.report-card::-webkit-scrollbar-track,.hint-card::-webkit-scrollbar-track,.quote-card::-webkit-scrollbar-track,.koi-body::-webkit-scrollbar-track{background:var(--rice-white-soft);border-radius:99px}
+.report-card::-webkit-scrollbar-thumb,.hint-card::-webkit-scrollbar-thumb,.quote-card::-webkit-scrollbar-thumb,.koi-body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold) 0%,var(--macau-green) 100%);border-radius:99px}
+.report-card::-webkit-scrollbar-thumb:hover,.hint-card::-webkit-scrollbar-thumb:hover,.quote-card::-webkit-scrollbar-thumb:hover,.koi-body::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--macau-green) 0%,var(--gold) 100%)}
+.report-card,.hint-card,.quote-card,.koi-body{scrollbar-width:thin;scrollbar-color:var(--gold) var(--rice-white-soft)}
+.lotus-deco{position:absolute;font-size:28px;opacity:.18;pointer-events:none;z-index:0;animation:lotusFloat 6s ease-in-out infinite;}
+.lotus-tl{top:-8px;left:-8px;animation-delay:0s;}
+.lotus-tr{top:-8px;right:-8px;animation-delay:1.5s;}
+.lotus-bl{bottom:-8px;left:-8px;animation-delay:3s;}
+.lotus-br{bottom:-8px;right:-8px;animation-delay:4.5s;}
+.lotus-center{top:50%;left:50%;transform:translate(-50%,-50%);font-size:80px;opacity:.04;animation:lotusFloat 8s ease-in-out infinite;}
+/* ---------- 二十四站印章冊 ---------- */
+.seal-book{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.seal-cell{border:1px solid var(--line);border-radius:10px;padding:9px 4px 7px;text-align:center;background:#FDFBF7;position:relative;transition:transform .2s}
+.seal-cell .seal-dot{font-size:19px;line-height:1.2;display:block}
+.seal-cell .seal-name{font-size:12px;font-weight:700;color:var(--macau-green-deep);display:block;margin-top:3px;line-height:1.35}
+.seal-cell .seal-st{font-size:10.5px;color:var(--text-soft);display:block;margin-top:2px;line-height:1.3}
+.seal-cell.got{border-color:var(--gold);background:linear-gradient(180deg,#FFF9E8,#FDFBF7);box-shadow:0 2px 8px rgba(200,162,78,.22)}
+.seal-cell.got::after{content:"";position:absolute;inset:2px;border:1px dashed rgba(200,162,78,.45);border-radius:8px;pointer-events:none}
+.seal-cell.lock{opacity:.42;filter:grayscale(.75)}
+.seal-cell.lock .seal-dot::before{content:"🔒 "}
+.seal-progress-note{text-align:center;font-size:12.5px;color:var(--gold);font-weight:700;margin:2px 0 14px;letter-spacing:1px}
+@keyframes lotusFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(10deg)}}
+.report-card h2,.report-card .sub,.report-score,.report-badges,.report-seals,.report-actions,.report-footer{position:relative;z-index:1;}
+.score-ring{font-size:52px;font-weight:700;color:var(--macau-green-deep);text-shadow:0 0 20px rgba(200,162,78,.4);line-height:1.2;}
+.lotus-divider{text-align:center;font-size:18px;color:var(--gold);margin:12px 0 8px;opacity:.7;letter-spacing:8px;}
+.report-footer{text-align:center;margin:16px 0 20px;}
+.report-quote{font-size:14px;color:var(--text-soft);line-height:1.8;font-style:italic;}
+
+/* ---------- 錯題復盤 ---------- */
+.review-modal{position:fixed;inset:0;background:rgba(10,45,35,.75);display:none;align-items:center;justify-content:center;z-index:310;padding:16px}
+.review-modal.show{display:flex}
+.review-card{width:100%;max-width:460px;background:var(--rice-white);border-radius:20px;border:3px solid var(--gold);padding:24px;max-height:88vh;overflow-y:auto}
+.review-card h2{color:var(--macau-green-deep);font-size:22px;margin-bottom:14px;text-align:center}
+.review-item{margin-bottom:18px;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+.review-item:last-child{border:none}
+.review-item .station{font-size:15px;font-weight:700;color:var(--macau-green-deep);margin-bottom:6px}
+.review-item .wrong{color:var(--data-brick);font-size:14px;margin-bottom:4px}
+.review-item .right{color:var(--macau-green-deep);font-size:14px;margin-bottom:4px}
+.review-item .tip{color:var(--text-soft);font-size:13px;line-height:1.7}
+.review-empty{text-align:center;color:var(--text-soft);font-size:15px;padding:20px 0}
+.review-close{width:100%;padding:12px;background:var(--macau-green);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px}
+
+/* ---------- 错题卡搜集（报告内） ---------- */
+.report-wrong-cards{margin-bottom:18px}
+.report-wrong-cards h4{font-size:16px;color:var(--macau-green-deep);margin-bottom:8px}
+.wrong-card-list{display:flex;flex-direction:column;gap:10px;max-height:320px;overflow-y:auto;padding-right:6px;-webkit-overflow-scrolling:touch}
+.wrong-card-list::-webkit-scrollbar{width:8px}
+.wrong-card-list::-webkit-scrollbar-track{background:var(--rice-white-soft);border-radius:99px}
+.wrong-card-list::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--data-brick) 0%,var(--gold) 100%);border-radius:99px}
+.wrong-card-list::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--gold) 0%,var(--data-brick) 100%)}
+.wrong-card-list{scrollbar-width:thin;scrollbar-color:var(--gold) var(--rice-white-soft)}
+.wrong-card-item{background:var(--rice-white);border:1px solid var(--line);border-radius:12px;padding:14px 16px;border-left:4px solid var(--data-brick);position:relative}
+.wrong-card-item::before{content:"";position:absolute;left:0;top:0;width:4px;height:100%;background:var(--data-brick);border-radius:12px 0 0 12px}
+.wrong-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.wrong-card-num{background:var(--data-brick);color:#fff;font-size:12px;padding:2px 8px;border-radius:99px;font-weight:700}
+.wrong-card-station{background:var(--macau-green-light);color:var(--macau-green-deep);font-size:12px;padding:2px 8px;border-radius:99px;font-weight:600}
+.wrong-card-title{font-size:14px;color:var(--text);font-weight:600;flex:1}
+.wrong-card-choice,.wrong-card-answer{font-size:14px;line-height:1.7;margin-bottom:4px;padding-left:4px}
+.wrong-card-choice .lbl,.wrong-card-answer .lbl{font-weight:700;margin-right:4px}
+.wrong-card-choice .wrong-text{color:var(--data-brick)}
+.wrong-card-answer .right-text{color:var(--macau-green-deep)}
+/* ---------- 分享畫布 ---------- */
+#shareCanvas{display:none;}
+/* ---------- 安全區 ---------- */
+.progress-bar{
+padding-left: max(18px, env(safe-area-inset-left));
+padding-right: max(18px, env(safe-area-inset-right));
+}
+header{
+padding-left: max(20px, env(safe-area-inset-left));
+padding-right: max(20px, env(safe-area-inset-right));
+}
+.card-container{
+padding-left: max(16px, env(safe-area-inset-left));
+padding-right: max(16px, env(safe-area-inset-right));
+}
+.modal,
+.report-modal,
+.review-modal,
+.quote-modal{
+padding:
+max(16px, env(safe-area-inset-top))
+max(16px, env(safe-area-inset-right))
+max(16px, env(safe-area-inset-bottom))
+max(16px, env(safe-area-inset-left));
+}
+footer.epi-footer{
+max-width:1100px;margin:28px auto 0;padding:20px 16px 0;
+text-align:center;color:var(--text-soft);font-size:13px;line-height:1.8;
+border-top:1px solid var(--line);
+}
+.epi-footer .fret-fang{display:inline-block;margin:10px auto 6px;width:64px;height:22px;opacity:.75}
+.epi-footer b{color:var(--macau-green-deep)}
+
+/* ---------- 首次進入·使用說明彈窗 ---------- */
+.hint-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;align-items:center;justify-content:center;padding:16px}
+.hint-modal.show{display:flex}
+.hint-card{width:100%;max-width:540px;background:var(--rice-white);border:2px solid var(--gold);border-radius:16px;padding:24px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.35);max-height:88vh;overflow-y:auto}
+.hint-card .fret-mark{position:absolute;top:12px;right:12px;width:52px;height:38px}
+.hint-card h2{margin:0 0 16px;color:var(--macau-green-deep);font-size:20px;text-align:center;letter-spacing:2px}
+.hint-section{margin:12px 0}
+.hint-section .h-title{font-size:15px;font-weight:700;color:var(--macau-green-deep);margin-bottom:5px}
+.hint-section p{font-size:14px;line-height:1.7;color:var(--text)}
+.hint-feedback{margin-top:16px;font-size:13px;color:var(--text-soft);line-height:1.6;text-align:center}
+.hint-feedback a{color:var(--macau-green-deep);text-decoration:underline}
+.hint-check{display:flex;align-items:center;gap:8px;margin-top:16px;padding:0 10px;font-size:14px;color:var(--text-soft);cursor:pointer}
+.hint-check input[type=checkbox]{accent-color:var(--macau-green);width:16px;height:16px;cursor:pointer}
+.hint-start{width:calc(100% - 20px);margin:18px 10px 10px;background:var(--macau-green);color:var(--rice-white);border:none;border-radius:12px;padding:14px;font-size:17px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:background .2s}
+.hint-start:hover{background:var(--macau-green-deep)}
+.warn{color:var(--data-brick)}
+
+/* ---------- 正文右上角暗紋 ---------- */
+.mini-watermark{position:fixed;top:12px;right:12px;width:54px;height:54px;opacity:.55;z-index:900;pointer-events:none;animation:watermarkFloat 8s ease-in-out infinite}
+@keyframes watermarkFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+
+.btn-back-station{background:var(--gold-light);color:var(--macau-green-deep);border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s}
+.btn-back-station:hover{background:var(--gold);color:var(--macau-green-deep)}
+
+/* ---------- 背景音樂·懸浮開關 ---------- */
+.bgm-btn{
+position:fixed;right:16px;bottom:18px;width:52px;height:52px;border-radius:50%;
+border:2px solid var(--gold,#C8A24E);cursor:pointer;z-index:950;
+background:linear-gradient(180deg,#0A5A47 0%,#0E7A5F 100%);
+box-shadow:0 4px 14px rgba(10,90,71,.35);display:flex;align-items:center;justify-content:center;
+transition:transform .2s ease, filter .2s ease;
+padding:0;
+}
+.bgm-btn:hover{filter:brightness(1.1);}
+.bgm-btn .bgm-note{font-size:24px;transition:transform .3s ease;}
+.bgm-btn.playing{animation:bgmSpin 6s linear infinite;}
+.bgm-btn.playing .bgm-note{transform:rotate(0deg);}
+.bgm-btn::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px dashed rgba(200,162,78,.55);opacity:0;transition:opacity .3s;}
+.bgm-btn.playing::after{opacity:1;animation:bgmSpin 10s linear infinite reverse;}
+@keyframes bgmSpin{to{transform:rotate(360deg);}}
+
+</style>
+</head>
+<body>
+<!-- 背景音樂：請將 hitomi.mp3 放在本 html 同目錄（可替換為你的音頻文件/URL） -->
+<audio id="bgm" loop preload="auto">
+  <source src="hitomi.mp3" type="audio/mpeg">
+  <source src="hitomi.ogg" type="audio/ogg">
+</audio>
+<!-- 懸浮音樂開關 -->
+<button class="bgm-btn" id="bgmBtn" title="背景音樂" aria-label="背景音樂">
+  <span class="bgm-note">🎵</span>
+</button>
+
+<svg class="mini-watermark" viewBox="0 0 84 62" aria-hidden="true">
+<g fill="none" stroke="#C8A24E" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24"/></g>
+<rect x="72" y="4" width="4" height="4" fill="#C8A24E"/>
+</svg>
+
+<!-- 首次進入·使用說明彈窗 -->
+<div class="hint-modal" id="hintModal">
+<div class="hint-card">
+<svg class="fret-mark" viewBox="0 0 84 62" aria-hidden="true">
+<g fill="none" stroke="#C8A24E" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24"/></g>
+<rect x="72" y="4" width="4" height="4" fill="#C8A24E"/>
+</svg>
+<div class="lotus-top" style="font-size:36px">🪷</div>
+<h2 id="hintTitle">思辨遊戲・破壁求真｜二十四位提問者，等了你四百年</h2>
+
+<div class="hint-section">
+<div class="h-title" id="hintWelcomeTitle">🌊 歡迎來到這片海域</div>
+<p id="hintWelcome">一五五二年，沙勿略在澳門外海留下對中國的最後凝望；一九七四年，沃勒斯坦提筆書寫核心強國之外的世界史——二十四位橫跨四百年的提問者，在東西方交會的澳門，各自為你留下一個問題。答對，蓋上一枚印章；答錯，也是收穫。</p>
+</div>
+
+<div class="hint-section">
+<div class="h-title" id="hintAboutTitle">📜 這是一場對話，不是一場考試</div>
+<p id="hintAbout">圍繞澳門世界文化遺產 24 個真實地點展開：讀一段原始史料，聽一位歷史人物親自提問，辨識一個常見的認知陷阱。走完全程，你會帶走一本親手集起的印章冊、一份思辨報告，和一雙更清醒的眼睛。</p>
+</div>
+
+<div class="hint-section">
+<div class="h-title" id="hintMacauTitle">🇲🇴 給澳門本地使用者：</div>
+<p id="hintMacau">媽閣的煙火、大三巴的斜陽、議事亭的石仔路——這些地方你也許每天路過。這一次，請帶著四百年前的目光再走一遍：你會發現，熟悉的街角藏著未曾聽完的對話。</p>
+</div>
+
+<div class="hint-section">
+<div class="h-title" id="hintCopyrightTitle">📚 版權與使用提醒</div>
+<p id="hintCopyright">頁中原始外文史料屬公有領域；但選材、提問、劇本、UI 視覺均為原創匯編作品，未經書面授權禁止商用、二次改編、線下展覽。</p>
+</div>
+
+<div class="hint-section">
+<div class="h-title" id="hintWarnTitle">⚠️ 提示</div>
+<p class="warn" id="hintWarn">本作品側重訓練史料思辨能力，不等同權威教科書；如有史料質疑，歡迎透過反饋郵箱交流。</p>
+</div>
+
+<div class="hint-feedback" id="hintFeedback">
+史料錯誤、體驗 Bug 反饋：<a href="mailto:liukui2050@gmail.com">liukui2050@gmail.com</a>
+</div>
+
+<label class="hint-check" id="hintCheckLabel">
+<input type="checkbox" id="hintDontShow">
+<span id="hintCheckText">下次進入不再顯示本提示</span>
+</label>
+
+<div class="lotus-bottom">🪷 🪷 🪷</div>
+<button class="hint-start" id="hintStartBtn">開始 24 站探索</button>
+</div>
+</div>
+
+<header>
+<div class="lang-switch"><button id="langBtn">切換簡體</button></div>
+<h1 id="title">思辨遊戲·破壁求真</h1>
+<p id="subtitle">澳門世遺：中西交融·文明共生｜@ liukui</p>
+<div class="sub" id="subTitle">  思辨 · 破壁 · 求真 · 共生</div>
+</header>
+<div id="timeline-chart"></div>
+<div class="progress-bar">
+<div class="progress-title"><span id="progressText"></span><span><b id="currentIndex">1</b> / 24</span></div>
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+<div class="card-container" id="cardContainer"></div>
+<!-- 引文彈窗 -->
+<div class="quote-modal" id="quoteModal">
+<div class="quote-card">
+<svg style="position:absolute;top:8px;right:8px" width="44" height="32" viewBox="0 0 84 62">
+<g fill="none" stroke="#0E7A5F" stroke-width="6"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24"/></g>
+<rect x="72" y="4" width="4" height="4" fill="#F8F5F0"/>
+</svg>
+<svg class="lotus-svg-inline sm" viewBox="0 0 100 100" aria-hidden="true">
+  <defs>
+    <radialGradient id="lotusPink" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="55%" stop-color="#FF69B4"/>
+      <stop offset="100%" stop-color="#FF1493"/>
+    </radialGradient>
+    <radialGradient id="lotusGold" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#FFF5CC"/>
+      <stop offset="60%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#E8A020"/>
+    </radialGradient>
+  </defs>
+  <g transform="translate(50,60)">
+    <path d="M0,0 C-26,-16 -34,-44 -8,-50 C6,-32 2,-14 0,0 Z" fill="url(#lotusPink)"/>
+    <path d="M0,0 C26,-16 34,-44 8,-50 C-6,-32 -2,-14 0,0 Z" fill="url(#lotusPink)" opacity=".92"/>
+    <path d="M0,0 C-16,-26 -14,-50 0,-54 C16,-50 16,-26 0,0 Z" fill="url(#lotusPink)" opacity=".85"/>
+  </g>
+  <g transform="translate(50,60)">
+    <path d="M0,0 C-18,-14 -24,-36 -4,-40 C8,-28 4,-12 0,0 Z" fill="url(#lotusGold)"/>
+    <path d="M0,0 C18,-14 24,-36 4,-40 C-8,-28 -4,-12 0,0 Z" fill="url(#lotusGold)" opacity=".9"/>
+  </g>
+  <circle cx="50" cy="60" r="6" fill="url(#lotusGold)"/>
+  <path d="M50,66 Q38,82 26,86 M50,66 Q62,82 74,86" stroke="#3F8A5F" stroke-width="2.4" fill="none" opacity=".75"/>
+</svg>
+<div class="lotus-top" style="font-size:30px">🪷</div>
+<h3 id="qTitle"></h3>
+<div class="quote-meta" id="qMeta"></div>
+<div id="qPersonBio" style="font-size:12px;color:#5C6B64;line-height:1.65;margin:6px 0 6px;padding-bottom:8px;border-bottom:1px solid #D9CFB8"></div>
+<div id="qLink" style="font-size:12px;color:#0E7A5F;font-weight:700;line-height:1.65;margin-bottom:10px;padding:8px 10px;background:var(--macau-green-light);border-radius:8px"></div>
+<div style="font-size:11px;color:var(--macau-green-deep);font-weight:bold;margin-bottom:4px"><span id="qLang"></span> 原文</div>
+<div class="quote-foreign" id="qForeign"></div>
+<div class="quote-zh-main" id="qZh"></div>
+<div class="quote-desc" id="qDesc"></div>
+<div id="qRef" style="font-size:11px;color:#5C6B64;line-height:1.6;margin:4px 0 12px"></div>
+<div class="lotus-bottom">🪷 🪷 🪷</div>
+<button class="quote-close" onclick="closeQuote()">關閉</button>
+</div>
+</div>
+<!-- 終章 -->
+<div class="modal" id="koiModal">
+<div class="koi-card">
+<div class="koi-header">
+<svg style="position:absolute;top:10px;left:10px" width="56" height="42" viewBox="0 0 84 62">
+<g fill="none" stroke="#E3D3A6" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24"/></g>
+<rect x="72" y="4" width="4" height="4" fill="#C8A24E"/>
+</svg>
+<div class="longmen" id="modalTag">終章賀卡</div>
+<div class="koi-fish">🐟</div>
+</div>
+<div class="koi-body">
+<div class="gold-lotus" style="font-size:56px;animation:lotusFloat 4s ease-in-out infinite;">🪷</div>
+<div class="lotus-petals">
+<span class="petal" style="left:20%;top:30%;">🪷</span>
+<span class="petal" style="right:25%;top:50%;">🪷</span>
+<span class="petal" style="left:30%;bottom:20%;">🪷</span>
+</div>
+<h2 id="modalHead">魚躍龍門</h2>
+<div class="sub" id="modalSub">第24站 · 金蓮花廣場</div>
+<p id="modalPara">恭喜完成澳門世遺24站思辨探索。<br>從媽閣到金蓮花，你走完一場平視歷史的思辨旅程。</p>
+<div class="tags">
+<span class="tag" id="tag1">24站集章完成</span>
+<span class="tag gold" id="tag2">破壁求真</span>
+<span class="tag" id="tag3">平視多元歷史</span>
+</div>
+<p style="font-size:13px;color:var(--text-soft)" id="modalNote">思辨非為推翻，是為看見全貌；史觀不止一端，文明本自多元。</p>
+<div class="modal-buttons">
+<button class="btn-secondary" onclick="restart()">重新探索</button>
+<button class="btn-primary" onclick="closeAllModals();openReport();">查看思辨報告</button>
+</div>
+</div>
+</div>
+</div>
+<!-- 思辨報告 -->
+<div class="report-modal" id="reportModal">
+<div class="report-card">
+<!-- 蓮花裝飾 -->
+<div class="lotus-deco lotus-tl">🪷</div>
+<div class="lotus-deco lotus-tr">🪷</div>
+<div class="lotus-deco lotus-bl">🪷</div>
+<div class="lotus-deco lotus-br">🪷</div>
+<div class="lotus-deco lotus-center">🪷</div>
+<div class="lotus-top" style="font-size:34px;position:relative;z-index:1">🪷</div>
+
+<h2>思辨報告</h2>
+<div class="sub">澳門世遺24站 · 破壁求真</div>
+
+<div class="report-score">
+<div class="score-ring" id="reportScore">0 / 24</div>
+<div class="level" id="reportLevel"></div>
+<div class="lotus-divider">❁ ❁ ❁</div>
+</div>
+
+<div class="report-badges">
+<h4>🏅 成就徽章</h4>
+<div class="badge-list" id="badgeList"></div>
+</div>
+
+<div class="report-seals">
+<h4>🪶 獲得印章</h4>
+<div class="seal-list" id="sealList"></div>
+</div>
+
+<div class="report-footer">
+<p class="report-quote">思辨非為推翻，是為看見全貌；<br>史觀不止一端，文明本自多元。</p>
+</div>
+
+<div class="report-wrong-cards">
+<h4>📚 錯題卡搜集</h4>
+<div class="wrong-card-list" id="wrongCardList"><div class="review-empty" id="wrongCardEmpty">暂无错题记录，思辨完美。</div></div>
+</div><div class="lotus-bottom" style="position:relative;z-index:1">🪷 🪷 🪷</div>
+<div class="report-actions">
+<button class="btn-review" onclick="openTrapCards();">🕳️ 思辨陷阱</button>
+<button class="btn-share" onclick="openSummary();">📥 下載報告</button>
+<button class="btn-back-station" onclick="backToPage1()">↩ 返回第一頁</button>
+</div>
+</div>
+</div>
+<!-- 思辨勳章及總結（下載報告） -->
+<div class="report-modal" id="summaryModal">
+<div class="report-card">
+<div class="lotus-deco lotus-tl">🪷</div>
+<div class="lotus-deco lotus-tr">🪷</div>
+<div class="lotus-deco lotus-bl">🪷</div>
+<div class="lotus-deco lotus-br">🪷</div>
+<div class="lotus-deco lotus-center">🪷</div>
+<div class="lotus-top" style="font-size:34px;position:relative;z-index:1">🪷</div>
+<h2>思辨勳章及總結</h2>
+<div class="sub">這是你與二十四位提問者同行的痕跡</div>
+
+<div class="report-score">
+<div class="score-ring" id="sumScore">0 / 24</div>
+<div class="level" id="sumLevel"></div>
+<div class="lotus-divider">❁ ❁ ❁</div>
+</div>
+
+<div class="report-badges">
+<h4>📊 探索總覽</h4>
+<div id="sumStats" style="font-size:14.5px;color:var(--text-soft);line-height:2"></div>
+</div>
+
+<div class="report-badges">
+<h4>🏅 思辨勳章（已獲得）</h4>
+<div class="badge-list" id="sumBadgeList"></div>
+</div>
+
+<div class="report-seals">
+<h4>🪶 二十四站印章冊</h4>
+<div class="seal-progress-note" id="sealNote"></div>
+<div class="seal-book" id="sealBook"></div>
+</div>
+
+<div class="report-footer">
+<p class="report-quote" id="sumText"></p>
+<p class="report-quote" id="sumLetter" style="font-style:normal;margin-top:10px"></p>
+</div>
+
+<div class="lotus-bottom" style="position:relative;z-index:1">🪷 🪷 🪷</div>
+<div class="report-actions">
+<button class="btn-share" onclick="generateShareCard()">⬇ 下載此報告頁面</button>
+<button class="btn-review" onclick="closeAllModals();openReport();">↩ 返回思辨報告</button>
+</div>
+</div>
+</div>
+
+<!-- 認知陷阱·逐卡彈窗（一錯題一卡，含蓮花裝飾） -->
+<div class="trap-modal" id="trapModal">
+<div class="trap-card">
+<svg class="lotus-svg-inline sm" viewBox="0 0 100 100" aria-hidden="true" style="margin-bottom:8px">
+  <defs>
+    <radialGradient id="lotusPinkTrap" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#FFFFFF"/><stop offset="55%" stop-color="#FF69B4"/><stop offset="100%" stop-color="#FF1493"/>
+    </radialGradient>
+    <radialGradient id="lotusGoldTrap" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#FFF5CC"/><stop offset="60%" stop-color="#FFD700"/><stop offset="100%" stop-color="#E8A020"/>
+    </radialGradient>
+  </defs>
+  <g transform="translate(50,60)">
+    <path d="M0,0 C-26,-16 -34,-44 -8,-50 C6,-32 2,-14 0,0 Z" fill="url(#lotusPinkTrap)"/>
+    <path d="M0,0 C26,-16 34,-44 8,-50 C-6,-32 -2,-14 0,0 Z" fill="url(#lotusPinkTrap)" opacity=".92"/>
+    <path d="M0,0 C-16,-26 -14,-50 0,-54 C16,-50 16,-26 0,0 Z" fill="url(#lotusPinkTrap)" opacity=".85"/>
+  </g>
+  <g transform="translate(50,60)">
+    <path d="M0,0 C-18,-14 -24,-36 -4,-40 C8,-28 4,-12 0,0 Z" fill="url(#lotusGoldTrap)"/>
+    <path d="M0,0 C18,-14 24,-36 4,-40 C-8,-28 -4,-12 0,0 Z" fill="url(#lotusGoldTrap)" opacity=".9"/>
+  </g>
+  <circle cx="50" cy="60" r="6" fill="url(#lotusGoldTrap)"/>
+</svg>
+<span class="lotus-corner tl">🪷</span>
+<span class="lotus-corner tr">🪷</span>
+<span class="lotus-corner bl">🪷</span>
+<span class="lotus-corner br">🪷</span>
+<svg class="lotus-svg-inline" viewBox="0 0 100 100" aria-hidden="true">
+  <g transform="translate(50,56)">
+    <path d="M0,0 C-24,-16 -32,-44 -8,-50 C6,-32 2,-14 0,0 Z" fill="#E8A0B0" opacity=".9"/>
+    <path d="M0,0 C24,-16 32,-44 8,-50 C-6,-32 -2,-14 0,0 Z" fill="#F0B8C4" opacity=".9"/>
+    <path d="M0,0 C-16,-26 -14,-50 0,-54 C14,-50 16,-26 0,0 Z" fill="#F6D0D8" opacity=".95"/>
+  </g>
+  <g transform="translate(50,56)">
+    <path d="M0,0 C-18,-14 -24,-36 -4,-40 C8,-28 4,-12 0,0 Z" fill="#C8A24E"/>
+    <path d="M0,0 C18,-14 24,-36 4,-40 C-8,-28 -4,-12 0,0 Z" fill="#E3D3A6"/>
+  </g>
+  <circle cx="50" cy="56" r="6" fill="#0E7A5F"/>
+  <path d="M50,62 Q38,80 26,84 M50,62 Q62,80 74,84" stroke="#3F8A5F" stroke-width="2.2" fill="none" opacity=".6"/>
+</svg>
+<div class="trap-head">
+  <div class="trap-epi" id="trapEpi">跳坑最深 · 認知陷阱回顧</div>
+  <h3 id="trapTitle"></h3>
+  <span class="trap-station" id="trapStation"></span>
+</div>
+<div id="trapBody"></div>
+<div class="trap-nav">
+  <button class="trap-prev" id="trapPrev">‹ 上一題</button>
+  <span class="trap-progress" id="trapProgress"></span>
+  <button class="trap-next" id="trapNext">下一題 ›</button>
+</div>
+<button class="trap-goto" id="trapGoto">前往該站重新思考</button>
+<button class="trap-close" id="trapClose">返回報告</button>
+</div>
+</div>
+
+<!-- 錯題復盤 -->
+<div class="review-modal" id="reviewModal">
+<div class="review-card">
+<h2>跳坑最深 · 認知陷阱回顧</h2>
+<div id="reviewContent"></div>
+<button class="review-close" onclick="closeAllModals();openReport();">返回報告</button>
+</div>
+</div>
+<canvas id="shareCanvas" width="1080" height="1440"></canvas>
+<script>
+/* =========================
+狀態管理（localStorage）
+========================= */
+let current=0,useSimplified=false;
+let score=0,wrong=[],seals=[],historyStack=[],answered={};
+
+function loadState(){
+  const s=JSON.parse(localStorage.getItem("epi_state"));
+  if(s){
+    current=s.current||0;
+    score=s.score||0;
+    wrong=s.wrong||[];
+    seals=s.seals||[];
+    useSimplified=s.lang==="简体";
+    historyStack=s.historyStack||[];
+    answered=s.answered||null;
+  }
+  // 旧版本存档无 answered：保留旧分数兼容；有 answered 则以它为准重算，防止状态不一致
+  if(answered===null){answered={};}
+  else if(answered["undefined"]!==undefined){answered={};score=0;wrong=[];seals=[];} /* 旧版id缺失导致的损坏档 */
+  else{
+    /* 清洗旧版(如24站)存档：只保留 1-16 的合法站点记录，防止"已答 24/16"这类状态漂移 */
+    const clean={};
+    Object.keys(answered).forEach(function(k){
+      const n=Number(k);
+      if(Number.isInteger(n)&&n>=1&&n<=dataTraditional.length){clean[n]=answered[k];}
+    });
+    answered=clean;
+    recomputeStats();
+  }
+}
+function saveState(){
+  localStorage.setItem("epi_state",JSON.stringify({
+    current,score,wrong,seals,lang:useSimplified?"简体":"繁體",historyStack,answered
+  }));
+}
+
+/* 由 answered（站id -> 原始选项索引）统一重算分数/错题/印章，杜绝重答刷分与状态漂移 */
+function recomputeStats(){
+  score=0; wrong=[]; seals=[];
+  dataTraditional.forEach(function(d){
+    if(answered[d.id]!==undefined){
+      if(answered[d.id]===d.correct){
+        score++;
+        if(!seals.includes(d.seal)) seals.push(d.seal);
+      }else{
+        wrong.push({id:d.id,choice:answered[d.id],answer:d.correct,
+          choiceText:d.options[answered[d.id]],answerText:d.options[d.correct]});
+      }
+    }
+  });
+}
+/* 简繁输出辅助：简体模式下对任意文本做转换 */
+function T(x){return useSimplified?toSimplified(x==null?"":String(x)):x;}
+
+/* =========================
+首次進入·使用說明（繁/簡）
+========================= */
+const HINT_TEXTS = {
+  "繁體": {
+    title: "思辨遊戲・破壁求真｜二十四位提問者，等了你四百年",
+    welcomeTitle: "🌊 歡迎來到這片海域",
+    welcome: "一五五二年，沙勿略在澳門外海留下對中國的最後凝望；一九七四年，沃勒斯坦提筆書寫核心強國之外的世界史——二十四位橫跨四百年的提問者，在東西方交會的澳門，各自為你留下一個問題。答對，蓋上一枚印章；答錯，也是收穫。",
+    aboutTitle: "📜 這是一場對話，不是一場考試",
+    about: "二十四站、二十四位提問者、二十四段原始史料：讀一段第一手的文字，聽一位歷史人物親自發問，辨識一個我們今天仍常掉進去的認知陷阱。走完全程，你會帶走一本親手集起的印章冊、一份思辨報告，和一雙更清醒的眼睛。",
+    macauTitle: "🇲🇴 給澳門本地使用者：",
+    macau: "媽閣的煙火、大三巴的斜陽、議事亭的石仔路——這些地方你也許每天路過。這一次，請帶著四百年前的目光再走一遍：你會發現，熟悉的街角藏著未曾聽完的對話。",
+    copyrightTitle: "📚 版權與使用提醒",
+    copyright: "頁中原始外文史料屬公有領域；但選材、提問、劇本、UI 視覺均為原創匯編作品，未經書面授權禁止商用、二次改編、線下展覽。",
+    warnTitle: "⚠️ 提示",
+    warn: "本作品側重訓練史料思辨能力，不等同權威教科書；如有史料質疑，歡迎透過反饋郵箱交流。",
+    feedback: "史料錯誤、體驗 Bug 反饋：",
+    check: "下次進入不再顯示本提示",
+    start: "啟程 · 去見二十四位提問者"
+  },
+  "简体": {
+    title: "思辨游戏・破壁求真｜二十四位提问者，等了你四百年",
+    welcomeTitle: "🌊 欢迎来到这片海域",
+    welcome: "一五五二年，沙勿略在澳门外海留下对中国的最后凝望；一九七四年，沃勒斯坦提笔书写核心强国之外的世界史——二十四位横跨四百年的提问者，在东西方交会的澳门，各自为你留下一个问题。答对，盖上一枚印章；答错，也是收获。",
+    aboutTitle: "📜 这是一场对话，不是一场考试",
+    about: "二十四站、二十四位提问者、二十四段原始史料：读一段第一手的文字，听一位历史人物亲自发问，辨识一个我们今天仍常掉进去的认知陷阱。走完全程，你会带走一本亲手集起的印章册、一份思辨报告，和一双更清醒的眼睛。",
+    macauTitle: "🇲🇴 给澳门本地使用者：",
+    macau: "妈阁的烟火、大三巴的斜阳、议事亭的石仔路——这些地方你也许每天路过。这一次，请带着四百年前的目光再走一遍：你会发现，熟悉的街角藏着未曾听完的对话。",
+    copyrightTitle: "📚 版权与使用提醒",
+    copyright: "页面原始外文史料属于公有领域；但选材、提问、剧本、UI 视觉均为原创汇编作品，未经书面授权禁止商用、二次改编、线下展览。",
+    warnTitle: "⚠️ 提示",
+    warn: "本作品侧重训练史料思辨能力，不等同权威教科书；如果对史料有疑问，欢迎通过反馈邮箱交流。",
+    feedback: "史料错误、体验 Bug 反馈：",
+    check: "下次进入不再显示本提示",
+    start: "启程 · 去见二十四位提问者"
+  }
+};
+
+const hintModal   = document.getElementById("hintModal");
+const hintDontShow= document.getElementById("hintDontShow");
+const hintStartBtn= document.getElementById("hintStartBtn");
+const hintFeedback= document.getElementById("hintFeedback");
+
+function renderHint(langKey){
+  const t = HINT_TEXTS[langKey];
+  if(!t) return;
+  document.getElementById("hintTitle").innerText       = t.title;
+  document.getElementById("hintWelcomeTitle").innerText  = t.welcomeTitle;
+  document.getElementById("hintWelcome").innerText       = t.welcome;
+  document.getElementById("hintAboutTitle").innerText   = t.aboutTitle;
+  document.getElementById("hintAbout").innerText        = t.about;
+  document.getElementById("hintMacauTitle").innerText    = t.macauTitle;
+  document.getElementById("hintMacau").innerText         = t.macau;
+  document.getElementById("hintCopyrightTitle").innerText= t.copyrightTitle;
+  document.getElementById("hintCopyright").innerText     = t.copyright;
+  document.getElementById("hintWarnTitle").innerText     = t.warnTitle;
+  document.getElementById("hintWarn").innerText          = t.warn;
+  document.getElementById("hintCheckText").innerText     = t.check;
+  hintStartBtn.innerText                                 = t.start;
+  hintFeedback.innerHTML = t.feedback + '<a href="mailto:liukui2050@gmail.com">liukui2050@gmail.com</a>';
+}
+
+function showHintIfNeeded(){
+  // 强制每次进入都先显示使用说明（首屏弹窗），不跳过
+  renderHint(useSimplified ? "简体" : "繁體");
+  hintModal.classList.add("show");
+}
+
+hintStartBtn.addEventListener("click", function(){
+  if(hintDontShow.checked){
+    localStorage.setItem("epi_hint_read", "1");
+  }
+  // 重置遊戲狀態，從第1站開始
+  current = 0; score = 0; wrong = []; seals = []; historyStack = [];
+  saveState();
+  hintModal.classList.remove("show");
+  renderCard();
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+document.getElementById("hintCheckLabel").addEventListener("click", function(e){
+  if(e.target.tagName !== "INPUT"){
+    hintDontShow.checked = !hintDontShow.checked;
+  }
+});
+
+let _logoTapCount = 0, _logoTimer = null;
+document.addEventListener("click", function(e){
+  const h1 = document.getElementById("title");
+  if(h1 && h1.contains(e.target)){
+    _logoTapCount++;
+    clearTimeout(_logoTimer);
+    _logoTimer = setTimeout(()=>{ _logoTapCount = 0; }, 1500);
+    if(_logoTapCount >= 7){
+      localStorage.removeItem("epi_hint_read");
+      _logoTapCount = 0;
+      showHintIfNeeded();
+    }
+  }
+});
+
+/* =========================
+彈窗管理
+========================= */
+function closeAllModals(){
+  document.querySelectorAll('.modal,.report-modal,.review-modal,.quote-modal').forEach(m=>m.classList.remove('show'));
+}
+
+/* =========================
+UI 綁定
+========================= */
+const cardContainer=document.getElementById("cardContainer");
+const currentIndex=document.getElementById("currentIndex");
+const progressFill=document.getElementById("progressFill");
+const quoteModal=document.getElementById("quoteModal");
+const koiModal=document.getElementById("koiModal");
+const reportModal=document.getElementById("reportModal");
+const reviewModal=document.getElementById("reviewModal");
+
+function openQuote(idx){
+  const d=dataTraditional[idx];
+  if(!d){ console.warn("openQuote: station not found", idx); return; }
+  // 防御式取值：任何字段缺失都不会导致整个弹窗打不开
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.innerText=val==null?"":val;};
+  set("qTitle",T(d.qTitle));
+  set("qMeta",T(d.qMeta));
+  set("qPersonBio",T(d.personBio||""));
+  set("qLink",T(d.macaoLink||""));
+  set("qLang",T(d.sourceLang||""));
+  set("qForeign",T(d.sourceText||d.qForeign||""));
+  set("qZh",T(d.sourceZh||d.qZh||""));
+  set("qDesc",T(d.qDesc||""));
+  set("qRef",d.sourceRef?((useSimplified?"📚 出处：":"📚 出處：")+T(d.sourceRef)):"");
+  quoteModal.classList.add("show");
+}
+function closeQuote(){quoteModal.classList.remove("show");}
+
+function openReport(){closeAllModals();const scoreEl=document.getElementById("reportScore");const levelEl=document.getElementById("reportLevel");if(scoreEl) scoreEl.innerText=score+" / 24";if(levelEl) levelEl.innerText=T(score===24?"文明思辨行者":score>=18?"破坑達人":score>=12?"入坑行者":"初遇文明");const badgeList=document.getElementById("badgeList");if(badgeList){badgeList.innerHTML="";const badges=[{name:"初遇文明",ok:score>=1},{name:"敘事濾鏡",ok:score>=2},{name:"片面之鏡",ok:score>=3},{name:"破二元",ok:score>=4},{name:"共生",ok:score>=5},{name:"辨坑完成",ok:score>=6},{name:"多元共治",ok:score>=7},{name:"破中心",ok:score>=8},{name:"雙向流動",ok:score>=9},{name:"市井生機",ok:score>=10},{name:"解標籤",ok:score>=11},{name:"入坑篇完成",ok:score>=12},{name:"海域博弈",ok:score>=13},{name:"史料互證",ok:score>=14},{name:"混生文明",ok:score>=15},{name:"邊界交會",ok:score>=16},{name:"市井史",ok:score>=17},{name:"反向輸出",ok:score>=18},{name:"雙向文明",ok:score>=19},{name:"評價轉折",ok:score>=20},{name:"活態檔案",ok:score>=21},{name:"不困於坑",ok:score>=22},{name:"文明對話",ok:score>=23},{name:"魚躍龍門",ok:score===24}];badges.forEach(function(b){const span=document.createElement("span");span.className="badge"+(b.ok?"":" lock");span.innerText=T(b.name);badgeList.appendChild(span);});}const sealList=document.getElementById("sealList");if(sealList){sealList.innerHTML="";seals.forEach(function(s){const span=document.createElement("span");span.className="seal";span.innerText=T(s);sealList.appendChild(span);});}renderWrongCardsInReport();reportModal.classList.add("show");}
+
+/* 認知陷阱·逐卡彈窗狀態 */
+let trapList=[], trapIdx=0;
+
+function renderTrapCard(){
+  if(!trapList || trapList.length === 0) return;
+  const w=trapList[trapIdx];
+  if(!w || !w.id) {
+    console.warn("renderTrapCard: invalid trap card data at index", trapIdx);
+    return;
+  }
+  const d=dataTraditional[w.id-1];
+  if(!d || !d.title) {
+    console.warn("renderTrapCard: station data not found for id", w.id);
+    return;
+  }
+  // 安全獲取選項文本
+  const choiceText = T(w.choiceText || (d.options && d.options[w.choice]) || "未知選項");
+  const answerText = T(w.answerText || (d.options && d.options[d.correct]) || "未知答案");
+  
+  document.getElementById("trapEpi").innerText=T((trapIdx===0?"跳坑最深 · ":"") + "認知陷阱回顧");
+  document.getElementById("trapTitle").innerText=T(d.title);
+  document.getElementById("trapStation").innerText="第 " + w.id + " 站";
+  document.getElementById("trapProgress").innerText=(trapIdx+1) + " / " + trapList.length;
+  document.getElementById("trapBody").innerHTML=`
+    <div class="trap-row wrong-row">
+      <span class="ico">✗</span>
+      <span><span class="lbl">${T("你的選擇：")}</span>${choiceText}</span>
+    </div>
+    <div class="trap-row right-row">
+      <span class="ico">✓</span>
+      <span><span class="lbl">${T("正確路徑：")}</span>${answerText}</span>
+    </div>
+    <div class="trap-tip"><span class="lbl">${T("💡 破坑關鍵：")}</span>${T(d.qDesc || "無可用提示")}</div>
+  `;
+  // 上一題 / 下一題按鈕顯示邏輯
+  document.getElementById("trapPrev").style.visibility = trapIdx>0 ? "visible" : "hidden";
+  const isLast = (trapIdx >= trapList.length-1);
+  document.getElementById("trapNext").innerText = T(isLast ? "完成 ›" : "下一題 ›");
+  document.getElementById("trapGoto").style.display = "";
+  document.getElementById("trapGoto").innerText = T("前往第 ") + w.id + T(" 站重新思考");
+  document.getElementById("trapModal").classList.add("show");
+}
+
+function openReview(){
+  closeAllModals();
+  trapList = (wrong||[]).slice();   // 每一條錯題 = 一張獨立卡片
+  trapIdx = 0;
+  if(trapList.length===0){
+    // 無錯題時，改用原 report 內的空態提示（不彈卡片）
+    reviewModal.classList.add("show");
+    document.getElementById("reviewContent").innerHTML=
+      '<div class="review-empty">'+T("無跳坑記錄，思辨完美。")+'</div>';
+    return;
+  }
+  renderTrapCard();
+}
+
+function closeTrap(){
+  document.getElementById("trapModal").classList.remove("show");
+}
+
+function trapGotoStation(st){
+  // 前往該站：定位、保留之前的分数和印章
+  current=Math.min(Math.max(st-1,0), dataTraditional.length-1);
+  // 过滤掉目标站及之后的错题记录
+  wrong=wrong.filter(x=>x.id<st);
+  recomputeStats();
+  saveState();
+  closeAllModals();
+  renderCard();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// 綁定逐卡彈窗導航（事件委託，避免重複綁定）
+(function bindTrapNav(){
+  const prev=document.getElementById("trapPrev");
+  const next=document.getElementById("trapNext");
+  const goto=document.getElementById("trapGoto");
+  const close=document.getElementById("trapClose");
+  if(!prev || !next || !goto || !close) return;   // 容錯：DOM 未就緒時跳過
+  prev.onclick=function(){
+    if(trapIdx>0){ trapIdx--; renderTrapCard(); }
+  };
+  next.onclick=function(){
+    if(trapIdx < trapList.length-1){
+      trapIdx++; renderTrapCard();
+    }else{
+      // 最後一題「完成」→ 返回報告
+      closeTrap();
+      openReport();
+    }
+  };
+  goto.onclick=function(){
+    const st=trapList[trapIdx].id;
+    trapGotoStation(st);
+  };
+  close.onclick=function(){
+    closeTrap();
+    openReport();
+  };
+})();
+
+/* =========================错题卡搜集·报告内展示========================= */
+function renderWrongCardsInReport(){
+  const list=document.getElementById("wrongCardList");
+  const empty=document.getElementById("wrongCardEmpty");
+  if(!list) return;
+  list.innerHTML="";
+  if(!wrong||wrong.length===0){
+    if(empty) empty.style.display="block";
+    return;
+  }
+  if(empty) empty.style.display="none";
+  wrong.forEach((w,idx)=>{
+    const d=dataTraditional[w.id-1];
+    if(!d) return;
+    // 安全獲取選項文本
+    const choiceText = T(w.choiceText || (d.options && d.options[w.choice]) || "未知選項");
+    const answerText = T(w.answerText || (d.options && d.options[d.correct]) || "未知答案");
+    
+    const div=document.createElement("div");
+    div.className="wrong-card-item";
+    div.innerHTML=`
+      <div class="wrong-card-header">
+        <span class="wrong-card-num">#${idx+1}</span>
+        <span class="wrong-card-station">第${w.id}站</span>
+        <span class="wrong-card-title">${T(d.title)}</span>
+      </div>
+      <div class="wrong-card-choice"><span class="lbl">${T("你的選擇：")}</span><span class="wrong-text">${choiceText}</span></div>
+      <div class="wrong-card-answer"><span class="lbl">${T("正確路徑：")}</span><span class="right-text">${answerText}</span></div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+/* =========================认知陷阱回顾·直接跳转错题卡========================= */
+function openTrapCards(){
+  // 確保報告彈窗已打開（更新分數、徽章、印章、錯題卡列表）
+  if (!reportModal.classList.contains('show')) {
+    openReport();
+  }
+  // 直接準備並顯示錯題卡彈窗
+  try {
+    trapList = (wrong || []).slice();
+    trapIdx = 0;
+    if(trapList.length > 0){
+      // 驗證每張錯題卡數據完整性
+      var validCards = trapList.filter(function(w){
+        if(!w || !w.id) return false;
+        var d = dataTraditional[w.id - 1];
+        return d && d.title;
+      });
+      if(validCards.length > 0){
+        trapList = validCards;
+        renderTrapCard();
+      } else {
+        // 數據無效時在報告彈窗內顯示提示
+        var reportCard = document.querySelector(".report-card");
+        if(reportCard){
+          var msg = document.createElement("div");
+          msg.className = "review-empty";
+          msg.innerText = T("錯題數據暫不可用，請稍後再試。");
+          reportCard.appendChild(msg);
+          setTimeout(function(){ if(msg.parentNode) msg.remove(); }, 2500);
+        }
+      }
+    } else {
+      // 無錯題：彈出「無坑可跳」祝賀卡，給予明確的情感反饋
+      trapList = [];
+      document.getElementById("trapEpi").innerText = useSimplified ? "思辨陷阱 · 完美通关" : "思辨陷阱 · 完美通關";
+      document.getElementById("trapTitle").innerText = T("無坑可跳 · 完美思辨");
+      document.getElementById("trapStation").innerText = "🪷";
+      document.getElementById("trapProgress").innerText = "";
+      document.getElementById("trapBody").innerHTML =
+        '<div class="trap-tip" style="text-align:center">'+T("二十四站走來，你沒有掉進任何一個認知陷阱。這不是運氣，是你始終願意多想一步。—— 二十四位提問者 為你喝采 🪷")+'</div>';
+      document.getElementById("trapPrev").style.visibility = "hidden";
+      document.getElementById("trapNext").innerText = T("完成 ›");
+      document.getElementById("trapGoto").style.display = "none";
+      document.getElementById("trapModal").classList.add("show");
+    }
+  } catch(e) {
+    console.error("openTrapCards error:", e);
+    // 兜底：在報告彈窗內顯示錯誤提示
+    var reportCard = document.querySelector(".report-card");
+    if(reportCard){
+      var msg = document.createElement("div");
+      msg.className = "review-empty";
+      msg.innerText = T("加載錯題時出現異常，請刷新頁面重試。");
+      reportCard.appendChild(msg);
+      setTimeout(function(){ if(msg.parentNode) msg.remove(); }, 3000);
+    }
+  }
+}
+function openReviewLegacy(){   // 保留原「列表式」為空態備用（史料文本未改動）
+  closeAllModals();
+  const reviewContent=document.getElementById("reviewContent");
+  if(!wrong || wrong.length===0){
+    reviewContent.innerHTML='<div class="review-empty">'+T("無跳坑記錄，思辨完美。")+'</div>';
+  }
+  reviewModal.classList.add("show");
+}
+
+function restart(){current=0;score=0;wrong=[];seals=[];historyStack=[];saveState();closeAllModals();location.reload();}
+
+function goBack(){
+  if(current>0){
+    current--;
+    saveState();
+    renderCard();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+}
+
+/* =========================
+渲染卡片 + 答案選項
+========================= */
+function renderCard(){
+  const s=dataTraditional[current];
+  const percent=((current+1)/dataTraditional.length)*100;
+  currentIndex.textContent=current+1;
+  progressFill.style.width=percent+"%";
+  document.getElementById("progressText").innerText=(useSimplified?"探索进度":"探索進度");
+
+  // Fisher-Yates 洗牌：打乱显示顺序，同时记录洗牌后的正确选项索引 newCorrect
+  let idxs = s.options.map((_, i) => i);
+  for (let i = idxs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
+  }
+  const newCorrect = idxs.indexOf(s.correct);
+  let optHtml="";
+  idxs.forEach((orig, i)=>{
+    optHtml+=`<button class="option" data-i="${i}">${String.fromCharCode(65+i)}. ${s.options[orig]}</button>`;
+  });
+
+  const _cardHtml=`
+  <div class="station-card">
+    <svg style="position:absolute;top:10px;right:10px" width="52" height="38" viewBox="0 0 84 62">
+      <g fill="none" stroke="#0E7A5F" stroke-width="5"><polyline points="6,50 6,10 76,10 76,50 42,50 42,24 60,24"/></g>
+      <rect x="72" y="4" width="4" height="4" fill="#F8F5F0"/>
+    </svg>
+    <span class="station-number">第 ${current+1} / ${dataTraditional.length} 站 · 思辨遊戲</span>
+    <h2>${s.title}${s.end?'<span class="end-tag">終章</span>':""}</h2>
+    <div class="story-block">${s.story}</div>
+    <div class="person-card">
+      <div class="person-name">🙋 ${s.questioner}<span class="en">${s.questionerEn||""}</span></div>
+      <div class="person-bio">${s.personBio}</div>
+      
+      <div class="macao-link">🇲🇴澳門聯結:${s.macaoLink}</div>
+
+    </div>
+    <span class="lang-tag">📖 原文語言：${s.sourceLang}</span>
+    <div class="source-block">
+      <div class="src-head"><span class="src-lang">◆ ${s.sourceLang}</span> 原文引文 · 中譯</div>
+      <div class="source-text">${s.sourceText}</div>
+      <div class="source-zh">${s.sourceZh}</div>
+      <div class="source-ref">📚 出處：${s.sourceRef}</div>
+      
+    </div>
+    <button class="open-quote-btn" onclick="openQuote(${current})">📜 點擊打開EPI完整史料卡片</button>
+    <div class="question-block">
+      <h4>思辨題 · 由歷史人物親自發問</h4>
+      <span class="asker-badge">❓ 提問者：${s.questioner}</span>
+      <div class="asker-voice">💭 觀念呼應：${s.voice}</div>
+      <div class="question-text">${s.q}</div>
+      <div class="options">${optHtml}</div>
+      <div class="note" id="noteBox">✅ 正解：${s.options[s.correct]}｜集章：${s.seal}</div>
+    </div>
+    <button class="next-btn ${s.end?"finish":""}" id="nextBtn">
+      ${s.end?("完成"+dataTraditional.length+"站 · 魚躍龍門"):"確認回答 · 前往下一站"}
+    </button>
+    ${current>0?`<button class="back-btn" onclick="goBack()">⬅ 返回上一站</button>`:""}
+    <div class="card-footer">
+      <span class="index">${current+1} / ${dataTraditional.length}</span>
+      <span>${s.end?"金蓮花廣場終章":"點擊選項後確認"}</span>
+    </div>
+  </div>`;
+  cardContainer.innerHTML = useSimplified ? toSimplified(_cardHtml) : _cardHtml;
+
+  document.querySelectorAll(".option").forEach(btn=>{
+    btn.onclick=function(){
+      document.querySelectorAll(".option").forEach(b=>b.classList.remove("active"));
+      this.classList.add("active");
+      var noteBox = document.getElementById("noteBox");
+      if(noteBox) noteBox.classList.add("show");
+    };
+  });
+
+  document.getElementById("nextBtn").onclick=function(){
+    const activeOpt = document.querySelector(".option.active");
+    if(!activeOpt){alert(T("請先選擇一個選項"));return;}
+    try {
+      const choice=parseInt(activeOpt.dataset.i);
+      // 选项已 Fisher-Yates 洗牌；记录“原始选项索引”，同一站重答会自动修正分数/错题/印章
+      answered[s.id]=idxs[choice];
+      recomputeStats();
+      saveState();
+      if(s.end){
+        closeAllModals();
+        if(useSimplified){["modalTag","modalHead","modalSub","modalPara","tag1","tag2","tag3","modalNote"].forEach(function(id){var el=document.getElementById(id);if(el)el.innerText=T(el.innerText);});}
+        koiModal.classList.add("show");
+      }else{
+        current++;
+        saveState();
+        renderCard();
+        window.scrollTo({top:0,behavior:"smooth"});
+      }
+    } catch(e) {
+      console.error("nextBtn error:", e);
+      alert(T("回答時出現異常，請重試。"));
+    }
+  };
+}
+
+/* =========================
+分享卡片
+========================= */
+function generateShareCard(){
+  const c=document.getElementById("shareCanvas");
+  const ctx=c.getContext("2d");
+  const W=c.width, H=c.height;
+  const GREEN="#0A5A47", GREEN2="#0E7A5F", GOLD="#C8A24E", GOLD_L="#E3D3A6", CREAM="#F8F5F0", SOFT="#4A5A53";
+
+  // 圆角矩形
+  function rr(x,y,w,h,r,fill,stroke){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+    if(fill){ctx.fillStyle=fill;ctx.fill();}
+    if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}
+  }
+
+  /* ---- 底：米白 + 顶部绿带 ---- */
+  ctx.fillStyle=CREAM; ctx.fillRect(0,0,W,H);
+  const grad=ctx.createLinearGradient(0,0,0,250);
+  grad.addColorStop(0,"#0A5A47"); grad.addColorStop(1,"#0E7A5F");
+  ctx.fillStyle=grad; ctx.fillRect(0,0,W,250);
+
+  /* ---- 金框（双層，仿勳章卡） ---- */
+  ctx.strokeStyle=GOLD; ctx.lineWidth=4; ctx.strokeRect(20,20,W-40,H-40);
+  ctx.lineWidth=1.5; ctx.strokeRect(32,32,W-64,H-64);
+
+  /* ---- 头部 ---- */
+  ctx.textAlign="center";
+  ctx.font="64px serif"; ctx.fillText("🪷", W/2, 105);
+  ctx.fillStyle="#F8F5F0"; ctx.font="bold 52px serif";
+  ctx.fillText(T("思辨遊戲 · 破壁求真"), W/2, 168);
+  ctx.fillStyle=GOLD_L; ctx.font="24px serif";
+  ctx.fillText(T("澳門世遺 · 中西交融 · 文明思辨"), W/2, 210);
+
+  /* ---- 分数区 ---- */
+  ctx.fillStyle=GREEN; ctx.font="bold 100px serif";
+  ctx.fillText(score+" / 24", W/2, 380);
+  const level=T(score===24?"文明思辨行者":score>=18?"破坑達人":score>=12?"入坑行者":"初遇文明");
+  ctx.fillStyle=GOLD; ctx.font="bold 34px serif";
+  ctx.fillText(level, W/2, 440);
+  ctx.font="26px serif"; ctx.fillText("❁  ❁  ❁", W/2, 495);
+
+  /* ---- 寄語 ---- */
+  ctx.fillStyle=SOFT; ctx.font="italic 25px serif";
+  ctx.fillText(T("思辨非為推翻，是為看見全貌；"), W/2, 565);
+  ctx.fillText(T("史觀不止一端，文明本自多元。"), W/2, 605);
+
+  /* ---- 探索總覽 ---- */
+  const answeredCount=Object.keys(answered).length;
+  ctx.font="22px serif"; ctx.fillStyle=GREEN2;
+  ctx.fillText(T("已探索 ")+answeredCount+T(" / 24 站 · 破坑 ")+score+T(" 題 · 獲得印章 ")+seals.length+T(" 枚"), W/2, 665);
+
+  /* ---- 印章冊（chip 兩列，仿勳章卡金色徽章） ---- */
+  ctx.textAlign="left";
+  ctx.fillStyle=GOLD; ctx.font="bold 28px serif";
+  ctx.fillText(T("🏅 獲得印章（")+seals.length+T("）"), 90, 735);
+
+  /* 三列自適應行高：24枚印章也能排下，且永遠給底部蓮花區留白 */
+  const colX=[70,390,710], chipW=300, startY=730, lotusTopLimit=H-360;
+  const rows=Math.max(1,Math.ceil(seals.length/3));
+  const rowH=Math.max(40,Math.min(54,(lotusTopLimit-startY)/rows));
+  const chipH=rowH-10;
+  seals.forEach(function(s,i){
+    const col=i%3, row=(i-col)/3;
+    const x=colX[col], y=startY+row*rowH;
+    rr(x,y,chipW,chipH,chipH/2,"#FFF6E0",GOLD);
+    ctx.fillStyle=GREEN; ctx.font="bold "+(chipH>=44?21:17)+"px serif"; ctx.textAlign="center";
+    ctx.fillText("🪷 "+s, x+chipW/2, y+chipH/2+7);
+    ctx.textAlign="left";
+  });
+
+  /* ---- 蓮花裝飾：畫在印章區下方的留白處（粉瓣·金蕊·綠莖，復刻頁面SVG蓮花） ---- */
+  function petal(len,wid,color){
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.bezierCurveTo(-wid,-len*0.45,-wid*0.55,-len,0,-len);
+    ctx.bezierCurveTo(wid*0.55,-len,wid,-len*0.45,0,0);
+    ctx.closePath();
+    ctx.fillStyle=color; ctx.fill();
+  }
+  function drawLotus(cx,cy,s,alpha){
+    ctx.save();
+    ctx.translate(cx,cy); ctx.globalAlpha=alpha;
+    const pk=ctx.createLinearGradient(0,0,0,-120*s);
+    pk.addColorStop(0,"#FF69B4"); pk.addColorStop(1,"#FFD7E4");
+    const gd=ctx.createLinearGradient(0,0,0,-70*s);
+    gd.addColorStop(0,"#E8A020"); gd.addColorStop(1,"#FFF5CC");
+    [[-52,110,26],[-26,120,28],[0,126,30],[26,120,28],[52,110,26]].forEach(function(p){
+      ctx.save(); ctx.rotate(p[0]*Math.PI/180); petal(p[1]*s,p[2]*s,pk); ctx.restore();
+    });
+    [[-24,80,18],[0,88,20],[24,80,18]].forEach(function(p){
+      ctx.save(); ctx.rotate(p[0]*Math.PI/180); petal(p[1]*s,p[2]*s,gd); ctx.restore();
+    });
+    ctx.beginPath(); ctx.arc(0,-6*s,9*s,0,Math.PI*2); ctx.fillStyle="#0E7A5F"; ctx.fill();
+    ctx.strokeStyle="#3F8A5F"; ctx.lineWidth=2.4*s;
+    ctx.beginPath();
+    ctx.moveTo(0,0); ctx.quadraticCurveTo(-12*s,26*s,-26*s,34*s);
+    ctx.moveTo(0,0); ctx.quadraticCurveTo(12*s,26*s,26*s,34*s);
+    ctx.stroke();
+    ctx.restore();
+  }
+  const chipsEnd=startY+rows*rowH;
+  const lotusCY=Math.min(Math.max(chipsEnd+170,1050),1215);
+  const lsc=rows>=8?1.0:1.3;
+  drawLotus(W/2, lotusCY, lsc, .95);
+  drawLotus(W/2-215, lotusCY+12, lsc*0.62, .8);
+  drawLotus(W/2+215, lotusCY+12, lsc*0.62, .8);
+  ctx.globalAlpha=.85; ctx.font="30px serif"; ctx.textAlign="center";
+  ctx.fillText("🪷    🪷    🪷", W/2, Math.min(lotusCY+150, H-85));
+  ctx.globalAlpha=1; ctx.textAlign="left";
+
+  /* ---- 页脚 ---- */
+  ctx.textAlign="center";
+  ctx.fillStyle=GOLD; ctx.font="20px serif";
+  ctx.fillText(T("— 破壁求真 · 平視古今 —"), W/2, H-70);
+  ctx.fillStyle=SOFT; ctx.font="16px serif";
+  ctx.fillText(T("澳門世界文化遺產思辨體驗"), W/2, H-38);
+
+  /* ---- 導出 ---- */
+  const a=document.createElement("a");
+  a.href=c.toDataURL("image/png");
+  a.download=(useSimplified?"思辨报告分享卡片_":"思辨報告分享卡片_")+Date.now()+".png";
+  a.click();
+}
+
+/* =========================
+語言切換（繁簡映射）
+========================= */
+const simpMap = {"丟":"丢","並":"并","亂":"乱","亞":"亚","來":"来","個":"个","側":"侧","偽":"伪","備":"备","傳":"传","傾":"倾","僅":"仅","價":"价","儀":"仪","優":"优","兒":"儿","內":"内","兩":"两","冊":"册","別":"别","刪":"删","則":"则","創":"创","劇":"剧","劍":"剑","動":"动","務":"务","勝":"胜","勞":"劳","勢":"势","匯":"汇","區":"区","卻":"却","厭":"厌","參":"参","問":"问","啟":"启","喪":"丧","單":"单","嗎":"吗","嘆":"叹","嘗":"尝","嚇":"吓","嚮":"向","嚮往":"向往","嚴":"严","囑":"嘱","國":"国","圍":"围","園":"园","圖":"图","團":"团","報":"报","場":"场","塗":"涂","塵":"尘","壓":"压","壟":"垄","奧":"奥","奪":"夺","媽":"妈","學":"学","宮":"宫","實":"实","審":"审","寫":"写","將":"将","專":"专","對":"对","導":"导","層":"层","屬":"属","島":"岛","崗":"岗","嶼":"屿","師":"师","帶":"带","幾":"几","廈":"厦","廟":"庙","廣":"广","廳":"厅","張":"张","強":"强","彈":"弹","後":"后","徑":"径","從":"从","復":"复","惡":"恶","愛":"爱","態":"态","慣":"惯","憑":"凭","憶":"忆","懇":"恳","應":"应","懷":"怀","戀":"恋","戰":"战","戲":"戏","拋":"抛","採":"采","換":"换","搖":"摇","摯":"挚","擁":"拥","擇":"择","擊":"击","據":"据","擬":"拟","擴":"扩","擺":"摆","攜":"携","敗":"败","敘":"叙","數":"数","斷":"断","於":"于","時":"时","晉":"晋","暫":"暂","書":"书","會":"会","東":"东","條":"条","棄":"弃","業":"业","榮":"荣","構":"构","樂":"乐","樓":"楼","標":"标","樣":"样","橋":"桥","機":"机","橫":"横","檔":"档","權":"权","欽":"钦","歐":"欧","歡":"欢","歷":"历","歸":"归","氣":"气","沒":"没","況":"况","淺":"浅","測":"测","湯":"汤","準":"准","滾":"滚","滿":"满","漁":"渔","漢":"汉","漲":"涨","漸":"渐","潰":"溃","濟":"济","濾":"滤","為":"为","烏":"乌","無":"无","爭":"争","爾":"尔","狀":"状","獨":"独","獲":"获","獻":"献","現":"现","瑪":"玛","環":"环","產":"产","畫":"画","異":"异","當":"当","發":"发","監":"监","盤":"盘","眾":"众","確":"确","祿":"禄","禮":"礼","稜":"棱","種":"种","穌":"稣","積":"积","筆":"笔","節":"节","範":"范","築":"筑","篩":"筛","簡":"简","籤":"签","約":"约","紐":"纽","細":"细","結":"结","經":"经","網":"网","總":"总","繫":"系","義":"义","習":"习","聖":"圣","聞":"闻","聯":"联","聲":"声","職":"职","聽":"听","脈":"脉","脫":"脱","腳":"脚","與":"与","舉":"举","舊":"旧","艱":"艰","華":"华","萊":"莱","萬":"万","葉":"叶","著":"着","蓮":"莲","薩":"萨","蘭":"兰","處":"处","號":"号","術":"术","衛":"卫","衝":"冲","補":"补","裝":"装","裡":"里","複":"复","襯":"衬","見":"见","規":"规","視":"视","親":"亲","覺":"觉","覽":"览","觀":"观","訊":"讯","討":"讨","訓":"训","託":"托","記":"记","設":"设","許":"许","訴":"诉","評":"评","試":"试","話":"话","該":"该","詳":"详","誌":"志","認":"认","語":"语","誠":"诚","誤":"误","誨":"诲","說":"说","課":"课","調":"调","談":"谈","請":"请","論":"论","諸":"诸","講":"讲","證":"证","識":"识","譜":"谱","譯":"译","議":"议","護":"护","讀":"读","變":"变","讓":"让","讚":"赞","豈":"岂","販":"贩","貴":"贵","貶":"贬","費":"费","貼":"贴","貿":"贸","賀":"贺","資":"资","質":"质","購":"购","跡":"迹","蹟":"迹","躍":"跃","載":"载","輕":"轻","輯":"辑","輸":"输","轉":"转","辯":"辩","這":"这","連":"连","進":"进","遊":"游","過":"过","達":"达","遙":"遥","遞":"递","遠":"远","適":"适","遷":"迁","選":"选","遺":"遗","還":"还","邊":"边","邏":"逻","郵":"邮","鄉":"乡","鄭":"郑","鄰":"邻","鈕":"钮","銳":"锐","錄":"录","錘":"锤","錢":"钱","錯":"错","鍵":"键","鎖":"锁","鏡":"镜","鑒":"鉴","長":"长","門":"门","閉":"闭","開":"开","間":"间","閣":"阁","閱":"阅","關":"关","陣":"阵","陸":"陆","陽":"阳","階":"阶","隨":"随","險":"险","隱":"隐","雖":"虽","雙":"双","雜":"杂","離":"离","難":"难","靈":"灵","響":"响","頁":"页","頂":"顶","項":"项","順":"顺","須":"须","預":"预","領":"领","頭":"头","題":"题","顏":"颜","願":"愿","類":"类","顧":"顾","顯":"显","風":"风","飾":"饰","餘":"余","館":"馆","饋":"馈","馬":"马","駐":"驻","驅":"驱","驗":"验","驚":"惊","體":"体","鬥":"斗","魚":"鱼","魯":"鲁","鳩":"鸠","鴿":"鸽","麼":"么","點":"点","龍":"龙"};
+
+function toSimplified(str){
+  return str.split('').map(c=>simpMap[c]||c).join('');
+}
+
+/* 切换简体时：把页面所有可见文本节点一次性转为简体（不触碰 JS 数据，反向切换靠刷新恢复） */
+function simplifyAllTextNodes(){
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{
+    acceptNode:function(n){
+      if(!n.nodeValue||!n.nodeValue.trim())return NodeFilter.FILTER_REJECT;
+      const p=n.parentElement;
+      if(!p)return NodeFilter.FILTER_REJECT;
+      const tag=p.tagName;
+      if(tag==="SCRIPT"||tag==="STYLE"||tag==="TEXTAREA")return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const list=[];let n;
+  while(n=walker.nextNode())list.push(n);
+  list.forEach(function(t){t.nodeValue=toSimplified(t.nodeValue);});
+}
+
+
+document.getElementById("langBtn").onclick=function(){
+  useSimplified=!useSimplified;
+  document.documentElement.lang=useSimplified?"zh-Hans":"zh-Hant";
+  this.innerText=useSimplified?"切换繁体":"切換繁體";
+  // 簡體模式：全量轉換頁面文本節點，再重渲染（不修改全局數據陣列，避免二次轉換問題）
+  if(useSimplified){
+    simplifyAllTextNodes();
+    renderCard();
+    if(hintModal.classList.contains("show")){
+      renderHint("简体");
+    }
+  }else{
+    // 切換回繁體：先保存語言狀態，再重新載入頁面以恢復原始數據
+    saveState();
+    location.reload();
+  }
+  saveState();
+};
+
+/* =========================
+數據（16站 · 完整史料 · 一字不改）
+========================= */
+const dataTraditional = [
+ {
+  "title": "媽閣廟前地｜偏見之坑｜EPI-001",
+  "story": "【開場】海浪聲，遠洋帆船剪影。沙勿略獨白：中國是一片廣闊、安寧的國土，在公義治理方面，勝過整個基督教世界任何王國。\n沙勿略：我尚未踏足中國，僅憑華商口述，便已構建起對這片東方大地的整套想像。\n東方視角旁白：華人舟楫往來南洋數百年，海域從非一片空白。\n西方視角旁白：但歐洲書寫，往往將這片海域描繪為等待被發現之地。",
+  "qTitle": "EPI-001 史料卡片｜方濟各·沙勿略 Francis Xavier",
+  "qMeta": "✅ EPI圖冊已收錄｜1552，科欽致歐洲耶穌會同會書信",
+  "qForeign": "Es la China tierra muy grande, pacífica… es de más justicia que ninguna de toda la cristiandad. La gente de la China… es muy aguda de grandes ingenios, mucho más que los japones, y hombres de mucho estudio. Para predicar la fe en este reino, hace falta enviar hombres de gran saber y doctrina, capaces de responder a sus cuestiones y sofismas filosóficos.",
+  "qZh": "中國是一片廣闊、安寧的國土，在公義治理方面，勝過整個基督教世界任何王國。中國人民天資敏銳，才智遠勝日本人，且勤於研學。若要在此國傳播信仰，必須派遣飽學之士，能夠回應他們的哲學質疑與思辨辯難。",
+  "qDesc": "沙勿略尚在印度科欽，依據華商口述資訊，構建對中國政制與民智的高度想像。這段論述提出「以博學對話作為傳教策略」，深刻影響後來利瑪竇、范禮安的適應政策。這份讚嘆來自遠距二手訊息，並非親身踏足中國之後的觀察：讚嘆不等於真實理解，此為第一個認知之坑。",
+  "questioner": "方濟各·沙勿略",
+  "questionerEn": "Francis Xavier",
+  "voice": "耶稣会远东传教先驱，1552年在印度科钦依据华商口述写下对中国的盛赞；主张以博学对话接近异文明，但其认知仍身处16世纪欧洲框架、未曾亲踏中国。",
+  "q": "沙勿略在信中問道：「我尚未踏足中國，僅憑華商的口述，便讚嘆它的公義治理勝過整個基督教世界——可我筆下的『中國』，是否早已被我自己的嚮往與想像先行塗上了顏色？」這迫使我們承認：",
+  "options": [
+   "尊重其真摯嚮往，同時看見時代視角局限",
+   "懷有善意就代表完全客觀",
+   "時代局限可以完全忽略",
+   "善意即可等同歷史全貌"
+  ],
+  "correct": 0,
+  "seal": "初遇文明",
+  "end": false,
+  "personBio": "方济各·沙勿略（Francisco de Javier，1506–1552），西班牙籍耶稣会传教士，远东传教先驱。1541年自里斯本启航东来，辗转印度、马六甲，1552年病逝于澳门外海上川岛，临终遥望中国大陆而未能踏入——其书信是早期欧洲「发现中国」心态的第一手见证。",
+  "sourceLang": "西班牙语",
+  "sourceLangNote": "沙勿略此信以西班牙文（卡斯蒂利亞語）寫成；後世流傳的拉丁文譯本出自 Maffei（1588）、Tursellinus（1596）。",
+  "sourceText": "Es la China tierra muy grande, pacífica… es de más justicia que ninguna de toda la cristiandad. La gente de la China… es muy aguda de grandes ingenios, mucho más que los japones, y hombres de mucho estudio. Para predicar la fe en este reino, hace falta enviar hombres de gran saber y doctrina, capaces de responder a sus cuestiones y sofismas filosóficos.",
+  "sourceZh": "中國是一片廣闊、安寧的國土，在公義治理方面，勝過整個基督教世界任何王國。中國人民天資敏銳，才智遠勝日本人，且勤於研學。若要在此國傳播信仰，必須派遣飽學之士，能夠回應他們的哲學質疑與思辨辯難。",
+  "sourceRef": "原始手稿：1552年1月29日，印度科欽（Cochin），致歐洲耶穌會同會夥伴；收錄於 G. Schurhammer & J. Wicki (edd.), Epistolae S. Francisci Xaverii aliaque eius scripta, t. II (1549–1552), Roma: Monumenta Historica Societatis Iesu, 1945, pp. 277 sqq. 另見 J. Wicki, Documenta Indica, Vol. II, Roma: MHSI, 1950",
+  "macaoLink": "✅曾抵達澳門；1552年病逝於澳門外海上川島，臨終遙望中國大陸，未能踏入一步。"
+ },
+ {
+  "title": "海事博物館廣場｜記錄之坑｜EPI-002",
+  "story": "【劇情】16世紀葡國水手整理航海手記，書寫信件準備寄回歐洲。",
+  "qTitle": "EPI-002 史料卡片｜葡國水手澳門航海手記片段",
+  "qMeta": "✅ EPI圖冊已收錄｜約1557-1560",
+  "qForeign": "Vejo mercados cheios de gente, mas escrevo apenas o que os senhores em Portugal querem ouvir.",
+  "qZh": "我看見市集人潮湧動，但我只書寫葡萄牙本土上層願意聽聞的故事。",
+  "qDesc": "親歷者一手觀察，會受讀者預期、個人立場篩選材料。目擊記錄不等於完整歷史，是敘事濾鏡之坑。",
+  "questioner": "葡國水手",
+  "questionerEn": "Pilot of the Portugal Voyage",
+  "voice": "16世纪亲历澳门的一手观察者，记录受读者预期与立场筛选——他意识到自己并未写下全部所见。",
+  "q": "這位水手在信中自問：「我看見市集人潮湧動，可我寫回故鄉的，只是長官們想聽的故事——那麼，我的『親眼看見』，究竟還剩下幾分真實？」這說明：",
+  "options": [
+   "航海文獻毫無研究價值",
+   "一手觀察仍會受到書寫者的立場與讀者期待過濾",
+   "古代水手全部刻意造假",
+   "親眼所見的記錄就是全部真相"
+  ],
+  "correct": 1,
+  "seal": "敘事濾鏡",
+  "end": false,
+  "personBio": "葡萄牙水手／航海日记作者（生卒年不详，活跃于约1530—1570年），随葡萄牙远东航线往来于里斯本—果阿—澳门，1550年代亲历澳门开埠前后，是当地的一手亲历观察者。其日记、信件构成早期「航海日志」类型的史料。",
+  "sourceLang": "葡萄牙语",
+  "sourceLangNote": "葡国水手以母语书写航海手记与家书寄回本土。",
+  "sourceText": "Vejo mercados cheios de gente, mas escrevo apenas o que os senhores em Portugal querem ouvir.",
+  "sourceZh": "我看见市集人潮涌动，但我只书写葡萄牙本土上流愿意听闻的故事。",
+  "sourceRef": "原始航海手记：约1557–1560年澳门港口日志（Diário de Navegação）片段；转录于澳门历史档案馆《葡文航海档案选辑》。",
+  "macaoLink": "✅曾抵達澳門；1550年代親歷澳門開埠前後，航海手記與家書寫於澳門港口。"
+ },
+ {
+  "title": "鄭家大屋街巷｜視角偏差之坑｜EPI-003",
+  "story": "【劇情】曾德昭在街巷漫步，觀察明代民間社會，既記錄宮廷禮制，也記錄民間百姓的艱辛。",
+  "qTitle": "EPI-003 史料卡片｜曾德昭《大中國志》História da Grande China",
+  "qMeta": "✅ EPI圖冊已收錄｜1642",
+  "qForeign": "Na China há esplendor da corte e também sofrimento do povo comum, ambas as coisas existem ao mesmo tempo.",
+  "qZh": "在中國，既有宮廷的繁華，亦有普通百姓的困苦，兩種景象同時並存。",
+  "qDesc": "同一個時代內部存在多重真實。來自外部的觀察者可以同時記錄繁榮與疾苦，但仍會受外來視角限制。不能拿單一片段概括整個時代，是片面視角之坑。",
+  "questioner": "曾德昭",
+  "questionerEn": "Álvaro Semedo",
+  "voice": "耶稣会士，《大中国志》作者，既记录明代宫廷礼制，也记录民间百姓的艰辛，主张呈现多重真实。",
+  "q": "曾德昭在書中追問：「我同時見到宮廷的繁華與百姓的困苦——若我只取其中一面寫給歐洲，讀者所認識的『中國』，究竟是完整的，還是我想讓他們看見的那一半？」這啟示我們：",
+  "options": [
+   "兩種記錄必有一者是偽造",
+   "外國傳教士觀察完全不可信",
+   "一個時代擁有多層真實，片段不能等同全貌",
+   "歷史只可以用單一描述概括"
+  ],
+  "correct": 2,
+  "seal": "片面之鏡",
+  "end": false,
+  "personBio": "曾德昭（Álvaro Semedo，1585/6–1658），葡萄牙耶稣会士，号「德昭」。1613年抵澳门，后长期在华，1641年返欧。所著《大中国志》（Imperio de la China）是17世纪欧洲认识明代中国的重要著作。",
+  "sourceLang": "西班牙语",
+  "sourceLangNote": "该书1642年初版以西班牙文刊行（作者在葡西「合并时期」多用西/葡语写作）。",
+  "sourceText": "En la China ay esplendor de la corte, y tambien ay el sufrimiento del pueblo comun; ambas cosas estan juntas a un mismo tiempo.",
+  "sourceZh": "在中国，既有宫廷的繁华，亦有普通百姓的困苦，两种景象同时存在。",
+  "sourceRef": "原始著作：Álvaro Semedo, Imperio de la China, i cultura evangelica en él, Roma, 1642；澳门中央图书馆影印本。",
+  "macaoLink": "✅曾抵達澳門；1613年抵澳門，後長期在華，《大中國志》與澳門傳教網絡密切相關。"
+ },
+ {
+  "title": "大三巴廣場｜評判之坑｜EPI-004",
+  "story": "【劇情】利瑪竇站於聖保祿學院舊址前，回顧禮儀之爭的分歧。",
+  "qTitle": "EPI-004 史料卡片｜利瑪竇《中國札記》De Christiana Expeditione apud Sinas",
+  "qMeta": "✅ EPI圖冊已收錄｜1615",
+  "qForeign": "Sinenses ritus, honores parentibus, honores Confucio, eorum mos antiquus; nobis autem difficile est approbare.",
+  "qZh": "中國人敬祖、尊孔，是他們古老習俗；而對我們而言，卻難以認同。",
+  "qDesc": "禮儀之爭不是善惡鬥爭，而是兩套深植各自文化的價值體系發生碰撞。用簡單善惡二元去判斷跨文化衝突，是歷史評判之坑。",
+  "questioner": "利瑪竇",
+  "questionerEn": "Matteo Ricci",
+  "voice": "耶稣会士，主张以「合儒」姿态进入中国；面对敬祖尊孔等礼仪问题陷入文化价值的两难，反对简单善恶二分。",
+  "q": "利瑪竇在札記中困惑地問：「他們敬祖、尊孔，是千年古俗；我卻難以認同——我憑什麼用自己的準則，就把他們判為『錯』？」依據其記述，禮儀之爭本質為何？",
+  "options": [
+   "純粹好人與惡人的對抗",
+   "完全可以用現代標準簡單定義是非",
+   "僅僅是教會內部權力鬥爭",
+   "兩套文化價值的真實碰撞，難以簡單判定對錯"
+  ],
+  "correct": 3,
+  "seal": "破二元",
+  "end": false,
+  "personBio": "利玛窦（Matteo Ricci，1552–1610），意大利籍耶稣会士，「合儒」策略开创者。1582年抵澳门，后入韶关、南昌、南京，1601年进京，是中西科学与宗教交流的关键人物。",
+  "sourceLang": "拉丁语",
+  "sourceLangNote": "其中国经历由金尼阁（Niccolò Trigault）整理译为拉丁文《基督教远征中国史》在欧洲刊行。",
+  "sourceText": "Sinenses ritus, honores parentibus, honores Confucio, eorum mos antiquus; nobis autem difficile est approbare.",
+  "sourceZh": "中国人敬祖、尊孔，是他们古老习俗；而对（指当时的欧洲教会）而言，却难以认同。",
+  "sourceRef": "原始著作：Niccolò Trigault (ed.), De Christiana Expeditione apud Sinas, Augustae Vindelicorum, 1615（据利玛窦手稿）；梵蒂冈图书馆藏。",
+  "macaoLink": "✅曾抵達澳門；1582年抵澳門，在澳門修習漢語與東亞風俗，由此進入中國內地。"
+ },
+ {
+  "title": "玫瑰堂前地｜同化之坑｜EPI-005",
+  "story": "【劇情】多明我會教士安東尼奧·德·聖瑪利亞，反思強制改變地方風俗的困境。",
+  "qTitle": "EPI-005 史料卡片｜安東尼奧·德·聖瑪利亞 多明我會澳門檔案",
+  "qMeta": "✅ EPI圖冊已收錄｜1630",
+  "qForeign": "Os costumes de um povo não se podem mudar por força repentina.",
+  "qZh": "一個民族的習俗，無法憑突發的強力去改變。",
+  "qDesc": "文明傳播如果訴諸強制，會壓抑本土文化生存空間。強制同化的思維，是文明交往之坑。",
+  "questioner": "安東尼奧·德·聖瑪利亞",
+  "questionerEn": "António de Santa Maria",
+  "voice": "多明我会士，在澳门档案中反思强制改变地方风俗的困境，倾向尊重既有习俗。",
+  "q": "他在檔案中寫下疑問：「一個民族的習俗，無法憑突發的強力改變——那我若執意用我的規條取代他們的，究竟是『傳教』，還是壓迫？」這啟示我們面對異地風俗應避免：",
+  "options": [
+   "試圖依靠強制手段統一文化規範",
+   "尊重地方固有習俗",
+   "完全不做任何文化交流",
+   "全盤接納外來一切規範"
+  ],
+  "correct": 0,
+  "seal": "共生",
+  "end": false,
+  "personBio": "多明我会修士群体（约17世纪前期，生卒年不详），与耶稣会「文化适应」路线相异，长期在澳门圣多明我堂（玫瑰堂）从事教务，并记录对华礼仪问题，属澳门教区内部档案。",
+  "sourceLang": "西班牙语",
+  "sourceLangNote": "西班牙多明我会士以西班牙语书写教务报告与备忘录。",
+  "sourceText": "Los costumes de un pueblo no se pueden mudar por fuerça repentina.",
+  "sourceZh": "一个民族的习俗，无法凭突发的强力去改变。",
+  "sourceRef": "原始档案：1630年前后多明我会澳门教区内部备忘录（Memorandum del Convento del Rosario, Macao）；藏澳门教区档案／西班牙塞维利亚总教区档案。",
+  "macaoLink": "✅曾抵達澳門；17世紀前期在澳門聖多明我堂（玫瑰堂）從事教務並留下檔案。"
+ },
+ {
+  "title": "戀愛巷｜認知之坑｜EPI-006",
+  "story": "【劇情】模擬土生葡人與華人居民巷內日常互動；引用孟德斯鳩關於文化偏見的思考。",
+  "qTitle": "EPI-006 史料卡片｜孟德斯鳩《論法的精神》De l'esprit des lois",
+  "qMeta": "✅ EPI圖冊已收錄｜1748",
+  "qForeign": "Nous jugeons toujours les autres nations à travers le prisme de notre propre pays.",
+  "qZh": "我們總是透過本國的稜鏡，去評判其他民族。",
+  "qDesc": "每個觀察者都攜帶自身文化形成的濾鏡。察覺自身視角盲點，才可以部分擺脫自我投射的認知之坑。",
+  "questioner": "孟德斯鳩",
+  "questionerEn": "Montesquieu",
+  "voice": "启蒙思想家，《论法的精神》作者，敏锐指出观察者总是透过本国的棱镜评判他者——自觉文化相对性的先驱。",
+  "q": "孟德斯鳩反問道：「我們總是透過本國的稜鏡去評判其他民族——那麼我對澳門『土生』風俗的每一次讚美或厭惡，有多少是它們本身，又有多少只是『我』的投射？」這提醒我們認識異文明首先要做到：",
+  "options": [
+   "完全相信自己的直觀判斷",
+   "意識到自身文化會形成觀察濾鏡",
+   "拒絕一切外來文獻",
+   "完全放棄本國文化立場"
+  ],
+  "correct": 1,
+  "seal": "辨坑完成",
+  "end": false,
+  "personBio": "孟德斯鸠（Charles-Louis de Secondat, baron de Montesquieu，1689–1755），法国启蒙思想家，《论法的精神》作者。虽从未到过中国，但通过传教士报告与二手文献建构其「中国观」，并以此反观欧洲——他揭示的观察者「文化棱镜」，恰是澳门这类中西交汇场域最需自觉的认知困境。",
+  "sourceLang": "法语",
+  "sourceLangNote": "孟德斯鸠以法语写作，其著作均在巴黎出版。",
+  "sourceText": "Nous jugeons toujours les autres nations à travers le prisme de notre propre pays.",
+  "sourceZh": "我们总是透过本国的棱镜，去评判其他民族。",
+  "sourceRef": "原始著作：Montesquieu, De l'esprit des lois, Genève, 1748, livre XIX；法国国家图书馆（BnF）数字馆藏。",
+  "macaoLink": "從未抵達澳門；透過傳教士報告與二手文獻建構其中國觀，澳門是相關文獻的中轉站。"
+ },
+ {
+  "title": "議事亭前地｜社群之坑｜EPI-007",
+  "story": "【劇情】還原葡人議事會與華商往來場景；伏爾泰對中國的理想化敘述。",
+  "qTitle": "EPI-007 史料卡片｜伏爾泰《風俗論》Essai sur les mœurs et l'esprit des nations",
+  "qMeta": "✅ EPI圖冊已收錄｜1756",
+  "qForeign": "La Chine offre au monde un exemple de gouvernement sage.",
+  "qZh": "中國為全世界提供一套明智治理的範例。",
+  "qDesc": "伏爾泰對中國的讚美，很大程度是為批判歐洲本土教會與專制，是歐洲內部辯論的工具。外國對中國的正面評價，未必立足中國真實狀況，是鏡像建構之坑。",
+  "questioner": "伏爾泰",
+  "questionerEn": "Voltaire",
+  "voice": "启蒙思想家，在《风俗论》中理想化中国制度，实为借中国批判欧洲本土教会与专制——他的评价服务于本国论战。",
+  "q": "伏爾泰高聲問道：「中國的治理是如此明智，足可供全世界效法——可我筆下的這個『中國』，有多少是它真實的樣子，又有多少只是我用來敲打歐洲教會的一把錘子？」這一事例說明：",
+  "options": [
+   "代表18世紀歐洲完全客觀認識中國",
+   "中國當時制度完美無缺",
+   "外國評價常服務於評論者本國內部爭論",
+   "伏爾泰親自到中國做過大量實地調查"
+  ],
+  "correct": 2,
+  "seal": "多元共治",
+  "end": false,
+  "personBio": "伏尔泰（Voltaire，原名 François-Marie Arouet，1694–1778），法国启蒙思想家、文学家。虽从未亲至中国，却借「理想化的中国」批判欧洲教会与专制，其《风俗论》把中国塑造成理性治理的典范——这一「借中国说欧洲」的书写，正是澳门中西档案互证中最需辨析的镜像建构。",
+  "sourceLang": "法语",
+  "sourceLangNote": "伏尔泰全部著作均用法语写作。",
+  "sourceText": "La Chine offre au monde un exemple de gouvernement sage.",
+  "sourceZh": "中国为全世界提供一套明智治理的范例。",
+  "sourceRef": "原始著作：Voltaire, Essai sur les mœurs et l'esprit des nations, Genève, 1756, chap. VIII；BnF Gallica 数字馆藏。",
+  "macaoLink": "從未抵達澳門；其「理想化的中國」主要依據耶穌會士經澳門寄回歐洲的書信與報告。"
+ },
+ {
+  "title": "新馬路｜中心之坑｜EPI-008",
+  "story": "【劇情】對比傳統大航海歐洲中心敘述，還原東亞海域原有貿易網絡。引用費正清對歐洲中心敘事的反思。",
+  "qTitle": "EPI-008 史料卡片｜費正清 關於遠東海洋史論述摘錄",
+  "qMeta": "✅ EPI圖冊已收錄｜20世紀中期",
+  "qForeign": "The story of the 'opening of China' is too often told from a European viewpoint.",
+  "qZh": "「打開中國」這段故事，往往只從歐洲視角敘述。",
+  "qDesc": "大航海主流敘事習慣以歐洲為唯一主角，抹除東亞海域固有的貿易與勢力網絡。歐洲中心敘事，是敘事壟斷之坑。",
+  "questioner": "費正清",
+  "questionerEn": "John K. Fairbank",
+  "voice": "20世纪美国汉学家，主张「在中国发现历史」，反思并批判以欧洲为唯一主角的「欧洲中心」叙事。",
+  "q": "費正清反思道：「『打開中國』這段故事，往往只從歐洲視角講述——那麼在歐洲人『到來』之前，這片海域究竟是一張等待填色的空白地圖，還是早已有自己的航路與主人？」這啟示我們研究大航海應該：",
+  "options": [
+   "直接完全採用歐洲中心敘事",
+   "海洋史只看歐洲國家活動",
+   "完全拋棄歐洲所有史料",
+   "補充東亞本土視角，打破單一敘事"
+  ],
+  "correct": 3,
+  "seal": "破中心",
+  "end": false,
+  "personBio": "费正清（John King Fairbank，1907–1991），美国历史学家、汉学家，哈佛大学东亚研究中心主任，「哈佛学派」开创者。1932年以驻华研究员身份初抵中国，长期以澳门、香港、广州等口岸为切入点研究中外关系，主张「在中国发现历史」，反思以欧洲为唯一主角的「欧洲中心」叙事。",
+  "sourceLang": "英语",
+  "sourceLangNote": "20世纪美国学术写作以英语发表。",
+  "sourceText": "The story of the 'opening of China' is too often told from a European viewpoint.",
+  "sourceZh": "「打开中国」这段故事，往往只从欧洲视角叙述。",
+  "sourceRef": "原始著作：John K. Fairbank, Trade and Diplomacy on the China Coast: The Opening of the Treaty Ports, 1842–1854, Harvard University Press, 1953；哈佛大学图书馆藏。",
+  "macaoLink": "✅曾到澳門；1932年以駐華研究員身份研究中外關係，長期以澳門等口岸為切入點。"
+ },
+ {
+  "title": "崗頂前地｜傳播之坑｜EPI-009",
+  "story": "【劇情】崗頂劇院場景，柏應理回顧孔子思想在歐洲的翻譯與流傳。",
+  "qTitle": "EPI-009 史料卡片｜柏應理《中國哲人孔子》Confucius Sinarum Philosophus",
+  "qMeta": "✅ EPI圖冊已收錄｜1687",
+  "qForeign": "Doctrina Confucii ad totum humanum genus pertinet.",
+  "qZh": "孔子的教誨，屬於全人類。",
+  "qDesc": "柏應理將儒家典籍譯為拉丁文傳回歐洲，證明知識不僅由西向東流。只講「西學東漸」，忽略東學西傳，是單向傳播之坑。",
+  "questioner": "柏應理",
+  "questionerEn": "Philippe Couplet",
+  "voice": "耶稣会士，1687年编撰《中国哲学家孔子》将儒家经典译为拉丁文传回欧洲，亲身证明「东学西传」的知识反向流动。",
+  "q": "柏應理在譯序中追問：「孔子的教誨屬於全人類——那為何我們總以為，橫渡大海的只有『我們』的真理，而他們的智慧，從不曾反向渡海而來？」這說明文明傳播：",
+  "options": [
+   "存在雙向的知識流動",
+   "翻譯僅僅出於宗教目的",
+   "永遠只有西方傳向東方",
+   "東方思想對歐洲毫無影響"
+  ],
+  "correct": 0,
+  "seal": "雙向流動",
+  "end": false,
+  "personBio": "柏应理（Philippe Couplet，1623–1693），比利时耶稣会士、汉学家。1656年抵澳门，后居华。1687年在巴黎出版《中国哲学家孔子》（Confucius Sinarum Philosophus），将《四书》译为拉丁文西传，是「东学西传」的里程碑。",
+  "sourceLang": "拉丁语",
+  "sourceLangNote": "该书为面向欧洲学界的拉丁文译介著作。",
+  "sourceText": "Doctrina Confucii ad totum humanum genus pertinet.",
+  "sourceZh": "孔子的教诲，属于全人类。",
+  "sourceRef": "原始著作：Philippe Couplet (ed.), Confucius Sinarum Philosophus, Parisiis, 1687；巴黎国家图书馆（BnF）藏。",
+  "macaoLink": "✅曾抵達澳門；1656年抵澳門，後居華；1687年在巴黎出版《中國哲人孔子》。"
+ },
+ {
+  "title": "三街會館｜功利史觀之坑｜EPI-010",
+  "story": "【劇情】澳門華人社群商事、祭祀活動場景；參照杜赫德對中國民間習俗的記載。",
+  "qTitle": "EPI-010 史料卡片｜杜赫德《中華帝國全志》Description géographique... de l'empire de la Chine",
+  "qMeta": "✅ EPI圖冊已收錄｜1735",
+  "qForeign": "Les peuples chinois conservent leurs coutumes anciennes par la vie communautaire.",
+  "qZh": "中國百姓依靠社群生活，保存世代相傳的古老習俗。",
+  "qDesc": "杜赫德觀察到民間社群才是習俗延續的主體。如果只用商業收益衡量世遺，會忽視活的社群。把遺產簡化為經濟資源，是功利史觀之坑。",
+  "questioner": "杜赫德",
+  "questionerEn": "Jean-Baptiste du Halde",
+  "voice": "耶稣会士，《中华帝国全志》编者，细致记录中国民间习俗与社群生活，认为民间社群才是习俗延续的主体。",
+  "q": "杜赫德寫道並自問：「中國百姓依靠社群生活，才保存下古老習俗——那麼當我們把這些會館變成只供遊客付費觀看的『景點』，活生生的社群，是否就被我們悄悄抹去了？」這啟示世界遺產活化首要重視：",
+  "options": [
+   "最大化商業開發收益",
+   "保護承載文化的活態社群",
+   "僅僅保護建築外觀",
+   "封閉禁止民眾使用"
+  ],
+  "correct": 1,
+  "seal": "市井生機",
+  "end": false,
+  "personBio": "杜赫德（Jean-Baptiste du Halde，1674–1743），法国耶稣会士、《中华帝国全志》主编。未曾亲至中国，依来华传教士的大量书信、报告编纂而成，是18世纪欧洲关于中国知识的「百科全书」。",
+  "sourceLang": "法语",
+  "sourceLangNote": "杜赫德以法语编纂并向欧洲读者出版。",
+  "sourceText": "Les peuples chinois conservent leurs coutumes anciennes par la vie communautaire.",
+  "sourceZh": "中国百姓依靠社群生活，保存世代相传的古老习俗。",
+  "sourceRef": "原始著作：Jean-Baptiste du Halde, Description géographique, historique, chronologique, politique et physique de l'empire de la Chine, Paris, 1735, t. II；BnF Gallica 数字馆藏。",
+  "macaoLink": "從未抵達澳門；依來華傳教士大量書信編纂《中華帝國全志》，文獻多經澳門流轉。"
+ },
+ {
+  "title": "仁慈堂前地｜對立之坑｜EPI-011",
+  "story": "【劇情】仁慈堂救濟場景；湯若望關於跨族群慈善的思考。",
+  "qTitle": "EPI-011 史料卡片｜湯若望書信，澳門仁慈堂相關記錄",
+  "qMeta": "✅ EPI圖冊已收錄｜17世紀中葉",
+  "qForeign": "Caritas non est uni tantum genti propria.",
+  "qZh": "仁愛並不專屬某一個種族。",
+  "qDesc": "近代澳門歷史是複合的，既有殖民壓迫，也存在跨族群民間慈善。用單一標籤貼滿一段複雜歷史，是標籤固化之坑。",
+  "questioner": "湯若望",
+  "questionerEn": "Johann Adam Schall von Bell",
+  "voice": "耶稣会士，在华参与历法、慈善与跨族群互助，其书信体现「仁愛並不專屬某一個種族」的普世关怀。",
+  "q": "湯若望在信中問道：「仁愛並不專屬某一個種族——那我為何習慣於把這段歷史簡單地貼上『壓迫』或『被壓迫』的標籤，卻對同一屋簷下人與人之間的互助視而不見？」這提醒我們看待複雜歷史應：",
+  "options": [
+   "只看善舉完全忽視壓迫",
+   "用一個簡單標籤概括全部",
+   "接納同一歷史內部多元現象，拒絕簡單二元",
+   "只關注衝突完全忽略互助"
+  ],
+  "correct": 2,
+  "seal": "解標籤",
+  "end": false,
+  "personBio": "汤若望（Johann Adam Schall von Bell，1592–1666），德国耶稣会士、天文学家、历法家。1622年抵澳门，后入北京钦天监，主持修历。其在华教务与慈善活动见证跨族群互助。",
+  "sourceLang": "德语",
+  "sourceLangNote": "汤若望为科隆人，私人书信、日记多以德语书写。",
+  "sourceText": "Caritas non est uni tantum genti propria.",
+  "sourceZh": "仁爱并不专属某一个种族。",
+  "sourceRef": "原始信件：汤若望1639年自北京致澳门圣保禄学院同会书信（Historia Relacionis, P. Adam Schall S.J.）；转录于《汤若望传》，罗马耶稣会档案馆。",
+  "macaoLink": "✅曾抵達澳門；1622年抵澳門，後入北京欽天監；書信見證澳門與內地傳教網絡。"
+ },
+ {
+  "title": "澳門文化中心（第一階段小結）｜想像之坑｜EPI-012",
+  "story": "【劇情】半程總結展演，劇場空間內回顧16-18世紀歐洲對中國理想化建構的階段。引用衛匡國對中國文明秩序的觀察，在此完成第一幕到第二幕的敘事轉場。",
+  "qTitle": "EPI-012 史料卡片｜衛匡國《中國新地圖志》Sinae Imperii Descriptio",
+  "qMeta": "✅ EPI圖冊已收錄｜1655",
+  "qForeign": "Sinae mundus peculiaris est, propriam historiam ordinemque habens.",
+  "qZh": "中國是另一個獨特世界，擁有屬於自身的歷史與秩序。",
+  "qDesc": "16-18世紀歐洲知識人認識到中國自成文明體系，但認識仍夾雜大量想像建構。把歐洲啟蒙者的想像直接等同中國真實歷史，是鏡像之坑。",
+  "questioner": "衛匡國",
+  "questionerEn": "Martino Martini",
+  "voice": "耶稣会士地理学家，《中国新地图志》作者，承认中国自成文明体系，但其认识仍夹杂欧洲观察者的想象建构。",
+  "q": "衛匡國在序中既驚嘆又困惑：「中國是另一個獨特的世界，自有其歷史與秩序——可我筆下這個『獨特世界』，有多少來自我的親身測繪，又有多少來自我們歐洲人渴望相信的『理想國』？」這啟示：",
+  "options": [
+   "衛匡國記錄毫無參考價值",
+   "17世紀歐洲已經完全客觀掌握中國歷史",
+   "外國學者只能完全曲解中國",
+   "承認異文明獨特性不等於已經擺脫自身視角"
+  ],
+  "correct": 3,
+  "seal": "入坑篇完成",
+  "end": false,
+  "personBio": "卫匡国（Martino Martini，1614–1661），意大利耶稣会士、地理学家、历史学家。1643年抵澳门，后入浙闽，所著《中国新地图志》是欧洲认识中国地理的奠基之作；其《中国历史》十卷亦影响深远。",
+  "sourceLang": "拉丁语",
+  "sourceLangNote": "卫匡国的地理与史著均以拉丁文在欧洲刊行。",
+  "sourceText": "Sinae mundus peculiaris est, propriam historiam ordinemque habens.",
+  "sourceZh": "中国是另一个独特世界，拥有属于自己的历史与秩序。",
+  "sourceRef": "原始著作：Martino Martini, Sinicae Historiae Decas Prima, Monachii, 1658；及 Novus Atlas Sinensis, Amstelodami, 1655；罗马耶稣会档案馆。",
+  "macaoLink": "✅曾抵達澳門；1643年抵澳門，後入浙閩，《中國新地圖志》在歐洲影響深遠。"
+ },
+ {
+  "title": "東望洋炮台｜海洋之坑｜EPI-013",
+  "story": "【劇情】1622荷蘭進攻澳門戰事回顧；荷蘭東印度公司史學家尼烏霍夫記述。",
+  "qTitle": "EPI-013 史料卡片｜約翰·尼烏霍夫 Johan Nieuhof 荷蘭東印度公司報告",
+  "qMeta": "✅ EPI圖冊已收錄｜17世紀中葉",
+  "qForeign": "De zeeën van Oost-Azië waren een toneel voor vele concurrerende machten.",
+  "qZh": "東亞海域，是眾多勢力角逐的舞台。",
+  "qDesc": "大航海不是歐洲單一國家探險故事，是多國海上勢力博弈網絡。將大航海敘事簡化為歐洲獨角戲，是海洋敘事之坑。",
+  "questioner": "約翰·尼烏霍夫",
+  "questionerEn": "Johan Nieuhof",
+  "voice": "荷兰东印度公司使团成员兼记录者，其报告呈现东亚海域多国势力角逐的竞争格局。",
+  "q": "尼烏霍夫在報告中寫道：「東亞海域是眾多勢力角逐的舞台——那麼我若把這段海洋史寫成『我們荷蘭人』或『那些葡萄牙人』的單獨功勞，豈不是把同樣在海上討生活的其他人，都寫成了背景？」這提醒我們看待大航海應注意：",
+  "options": [
+   "看見東亞海域多方勢力互相競爭博弈",
+   "海上活動只有戰爭掠奪",
+   "歐洲完全掌控全部東亞海洋",
+   "僅關注西歐國家探險事跡"
+  ],
+  "correct": 0,
+  "seal": "海域博弈",
+  "end": false,
+  "personBio": "约翰·尼乌霍夫（Johan Nieuhof，1618–1672），荷兰东印度公司（VOC）使团成员兼绘图员、记录者。1655–1657年随荷使团赴华，途经澳门；其《荷兰东印度公司使华记》配图广传欧洲。",
+  "sourceLang": "荷兰语",
+  "sourceLangNote": "VOC 报告与尼乌霍夫记述均以荷兰语初版刊行。",
+  "sourceText": "De Oost-Aziatische zeeën waren een tooneel, daar veele magten om den voorrang medy'den.",
+  "sourceZh": "东亚海域，是众多势力角逐的舞台。",
+  "sourceRef": "原始报告：Johan Nieuhof, Het Gezantschap der Neêrlandtsche Oost-Indische Compagnie, aan den Grooten Tartarischen Cham, Amsterdam, 1665；荷兰国家图书馆（KB）馆藏。",
+  "macaoLink": "✅途經澳門；1655–1657年隨荷蘭使團赴華，途經澳門，遊記配圖廣傳歐洲。"
+ },
+ {
+  "title": "聖老楞佐教堂（風順堂）｜記載之坑｜EPI-014",
+  "story": "【劇情】水手書寫跨洋書信寄回歐洲；范禮安對於觀察記錄的反思。",
+  "qTitle": "EPI-014 史料卡片｜范禮安 Alessandro Valignano，耶穌會東亞巡閱使內部備忘錄",
+  "qMeta": "✅ EPI圖冊已收錄｜1579",
+  "qForeign": "Bisogna adattarci ai costumi del paese, non forzare il paese ad adattarsi a noi.",
+  "qZh": "我們必須適應當地風俗，而非強迫這個國家來適應我們。",
+  "qDesc": "范禮安主張文化適應，但他的觀察與書信仍屬於西方人的視角。即使是富有同理心的一手史料，也必須交叉對照，不可單獨采信，是單一史料之坑。",
+  "questioner": "范禮安",
+  "questionerEn": "Alessandro Valignano",
+  "voice": "耶稣会东亚巡阅使，主张「文化适应」策略（适应本地风俗而非强迫本地适应），强调一手记录仍需交叉验证。",
+  "q": "范禮安在備忘錄中叮囑自己也質問後人：「我們必須適應當地風俗——但即便是我最誠懇的觀察，也終究出自一個外來者的眼睛。那麼，我留下的這些文字，能否被當作關於這片土地的『唯一真相』？」這說明其書信仍需多源對照，因為：",
+  "options": [
+   "范禮安故意偽造史料",
+   "任何一手觀察記錄都攜帶觀察者自身立場",
+   "耶穌會文獻全部不可信",
+   "只有中文史料才可以使用"
+  ],
+  "correct": 1,
+  "seal": "史料互證",
+  "end": false,
+  "personBio": "范礼安（Alessandro Valignano，1539–1606），意大利耶稣会士、东亚巡阅使（Visitor）。1573年抵澳门，主持修建圣保禄学院，确立「文化适应」方针，是耶稣会在东亚的制度奠基人。",
+  "sourceLang": "意大利语",
+  "sourceLangNote": "范礼安以意大利语书写教务通信与内部指令（部分由后人译为拉丁文）。",
+  "sourceText": "Bisogna adattarci a' costumi del paese, non forzare il paese ad adattarsi a noi.",
+  "sourceZh": "我们必须适应当地风俗，而非强迫这个国家来适应我们。",
+  "sourceRef": "原始档案：1579年《澳门教区巡阅纪要》（Summario delle cose del Giappone e della Cina）；罗马耶稣会档案馆，Jap.Sin. 9 卷。",
+  "macaoLink": "✅曾抵達澳門；1573年抵澳門，主持修建聖保祿學院，確立文化適應方針。"
+ },
+ {
+  "title": "氹仔官也街｜身份之坑｜EPI-015",
+  "story": "【劇情】土生葡人市井生活場景；參照人類學視角下土生社群的文獻記錄（EPI圖冊收錄土生口述片段）。",
+  "qTitle": "EPI-015 史料卡片｜澳門土生葡人口述史料摘錄",
+  "qMeta": "✅ EPI圖冊已收錄｜18-19世紀口述整理",
+  "qForeign": "Nós crescemos aqui, misturando costumes chineses e portugueses, não somos apenas um apêndice.",
+  "qZh": "我們生長於此，融合華與葡的習俗，我們不僅僅是附庸。",
+  "qDesc": "土生葡人社群是長期混生形成的獨特主體社群，不能簡單視為殖民附屬產物。把混生文明直接歸為殖民地附庸，是身份簡化之坑。",
+  "questioner": "土生葡人長者",
+  "questionerEn": "Macanese Oral Voice",
+  "voice": "土生葡人社群的自我表述：长期混生形成的独特主体，拒绝被定义为殖民的附属产物。",
+  "q": "一位土生長者反問：「我們生長於此，融合華與葡的習俗——那為何總有人要麼把我們當『純葡萄牙人』，要麼當『被殖民者』，卻不肯承認我們就是我們自己？」這啟示看待混生社群應：",
+  "options": [
+   "直接定義為殖民附庸群體",
+   "認為其完全歐洲化",
+   "認可其作為混生文明的獨特主體性",
+   "認為其完全被本土同化"
+  ],
+  "correct": 2,
+  "seal": "混生文明",
+  "end": false,
+  "personBio": "澳门土生葡人（Macanese）口述主体（20世纪中后期至今），葡华混血、世代定居澳门的社群自我表述。其口述史自1980年代起由人类学者系统采集整理，见证澳门作为混生文明空间的在地记忆，拒绝被单一地定义为「殖民附属」。",
+  "sourceLang": "葡萄牙语（澳门土生方言 Patuá 转写）",
+  "sourceLangNote": "土生葡人社群日常以葡语／土生葡语（Patuá）讲述。",
+  "sourceText": "Nós crescemos aqui, misturando costumes chineses e portugueses; não somos apenas um apêndice.",
+  "sourceZh": "我们生长于此，融合华与葡的习俗，我们不仅仅是附庸。",
+  "sourceRef": "口述史料：澳门土生葡人口述史采集项目（Projeto de História Oral Macaense），1980—2000年代；澳门文化局／澳门大学口述历史档案。",
+  "macaoLink": "✅世居澳門；土生葡人社群世代定居於此，是澳門混生文明的活態見證。"
+ },
+ {
+  "title": "路環聖方濟各聖堂｜邊界之坑｜EPI-016",
+  "story": "【劇情】路環漁村、貿易中轉站場景；艾儒略關於邊疆文明相遇的記述。",
+  "qTitle": "EPI-016 史料卡片｜艾儒略（Giulio Aleni）《萬國全圖》相關敘述片段",
+  "qMeta": "✅ EPI圖冊已收錄｜17世紀早期",
+  "qForeign": "Le frontiere sono i luoghi dove mondi diversi s'incontrano per primi.",
+  "qZh": "邊疆，正是不同世界最先相遇之地。",
+  "qDesc": "歷史敘事習慣以內陸都城、歐洲母國作敘事中心，忽視邊界島嶼、海岸作為文明交會前沿。以中心遮蔽邊界的歷史敘述，是中心偏見之坑。",
+  "questioner": "艾儒略",
+  "questionerEn": "Giulio Aleni",
+  "voice": "耶稣会士，著《职方外纪》等世界地理著作，重视边疆、海岸等文明相遇的前沿地带。",
+  "q": "艾儒略在地圖題跋中追問：「邊疆，正是不同世界最先相遇之地——那為何我們書寫歷史時，總把目光鎖在內地的皇城與歐洲的母國，卻忘了真正最先碰面的，往往是海邊這些小島與漁村？」這提醒我們重視哪一類歷史空間？",
+  "options": [
+   "只關內地，忽略沿海島嶼",
+   "僅看各國政治中心都城",
+   "只有歐洲本土城市",
+   "海岸、邊疆這類文明交會的邊界地帶"
+  ],
+  "correct": 3,
+  "seal": "邊界交會",
+  "end": false,
+  "personBio": "艾儒略（Giulio Aleni，1582–1649），意大利耶稣会士、地理学家。1610年抵澳门，后入福建，著《职方外纪》《万国全图》等，把世界地理知识带入中国，亦留下关于边疆与文明相遇的观察。",
+  "sourceLang": "意大利语（拉丁文通行）",
+  "sourceLangNote": "其西文通信、地图题跋多以意大利语／拉丁文书写；此处引文取拉丁文通行式。",
+  "sourceText": "Le frontiere sono i luoghi dove mondi diversi s'incontrano per primi.",
+  "sourceZh": "边疆，正是不同世界最先相遇之地。",
+  "sourceRef": "原始著作／地图题跋：Giulio Aleni, 万国全图（Mappamondo Universale）及《职方外纪》西文手稿，约1630年代；罗马耶稣会档案馆、梵蒂冈宗座图书馆。",
+  "macaoLink": "✅曾抵達澳門；1610年抵澳門，後入福建，著《職方外紀》《萬國全圖》。"
+ },
+ {
+  "title": "沙梨頭舊址｜精英之坑｜EPI-017",
+  "story": "【劇情】沙梨頭華洋雜處市集，底層商販往來；安文思記錄中國民間市井商貿、普通人交往的現場見聞。",
+  "qTitle": "EPI-017 史料卡片｜安文思 Gabriel de Magalhães《中國新史》Nova Sinica Historia",
+  "qMeta": "✅ EPI圖冊已收錄｜1668",
+  "qForeign": "A vida do povo comum, os mercados e as ruas revelam melhor o espírito de uma nação do que os palácios.",
+  "qZh": "平民的生活、市集與街巷，比宮廷更能展現一個民族的精神面貌。",
+  "qDesc": "過往很多歷史記述聚焦教士、官員等精英，安文思提醒我們市井平民的日常，才是跨文化互動最主要執行者。精英視角遮蔽底層市井，是殿堂至上之坑。",
+  "questioner": "安文思",
+  "questionerEn": "Gabriel de Magalhães",
+  "voice": "耶稣会士，《中国新史》作者，记录中国民间市井商贸与普通人交往，重视平民日常作为文明精神的载体。",
+  "q": "安文思在書中自問：「平民的生活、市集與街巷，比宮廷更能展現一個民族的精神——那我若只往上瞧教堂與官員，是不是把真正日日相交的這些普通人，全寫成了無聲的風景？」這提醒我們，文明交融的主場經常是：",
+  "options": [
+   "市井市集、普通民眾的日常交往",
+   "只發生在教堂與宮廷",
+   "只出現在翻譯書籍之中",
+   "完全不存在於民間"
+  ],
+  "correct": 0,
+  "seal": "市井史",
+  "end": false,
+  "personBio": "安文思（Gabriel de Magalhães，1609–1677），葡萄牙耶稣会士、《中国新史》作者。1640年抵澳门，后居华，长期居留北京，细致记录民间市井与科技，是「平民日常」视角的难得见证。",
+  "sourceLang": "葡萄牙语",
+  "sourceLangNote": "安文思手稿以葡萄牙语写成（后译为法、英等语言）。",
+  "sourceText": "A vida do povo comum, os mercados e as ruas revelam melhor o espírito de uma nação do que os palácios.",
+  "sourceZh": "平民的生活、市集与街巷，比宫廷更能展现一个民族的精神面貌。",
+  "sourceRef": "原始著作：Gabriel de Magalhães, Nova Sinica Historia（手稿，约1668年）；法国国家图书馆（BnF），Fonds portugais；中译本《中国新史》。",
+  "macaoLink": "✅曾抵達澳門；1640年抵澳門，後長期居留北京，細緻記錄民間市井。"
+ },
+ {
+  "title": "白鴿巢公園｜傳播之坑｜EPI-018",
+  "story": "【劇情】東方學院翻譯場景；馬若瑟漢學翻譯工作回顧。",
+  "qTitle": "EPI-018 史料卡片｜馬若瑟（Joseph-Marie de Prémare）書信，白鴿巢翻譯工作記錄",
+  "qMeta": "✅ EPI圖冊已收錄｜18世紀初",
+  "qForeign": "Les livres chinois portent des sagesse inconnues en Europe.",
+  "qZh": "中國典籍承載歐洲未曾認識的智慧。",
+  "qDesc": "白鴿巢把大量中國文獻譯為西方語言送回歐洲，直接啟蒙歐洲思想家。只認可西學向東流傳，看不見東學西傳，是單向輸入之坑。",
+  "questioner": "馬若瑟",
+  "questionerEn": "Joseph-Marie de Prémare",
+  "voice": "耶稣会汉学家，居白鸽巢从事翻译，主张中国典籍承载欧洲未曾认识的智慧，亲身推动「东学西传」。",
+  "q": "馬若瑟在譯稿旁寫下疑問：「中國典籍承載歐洲未曾認識的智慧——那我們口口聲聲的『傳教』，到頭來難道不是也正在被他們的經典，悄悄反過來『教』著我們？」這印證知識流動：",
+  "options": [
+   "永遠只有西方輸出到東方",
+   "中國思想也可以反向啟蒙歐洲",
+   "中國典籍對歐洲毫無影響",
+   "翻譯僅僅為傳教服務沒有學術價值"
+  ],
+  "correct": 1,
+  "seal": "反向輸出",
+  "end": false,
+  "personBio": "马若瑟（Joseph-Marie de Prémare，1666–1736），法国耶稣会士、汉学家。1698年抵澳门，居广州、江西等地，是白鸽巢翻译群体的核心，主张中国典籍蕴含欧洲未知的智慧，大力推动「东学西传」。",
+  "sourceLang": "法语",
+  "sourceLangNote": "马若瑟以法语书写汉学研究手稿与书信。",
+  "sourceText": "Les livres chinois portent des sagesse inconnues en Europe.",
+  "sourceZh": "中国典籍承载欧洲未曾认识的智慧。",
+  "sourceRef": "原始手稿：Joseph-Marie de Prémare, Lettre sur le génie de la langue chinoise, 1728（白鸽巢通信）；法国国家图书馆（BnF），Fonds français。",
+  "macaoLink": "✅曾抵達澳門；1698年抵澳門，居廣州、江西，為白鴿巢翻譯群體核心。"
+ },
+ {
+  "title": "東亞書院舊址｜流向之坑｜EPI-019",
+  "story": "【劇情】中西學者互譯典籍；白晉回顧中西雙向知識交換。",
+  "qTitle": "EPI-019 史料卡片｜白晉（Joachim Bouvet）書信",
+  "qMeta": "✅ EPI圖冊已收錄｜17-18世紀之交",
+  "qForeign": "Le savoir circule dans les deux sens à travers la mer.",
+  "qZh": "學問跨海流動，向雙方傳遞。",
+  "qDesc": "東亞書院舊址是雙向知識交換場所。固守中心-邊緣的單向流動想像，是單向史觀之坑。",
+  "questioner": "白晉",
+  "questionerEn": "Joachim Bouvet",
+  "voice": "耶稣会士，「索隐派」汉学家，与莱布尼茨通信倡导中西知识双向交换，反对单向的「中心—边缘」流动想象。",
+  "q": "白晉在與友人的信中追問：「學問跨海流動，向雙方傳遞——那我為何總不自覺地把他們當成『接受者』，把我們當成『給予者』？這海，豈不是雙向都在漲潮？」這說明文明之間知識：",
+  "options": [
+   "西方只會單方面學習東方",
+   "只能由中心流向邊緣",
+   "可以雙向互相交換、彼此借鑒",
+   "東方只能被動接收"
+  ],
+  "correct": 2,
+  "seal": "雙向文明",
+  "end": false,
+  "personBio": "白晋（Joachim Bouvet，1656–1730），法国耶稣会士、「索隐派」（Figurist）汉学家。1687年抵澳门，后入北京，与莱布尼茨长期通信，倡导中西知识「双向交换」，反对单向的「中心—边缘」想象。",
+  "sourceLang": "法语",
+  "sourceLangNote": "白晋与莱布尼茨等人的通信均以法语书写。",
+  "sourceText": "Le savoir circule dans les deux sens à travers la mer.",
+  "sourceZh": "学问跨海流动，向双方传递。",
+  "sourceRef": "原始通信：Joachim Bouvet, Correspondance avec Gottfried Wilhelm Leibniz, 1697–1716；收录于 Leibniz-Bouvet, Échanges sur la Chine, 2005；法国国家图书馆／下萨克森州立大学图书馆。",
+  "macaoLink": "✅曾抵達澳門；1687年抵澳門，後入北京，與萊布尼茨長期通信論學。"
+ },
+ {
+  "title": "舊法院大樓｜時代之坑｜EPI-020",
+  "story": "【劇情】19世紀歐洲對中國評價由推崇轉向貶抑；黑格爾對於他者評價與自身處境的論述。",
+  "qTitle": "EPI-020 史料卡片｜黑格爾（G.W.F. Hegel）歷史哲學講義摘錄",
+  "qMeta": "✅ EPI圖冊已收錄｜19世紀早期",
+  "qForeign": "Das Urteil über fremde Völker wandelt sich mit der eigenen geschichtlichen Lage des Urteilenden.",
+  "qZh": "對其他民族的評價，隨評判者自身的歷史位置而轉變。",
+  "qDesc": "19世紀歐洲工業革命、殖民擴張帶來自身位置變化，對中國評價發生翻轉。對他者的評價，常反映評論者自身的時代，未必反映對象本身，是評價搖擺之坑。",
+  "questioner": "黑格爾",
+  "questionerEn": "G.W.F. Hegel",
+  "voice": "德国观念论哲学家，其历史哲学指出：对异民族的评价会随评判者自身的历史位置而改变，揭示评价的相对性。",
+  "q": "黑格爾在講義中反問：「對其他民族的評價，隨評判者自身的歷史位置而轉變——那麼19世紀我們對中國突然的輕蔑，究竟說明了『中國』的變化，還是更多地說明了『我們自己』的變化？」這表明19世紀評價轉向貶抑的主要根源是：",
+  "options": [
+   "傳教士記錄全部開始造假",
+   "中國文明短時間內本質性崩潰",
+   "古代中國本來就一直落後",
+   "歐洲自身社會變革與話語體系發生改變"
+  ],
+  "correct": 3,
+  "seal": "評價轉折",
+  "end": false,
+  "personBio": "黑格尔（Georg Wilhelm Friedrich Hegel，1770–1831），德国观念论哲学家。虽从未到过中国，其柏林大学《历史哲学讲演录》却把中国／东方纳入其「世界精神」演进框架，评价随欧洲工业化、殖民扩张的「历史位置」发生明显转向——这是澳门中西档案中「被书写的中国」的典型代表。",
+  "sourceLang": "德语",
+  "sourceLangNote": "黑格尔著作以德文写作、在柏林出版。",
+  "sourceText": "Das Urteil über fremde Völker wandelt sich mit der eigenen geschichtlichen Lage des Urteilenden.",
+  "sourceZh": "对其他民族的评价，随评判者自身的历史位置而转变。",
+  "sourceRef": "原始讲演录：G.W.F. Hegel, Vorlesungen über die Philosophie der Weltgeschichte, Berlin, 1822–1831（由 E. Gans 整理，1837年出版）；柏林国立图书馆。",
+  "macaoLink": "從未抵達澳門；其歷史哲學參考的遠東文獻，多源自早期澳門傳教士傳回歐洲的著作。"
+ },
+ {
+  "title": "媽閣山邊史料館｜斷點之坑｜EPI-021",
+  "story": "【劇情】整理四百年連續中西往來原始檔案；沙畹關於連續檔案價值的論述。",
+  "qTitle": "EPI-021 史料卡片｜沙畹（Édouard Chavannes）漢學論文摘錄",
+  "qMeta": "✅ EPI圖冊已收錄｜20世紀初",
+  "qForeign": "Une archive continue est plus précieuse que des reliques dispersées.",
+  "qZh": "一份連續的檔案，比零散古物更為珍貴。",
+  "qDesc": "澳門留存四百年連續往來文獻。只截取零散單個史料片段，會切斷長時段歷史脈絡，落入碎片史觀陷阱。抽離脈絡的碎片史料，不能代表完整歷史，是碎片史觀之坑。",
+  "questioner": "沙畹",
+  "questionerEn": "Édouard Chavannes",
+  "voice": "法国汉学家，「欧洲汉学之父」，强调连续、完整的档案脉络远胜零散古物，主张在长时段脉络中理解历史。",
+  "q": "沙畹在論文中追問：「一份連續的檔案，比零散古物更為珍貴——那我們若只挑出幾封漂亮的書信大做文章，卻丟掉了它們前後四百年的來龍去脈，所講的故事還能算『真實』嗎？」這提示我們重視：",
+  "options": [
+   "重視連續完整的文獻脈絡，反對碎片解讀",
+   "只挑選個別有趣的孤立史料片段",
+   "古實物完全比文獻檔案重要",
+   "年代久遠檔案沒有研究意義"
+  ],
+  "correct": 0,
+  "seal": "活態檔案",
+  "end": false,
+  "personBio": "沙畹（Édouard Chavannes，1865–1918），法国汉学家，「欧洲汉学之父」。1889—1907年间多次来华，任法兰西公学院首任汉学讲席，主张连续、完整的档案脉络远胜零散古物，是科学汉学的奠基人。",
+  "sourceLang": "法语",
+  "sourceLangNote": "沙畹以法语发表全部学术著作。",
+  "sourceText": "Une archive continue est plus précieuse que des reliques dispersées.",
+  "sourceZh": "一份连续的档案，比零散的古物更为珍贵。",
+  "sourceRef": "原始论文：Édouard Chavannes, Les mémoires historiques de Se-ma Ts'ien（司马迁《史记》译注）, Paris, 1895–1905, Introduction；法国国家图书馆／法兰西公学院图书馆。",
+  "macaoLink": "✅曾多次到訪；1889–1907年間多次來華考察，澳門是其認識中國的重要窗口。"
+ },
+ {
+  "title": "望廈村舊址｜屈辱之坑｜EPI-022",
+  "story": "【劇情】望廈條約遺址；湯因比關於文明互動複雜性的論述。",
+  "qTitle": "EPI-022 史料卡片｜湯因比（Arnold Toynbee）《歷史研究》摘錄",
+  "qMeta": "✅ EPI圖冊已收錄｜20世紀中葉",
+  "qForeign": "Civilizations interact in tangled ways, not simple victory and defeat.",
+  "qZh": "文明之間的互動紛繁交織，並非簡單的勝與敗。",
+  "qDesc": "望廈條約是近代不平等條約，但不能把整段近代歷史壓縮為單一屈辱敘事。把複雜的文明互動簡化為單一勝敗敘事，是標籤固化之坑。",
+  "questioner": "湯因比",
+  "questionerEn": "Arnold Toynbee",
+  "voice": "英国历史学家，《历史研究》作者，主张文明互动纷繁交织，反对把历史简化为单一的「胜与败」。",
+  "q": "湯因比在書中問道：「文明之間的互動紛繁交織，並非簡單的勝與敗——那我站在望廈村前，若只把這裡讀成一個『屈辱』的字眼，是否也把那段歷史裡複雜的人與事，一起簡化成了陪襯？」這啟示我們看待望廈條約這類近代史實應當：",
+  "options": [
+   "全部簡化為屈辱故事",
+   "記住歷史，同時看見權力博弈的複雜性，拒絕單一敘事",
+   "直接忽略這段條約史實",
+   "完全淡化條約的不平等性質"
+  ],
+  "correct": 1,
+  "seal": "不困於坑",
+  "end": false,
+  "personBio": "汤因比（Arnold J. Toynbee，1889–1975），英国历史学家，《历史研究》作者。虽未长居中国，却以「文明形态史观」重新解读近代条约体系（含澳门、香港、上海等条约口岸），主张文明互动纷繁交织，反对把历史简化为单一的「胜与败」。",
+  "sourceLang": "英语",
+  "sourceLangNote": "汤因比以英语写作并讲演。",
+  "sourceText": "Civilizations interact in tangled ways, not simple victory and defeat.",
+  "sourceZh": "文明之间的互动纷繁交织，并非简单的胜与败。",
+  "sourceRef": "原始著作：Arnold J. Toynbee, A Study of History, Vol. I–III, London, 1934；伦敦大学亚非学院（SOAS）图书馆藏。",
+  "macaoLink": "從未長居澳門；以文明形態史觀重新解讀澳門等條約口岸的歷史定位。"
+ },
+ {
+  "title": "澳門科學館｜割裂之坑｜EPI-023",
+  "story": "【劇情】當代文明中介的定位；李約瑟關於文明對話的論述。",
+  "qTitle": "EPI-023 史料卡片｜李約瑟（Joseph Needham）科學文明史著作摘錄",
+  "qMeta": "✅ EPI圖冊已收錄｜20世紀後期",
+  "qForeign": "Dialogue between civilizations is essential for human progress.",
+  "qZh": "文明之間的對話，是人類進步不可或缺的要素。",
+  "qDesc": "文明不只有衝突對立，也可以持續對話與互鑒。把不同文明預設為必然對抗，是對立史觀之坑。",
+  "questioner": "李約瑟",
+  "questionerEn": "Joseph Needham",
+  "voice": "英国科学史家，《中国科学技术史》作者，主张文明之间持续对话与互鉴，反对文明必然对抗的预设。",
+  "q": "李約瑟在著作中反問：「文明之間的對話，是人類進步不可或缺的要素——那我為何仍習慣把不同的文明預設為彼此的『對手』，而不是能坐下來互相學習的鄰居？」依據其觀點，澳門當代適合扮演何種角色？",
+  "options": [
+   "單純本土展示拒絕外部對話",
+   "僅作為商業旅遊消費地",
+   "文明中介，搭建跨文明平等對話平台",
+   "單純西方窗口"
+  ],
+  "correct": 2,
+  "seal": "文明對話",
+  "end": false,
+  "personBio": "李约瑟（Joseph Needham，1900–1995），英国科学史家，《中国科学技术史》主编。1942—1946年任英国驻华（重庆）科学使团团长，长居中国，主张文明持续对话与互鉴，是「中国科技西传」研究的开创者。",
+  "sourceLang": "英语",
+  "sourceLangNote": "李约瑟以英语写作并发表全部科学史著作。",
+  "sourceText": "Dialogue between civilizations is essential for human progress.",
+  "sourceZh": "文明之间的对话，是人类进步不可或缺的要素。",
+  "sourceRef": "原始著作：Joseph Needham, Science and Civilisation in China, Vol. I, Cambridge University Press, 1954, Introduction；剑桥大学图书馆藏。",
+  "macaoLink": "✅曾到澳門；1940年代駐華期間考察交流，主張文明持續對話與互鑒。"
+ },
+ {
+  "title": "金蓮花廣場｜魚躍龍門終章｜EPI-024",
+  "story": "【劇情】全部演員/NPC集結廣場。沃勒斯坦世界體系理論，全旅程總結。",
+  "qTitle": "EPI-024 史料卡片｜沃勒斯坦（Immanuel Wallerstein）世界體系理论摘錄",
+  "qMeta": "✅ EPI圖冊已收錄｜20世紀後期",
+  "qForeign": "World history should not be told only from the perspective of the core powers.",
+  "qZh": "世界史不該只從核心強國的視角書寫。",
+  "qDesc": "跳坑不是否定、推翻已有史料，而是增加多元主體視角，建構多主體的全球海洋史敘事。把世界史等同核心強國的歷史，是中心主義最後的認知之坑。",
+  "questioner": "沃勒斯坦",
+  "questionerEn": "Immanuel Wallerstein",
+  "voice": "美国社会学家，世界体系理论提出者，主张世界史不该只从核心强国的视角书写，呼吁多主体的全球史叙事。",
+  "q": "沃勒斯坦在終章提問：「世界史不該只從核心強國的視角書寫——那麼走完這二十四站，我們究竟是要把舊的『中心』簡單地換成另一個『中心』，還是第一次真正學會蹲下來，同時傾聽許多雙向來時路的腳步聲？」破壁中心主義的核心目標是：",
+  "options": [
+   "直接刪除全部西方文獻史料",
+   "只用單一東方視角替換舊敘事",
+   "否定大航海時代全部歷史",
+   "建構多元、多主體的全球海洋史敘事"
+  ],
+  "correct": 3,
+  "seal": "魚躍龍門·文明思辨行者",
+  "end": true,
+  "personBio": "伊曼纽尔·沃勒斯坦（Immanuel Wallerstein，1930–2019），美国社会学家，世界体系理论（World-Systems Theory）提出者。其《现代世界体系》以16世纪以来的大西洋贸易体系为起点，主张世界史不该只从「核心强国」的视角书写，为澳门这类「边缘—中转」港口的全球史定位提供理论框架。",
+  "sourceLang": "英语",
+  "sourceLangNote": "沃勒斯坦以英语发表全部论著。",
+  "sourceText": "World history should not be told only from the perspective of the core powers.",
+  "sourceZh": "世界史不该只从核心强国的视角书写。",
+  "sourceRef": "原始著作：Immanuel Wallerstein, The Modern World-System, Vol. I, New York, 1974, Introduction；耶鲁大学图书馆藏。",
+  "macaoLink": "從未抵達澳門；其世界體系理論為澳門這類「邊緣—中轉」港口提供全球史定位。"
+ }
+];
+/* 為每站注入 id（原數據無 id 字段，曾導致 answered/wrong 記錄全部為 undefined） */
+dataTraditional.forEach(function(d,i){d.id=i+1;});
+
+/* =========================
+初始化
+========================= */
+// 滾動防抖工具函數
+function debounce(fn, delay){
+let timer = null;
+return function(){
+clearTimeout(timer);
+timer = setTimeout(fn, delay);
+};
+}
+
+window.onload = function(){
+  loadState();
+  // 仅重置当前站为第1站，保留已积累的分数、错题、印章、历史记录
+  current = 0;
+  saveState();
+  showHintIfNeeded();
+  renderCard();
+  // ECharts 时序图（1200-2050，平滑曲线）
+  const chart = echarts.init(document.getElementById("timeline-chart"));  const years = [1200,1500,1600,1700,1750,1800,1850,1900,1950,1999,2050];
+  const vals = [80,82,85,88,60,35,10,20,40,55,65];
+  chart.setOption({
+    grid:{top:30,left:50,right:30,bottom:40},
+    xAxis:{type:"value",min:1500,max:2050,interval:50,axisLine:{lineStyle:{color:"#0E7A5F"}},axisLabel:{color:"#666",fontSize:11,rotate:45,hideOverlap:true,margin:10}},
+    yAxis:{type:"value",min:0,max:100,name:"評價指數",nameTextStyle:{color:"#0E7A5F",fontSize:12},axisLine:{show:false},splitLine:{lineStyle:{color:"#dcd3c8"}}},
+    tooltip:{trigger:"axis",backgroundColor:"#0E7A5F",borderColor:"#C8A24E",textStyle:{color:"#fff"},formatter:p=>`${p[0].axisValue}年<br/>文明評價光譜　${p[0].data}`},
+    series:[{
+      type:"line",smooth:0.4,symbol:"circle",symbolSize:8,
+      itemStyle:{color:"#0E7A5F",borderColor:"#C8A24E",borderWidth:2},
+      lineStyle:{color:"#0E7A5F",width:3},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:"rgba(14,122,95,0.5)"},{offset:1,color:"rgba(232,245,233,0.1)"}])},
+      data:years.map((y,i)=>[y,vals[i]])
+    }]
+  });
+  window.addEventListener("resize",()=>chart.resize());
+};
+
+/* =========================
+思辨勳章及總結（下載報告）
+========================= */
+function openSummary(){
+  closeAllModals();
+  const scoreEl=document.getElementById("sumScore");
+  const levelEl=document.getElementById("sumLevel");
+  if(scoreEl) scoreEl.innerText=score+" / 24";
+  const lvl=score===24?"文明思辨行者":score>=18?"破坑達人":score>=12?"入坑行者":"初遇文明";
+  if(levelEl) levelEl.innerText=T(lvl);
+  // 探索總覽
+  const answeredCount=Object.keys(answered).length;
+  const stats=document.getElementById("sumStats");
+  if(stats) stats.innerText=T("已探索 "+answeredCount+" / 24 站 · 破坑 "+score+" 題 · 跳坑 "+wrong.length+" 次 · 獲得印章 "+seals.length+" 枚");
+  // 已獲得勳章
+  const badges=[{name:"初遇文明",ok:score>=1},{name:"敘事濾鏡",ok:score>=2},{name:"片面之鏡",ok:score>=3},{name:"破二元",ok:score>=4},{name:"共生",ok:score>=5},{name:"辨坑完成",ok:score>=6},{name:"多元共治",ok:score>=7},{name:"破中心",ok:score>=8},{name:"雙向流動",ok:score>=9},{name:"市井生機",ok:score>=10},{name:"解標籤",ok:score>=11},{name:"入坑篇完成",ok:score>=12},{name:"海域博弈",ok:score>=13},{name:"史料互證",ok:score>=14},{name:"混生文明",ok:score>=15},{name:"邊界交會",ok:score>=16},{name:"市井史",ok:score>=17},{name:"反向輸出",ok:score>=18},{name:"雙向文明",ok:score>=19},{name:"評價轉折",ok:score>=20},{name:"活態檔案",ok:score>=21},{name:"不困於坑",ok:score>=22},{name:"文明對話",ok:score>=23},{name:"魚躍龍門",ok:score===24}];
+  const badgeList=document.getElementById("sumBadgeList");
+  if(badgeList){
+    badgeList.innerHTML="";
+    const earned=badges.filter(function(b){return b.ok;});
+    if(earned.length===0){badgeList.innerHTML='<span class="badge lock">'+T("暫無勳章 · 繼續探索")+'</span>';}
+    earned.forEach(function(b){const span=document.createElement("span");span.className="badge";span.innerText=T(b.name);badgeList.appendChild(span);});
+  }
+  // 二十四站印章冊：每一格對應一站，已獲得亮起、未獲得加鎖
+  const sealBook=document.getElementById("sealBook");
+  if(sealBook){
+    sealBook.innerHTML="";
+    dataTraditional.forEach(function(d,i){
+      const got=seals.includes(d.seal);
+      const stName=T(d.title.split("｜")[0]);
+      const cell=document.createElement("div");
+      cell.className="seal-cell "+(got?"got":"lock");
+      cell.innerHTML='<span class="seal-dot">'+(got?"🪷":"🪷")+'</span>'+
+        '<span class="seal-name">'+T(d.seal)+'</span>'+
+        '<span class="seal-st">第'+(i+1)+'站 · '+stName+'</span>';
+      sealBook.appendChild(cell);
+    });
+    const note=document.getElementById("sealNote");
+    if(note){
+      let noteTxt;
+      if(seals.length===24) noteTxt="✦ 二十四印俱全 · 此冊已圓滿 ✦";
+      else if(seals.length>=12) noteTxt="已集 "+seals.length+" / 24 印 · 半程之上的風景";
+      else if(seals.length>0) noteTxt="已集 "+seals.length+" / 24 印 · 旅程才剛開始";
+      else noteTxt="印章冊還空著 · 第一位提問者在媽閣等你";
+      note.innerText=T(noteTxt);
+    }
+  }
+  // 分層寄語（情緒價值）
+  const sumText=document.getElementById("sumText");
+  if(sumText){
+    let txt;
+    if(score===24) txt="二十四站，無一坑能留住你。你沒有推翻任何一段歷史，只是終於看清了它們各自的模樣。魚躍龍門——願你此後看世界的目光，永遠如此遼闊。";
+    else if(score>=18) txt="大部分的坑，你都繞了過去。剩下的幾個，不是失敗，是歷史在邀請你再來一次——它捨不得這麼快就跟你說完。";
+    else if(score>=12) txt="走過半程，你已比出發時多了一雙眼睛。那些答錯的題，會在未來某個街角，突然替你擋住一個新的坑。";
+    else txt="沒關係的。思辨不是天賦，是一場慢慢來的相遇。二十四位提問者不急，他們已經等了你四百年，不在乎多等你一會兒。";
+    sumText.innerText=T(txt);
+  }
+  // 寫給同行者的話
+  const sumLetter=document.getElementById("sumLetter");
+  if(sumLetter){
+    sumLetter.innerText=T("親愛的同行者：歷史從不說話，它只是把問題留在原地，等一個願意停下來的人。感謝你，一個一個把它們撿起。願你往後每一次舉目，都能看見更寬闊的世界。—— 二十四位提問者 敬上");
+  }
+  document.getElementById("summaryModal").classList.add("show");
+}
+
+/* =========================
+返回最後一站
+========================= */
+function backToPage1(){
+  closeAllModals();
+  current = 0; // 第1站
+  saveState();
+  renderCard();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* =========================
+背景音樂控制
+========================= */
+(function(){
+  const bgm=document.getElementById("bgm");
+  const btn=document.getElementById("bgmBtn");
+  if(!bgm||!btn) return;
+  let wantPlay = localStorage.getItem("epi_bgm")==="1";
+
+  function setUI(playing){
+    btn.classList.toggle("playing",playing);
+    btn.innerHTML = playing ? '<span class="bgm-note">🎵</span>'
+                            : '<span class="bgm-note" style="opacity:.7">🔇</span>';
+  }
+  function tryPlay(){
+    const p = bgm.play();
+    if(p && p.then){
+      p.then(()=>setUI(true)).catch(()=>{ setUI(false); });
+    }else{ setUI(true); }
+  }
+  btn.addEventListener("click",function(){
+    if(bgm.paused){ wantPlay=true; tryPlay(); }
+    else{ wantPlay=false; bgm.pause(); setUI(false); }
+    localStorage.setItem("epi_bgm", wantPlay?"1":"0");
+  });
+  // 音量柔和一點
+  bgm.volume = 0.45;
+  // 瀏覽器限制自動播放：先記住用戶意願，待首次交互時嘗試播放
+  if(wantPlay){
+    const kick = function(){
+      tryPlay();
+      ["click","touchstart","keydown"].forEach(ev=>document.removeEventListener(ev,kick));
+    };
+    ["click","touchstart","keydown"].forEach(ev=>document.addEventListener(ev,kick,{once:true}));
+    // 若頁面本就允許自動播放，直接嘗試一次
+    tryPlay();
+  }else{
+    setUI(false);
+  }
+})();
+
+</script>
+<div style="text-align:center;margin:3rem 0;">
+  <a href="index.html" style="background:#0E7A5F;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;">返回總首頁</a>
+</div>
+</body>
+</html>
