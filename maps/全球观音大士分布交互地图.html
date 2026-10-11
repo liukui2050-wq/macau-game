@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>🗺️ 全球觀音廟（觀音堂／觀音寺）分布交互地圖 · 考錄版</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --paper:#f8f5f0;          /* 米白 */
+  --paper-2:#fffdf9;
+  --ink:#1f3831;            /* 墨綠（正文） */
+  --ink-2:#4a5a55;          /* 次要文字 */
+  --ink-3:#8a9490;          /* 弱化文字 */
+  --green:#0e7a5f;          /* 澳門綠 */
+  --green-soft:rgba(14,122,95,.12);
+  --gold:#c8a24e;           /* 思辨金 */
+  --gold-soft:rgba(200,162,78,.16);
+  --line:rgba(14,122,95,.22);
+  --line-g:rgba(200,162,78,.35);
+  --panel:rgba(248,245,240,.96);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+ background:#eeeae2;color:var(--ink)}
+#map{width:100%;height:100%;background:#eeeae2}
+.leaflet-container{background:#eeeae2;font-family:inherit}
+.leaflet-tile-pane{transition:filter .45s ease}
+
+/* ============ 頂欄 ============ */
+#header{position:fixed;top:0;left:0;right:0;z-index:9999;
+ background:linear-gradient(180deg,rgba(248,245,240,.98),rgba(248,245,240,.92));
+ border-bottom:1px solid var(--line-g);padding:9px 16px 8px;
+ padding-top:calc(9px + env(safe-area-inset-top));backdrop-filter:blur(14px);
+ box-shadow:0 2px 16px rgba(31,56,49,.10)}
+#header h1{font-size:18px;font-weight:800;color:var(--green);text-align:center;letter-spacing:1px}
+#header h1 small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:400;letter-spacing:.4px;margin-top:2px}
+.hrow{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:7px;flex-wrap:wrap}
+#progress-text{font-size:13px;color:var(--gold);font-weight:800;font-family:ui-monospace,monospace;min-width:76px;text-align:center}
+#progress-track{width:180px;height:7px;background:rgba(31,56,49,.12);border-radius:4px;overflow:hidden}
+#progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--gold));
+ border-radius:4px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+#header-btns{display:flex;gap:6px;justify-content:center;margin-top:7px;flex-wrap:wrap}
+.h-btn{font-size:12.5px;padding:7px 13px;border-radius:13px;border:1px solid var(--line-g);
+ background:var(--gold-soft);color:#8a6d2a;cursor:pointer;transition:.18s;white-space:nowrap;font-weight:600}
+.h-btn:hover{background:rgba(200,162,78,.26);border-color:var(--gold)}
+.h-btn:active{transform:scale(.95)}
+.h-btn.on{background:rgba(14,122,95,.16);border-color:var(--green);color:var(--green)}
+
+/* ============ 圖例 ============ */
+#legend-toggle{position:fixed;right:12px;z-index:9998;top:calc(150px + env(safe-area-inset-top));
+ width:44px;height:44px;border-radius:12px;background:var(--panel);border:1px solid var(--line-g);
+ display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;
+ backdrop-filter:blur(10px);box-shadow:0 3px 14px rgba(31,56,49,.18)}
+#legend{position:fixed;right:12px;z-index:9998;top:calc(202px + env(safe-area-inset-top));
+ width:218px;background:var(--panel);border:1px solid var(--line-g);
+ border-radius:12px;backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(31,56,49,.22);
+ display:none;max-height:calc(100vh - 320px);overflow-y:auto;padding:10px 12px}
+#legend.show{display:block;animation:fadeIn .25s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.legend-title{font-size:11.5px;color:var(--green);font-weight:800;letter-spacing:1.5px;margin:8px 0 5px;
+ padding-bottom:4px;border-bottom:1px solid var(--line)}
+.legend-title:first-child{margin-top:0}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2);
+ padding:4px 5px;border-radius:7px;cursor:pointer;transition:.15s;user-select:none}
+.legend-item:hover{background:var(--green-soft)}
+.legend-item.off{opacity:.32}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;
+ border:2px solid #fff;box-shadow:0 1px 4px rgba(31,56,49,.35)}
+.legend-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend-n{font-size:11px;color:var(--ink-3);font-family:ui-monospace,monospace}
+.legend-note{font-size:11px;color:var(--ink-3);line-height:1.55;margin-top:7px;padding-top:6px;
+ border-top:1px solid var(--line)}
+.legend-item.legend-static{cursor:default}
+.legend-item.legend-static:hover{background:transparent}
+.ring-demo{width:13px;height:13px;border-radius:50%;flex-shrink:0;box-sizing:border-box;
+ background:rgba(31,56,49,.22)}
+.ring-demo.t1{border:2px solid var(--gold);box-shadow:0 0 5px rgba(200,162,78,.7)}
+.ring-demo.t2{border:1.6px solid var(--green)}
+.ring-demo.t3{border:1.3px dashed rgba(31,56,49,.55)}
+
+/* ============ 時間軸 ============ */
+#time-panel{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--panel);
+ border-top:1px solid var(--line-g);padding:9px 16px 11px;
+ padding-bottom:calc(11px + env(safe-area-inset-bottom));backdrop-filter:blur(14px);
+ box-shadow:0 -2px 16px rgba(31,56,49,.10)}
+#time-panel .lab{font-size:12px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+#time-panel .lab em{font-style:normal;color:var(--ink-3);font-weight:400;font-size:11.5px}
+.range-row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--green);height:26px;-webkit-appearance:none;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:5px;background:rgba(31,56,49,.16);border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+ background:var(--gold);border:2px solid var(--green);margin-top:-8.5px;box-shadow:0 0 10px rgba(200,162,78,.5)}
+#year-display{font-size:16px;color:#8a6d2a;font-weight:800;min-width:58px;text-align:center;
+ font-family:ui-monospace,monospace;background:var(--gold-soft);padding:3px 9px;border-radius:6px;
+ border:1px solid var(--line-g)}
+#visible-count{font-size:11.5px;color:var(--ink-3);margin-top:5px;text-align:center}
+#visible-count b{color:var(--green);font-weight:800}
+.mini-btn{font-size:11px;padding:4px 9px;border-radius:9px;border:1px solid var(--line-g);
+ background:var(--gold-soft);color:#8a6d2a;cursor:pointer;white-space:nowrap;font-weight:600}
+.mini-btn.on{background:rgba(14,122,95,.16);border-color:var(--green);color:var(--green)}
+
+/* ============ 彈窗（米白卡片） ============ */
+.leaflet-popup-content-wrapper{background:linear-gradient(168deg,var(--paper-2) 0%,var(--paper) 100%);
+ color:var(--ink);border-radius:14px;border:1px solid var(--line-g);
+ box-shadow:0 12px 38px rgba(31,56,49,.28);overflow:hidden}
+.leaflet-popup-tip{background:var(--paper);border:1px solid var(--line-g)}
+.leaflet-popup-content{margin:0 !important;width:320px !important;line-height:1.6}
+.leaflet-popup-close-button{color:var(--ink-3) !important;font-size:20px !important;
+ right:8px !important;top:6px !important;width:26px !important;height:26px !important}
+.leaflet-popup-close-button:hover{color:var(--green) !important;background:transparent !important}
+.p-head{padding:11px 14px 10px;background:linear-gradient(120deg,rgba(200,162,78,.16),rgba(14,122,95,.12));
+ border-bottom:1px solid var(--line-g)}
+.p-badges{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:5px}
+.p-badge{font-size:10.5px;padding:2px 7px;border-radius:7px;letter-spacing:.5px;font-weight:700}
+.badge-kind{background:var(--gold-soft);color:#8a6d2a;border:1px solid var(--line-g)}
+.badge-chain{background:rgba(14,122,95,.14);color:var(--green);border:1px solid rgba(14,122,95,.4)}
+.badge-flag{background:rgba(185,28,28,.10);color:#b91c1c;border:1px solid rgba(185,28,28,.32)}
+.badge-flag.ok{background:rgba(37,99,235,.10);color:#1d4ed8;border-color:rgba(37,99,235,.32)}
+.badge-rank{font-size:10.5px;color:var(--ink-3);font-family:ui-monospace,monospace;margin-left:auto}
+.badge-lv1{background:linear-gradient(120deg,rgba(200,162,78,.28),rgba(200,162,78,.14));
+ color:#7a5f16;border:1px solid var(--gold);font-weight:800}
+.badge-lv2{background:rgba(14,122,95,.14);color:var(--green);border:1px solid rgba(14,122,95,.42)}
+.badge-lv3{background:rgba(31,56,49,.08);color:var(--ink-2);border:1px dashed rgba(31,56,49,.45)}
+.badge-ev0{background:rgba(14,122,95,.16);color:var(--green);border:1px solid rgba(14,122,95,.45)}
+.badge-ev1{background:rgba(200,162,78,.2);color:#8a6d2a;border:1px solid var(--line-g)}
+.badge-ev2{background:rgba(185,28,28,.12);color:#b91c1c;border:1px solid rgba(185,28,28,.35)}
+.badge-ev3{background:rgba(124,58,237,.13);color:#6d28d9;border:1px solid rgba(124,58,237,.35)}
+.badge-ev4{background:rgba(31,56,49,.08);color:var(--ink-3);border:1px dashed rgba(31,56,49,.4)}
+.tl-wide{grid-column:1 / -1}
+.p-name{font-size:17px;font-weight:800;color:var(--ink);line-height:1.35;letter-spacing:.3px}
+.p-place{font-size:12px;color:var(--ink-2);margin-top:3px;display:flex;align-items:center;gap:5px}
+.p-place i{width:8px;height:8px;border-radius:50%;display:inline-block;font-style:normal;
+ border:1.5px solid #fff;box-shadow:0 1px 3px rgba(31,56,49,.35)}
+.p-year{display:flex;align-items:baseline;gap:8px;padding:9px 14px 8px;background:rgba(200,162,78,.09);
+ border-bottom:1px solid var(--line-g)}
+.p-year b{font-size:23px;color:#8a6d2a;font-family:ui-monospace,monospace;font-weight:800;letter-spacing:-.5px}
+.p-year span{font-size:11.5px;color:var(--ink-2);line-height:1.45}
+.p-body{padding:10px 14px 12px}
+.p-tl{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.tl-cell{background:rgba(31,56,49,.045);border:1px solid rgba(31,56,49,.1);
+ border-radius:8px;padding:6px 8px}
+.tl-k{font-size:10px;color:var(--ink-3);letter-spacing:.5px;margin-bottom:2px}
+.tl-v{font-size:11.5px;color:var(--ink);line-height:1.45;word-break:break-word}
+.p-row{display:flex;gap:7px;font-size:11.5px;margin-bottom:5px;align-items:flex-start}
+.p-row .k{color:var(--ink-3);flex-shrink:0;width:52px}
+.p-row .v{color:var(--ink);flex:1;word-break:break-word}
+.p-row .v.gold{color:#8a6d2a;font-weight:700}
+.p-warn{margin-top:8px;background:rgba(200,162,78,.12);border-left:3px solid var(--gold);
+ border-radius:0 8px 8px 0;padding:7px 10px;font-size:11.5px;color:#6b551d;line-height:1.6}
+.p-warn b{color:#8a6d2a;font-weight:800}
+.p-foot{margin-top:8px;padding-top:7px;border-top:1px solid rgba(31,56,49,.12);
+ display:flex;justify-content:space-between;align-items:center;gap:8px}
+.p-src{font-size:10.5px;color:var(--ink-3);font-style:italic;flex:1}
+.p-lit{font-size:11.5px;padding:4px 10px;border-radius:9px;cursor:pointer;white-space:nowrap;
+ border:1px solid var(--line-g);background:var(--gold-soft);color:#8a6d2a;font-weight:700;transition:.16s}
+.p-lit:hover{background:rgba(200,162,78,.28)}
+.p-lit.on{background:rgba(236,72,153,.14);border-color:#ec4899;color:#be185d}
+
+/* ============ 名錄面板 ============ */
+#list-panel{position:fixed;left:0;top:0;bottom:0;width:348px;z-index:10000;
+ background:rgba(248,245,240,.975);border-right:1px solid var(--line-g);
+ backdrop-filter:blur(16px);transform:translateX(-105%);transition:transform .32s cubic-bezier(.4,0,.2,1);
+ display:flex;flex-direction:column;box-shadow:8px 0 30px rgba(31,56,49,.18)}
+#list-panel.show{transform:none}
+#list-head{padding:14px 16px 10px;padding-top:calc(14px + env(safe-area-inset-top));
+ border-bottom:1px solid var(--line)}
+#list-head h2{font-size:16px;color:var(--green);font-weight:800;display:flex;align-items:center;gap:8px}
+#list-head h2 span{font-size:11.5px;color:var(--ink-3);font-weight:400}
+#list-search{width:100%;margin-top:9px;padding:7px 11px;border-radius:9px;font-size:12.5px;
+ background:rgba(31,56,49,.05);border:1px solid var(--line-g);color:var(--ink);outline:none;font-family:inherit}
+#list-search:focus{border-color:var(--green);background:#fff}
+#list-search::placeholder{color:var(--ink-3)}
+
+/* 大區快速跳轉滑條 */
+#list-strip{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;overflow-y:hidden;
+ border-bottom:1px solid var(--line);background:rgba(31,56,49,.03);
+ cursor:grab;scrollbar-width:none;flex-shrink:0}
+#list-strip.dragging{cursor:grabbing}
+#list-strip::-webkit-scrollbar{display:none}
+.strip-chip{display:flex;align-items:center;gap:5px;flex-shrink:0;padding:5px 10px;border-radius:11px;
+ font-size:12px;white-space:nowrap;user-select:none;cursor:pointer;transition:.16s;color:var(--ink-2);
+ background:rgba(31,56,49,.05);border:1px solid rgba(14,122,95,.24)}
+.strip-chip:hover{background:rgba(200,162,78,.2)}
+.strip-chip i{width:9px;height:9px;border-radius:50%;font-style:normal;flex-shrink:0;
+ border:1.5px solid #fff;box-shadow:0 1px 3px rgba(31,56,49,.35)}
+.strip-chip b{font-size:10.5px;color:var(--ink-3);font-family:ui-monospace,monospace;font-weight:700}
+.strip-chip.active{background:var(--gold-soft);border-color:var(--gold);color:var(--ink);
+ box-shadow:0 0 0 1px rgba(200,162,78,.35) inset;font-weight:700}
+.strip-chip.active b{color:#8a6d2a}
+.strip-chip.empty{opacity:.35;cursor:default}
+.strip-chip.empty:hover{background:rgba(31,56,49,.05)}
+
+#list-body{flex:1;overflow-y:auto;padding:6px 8px 24px}
+.lg-group{margin-top:6px;scroll-margin-top:4px}
+.lg-title{font-size:11.5px;color:var(--green);font-weight:800;letter-spacing:1px;padding:8px 8px 6px;
+ display:flex;align-items:center;gap:7px;position:sticky;top:0;background:rgba(248,245,240,.985);z-index:2;
+ border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+.lg-title i{width:9px;height:9px;border-radius:50%;font-style:normal;
+ border:1.5px solid #fff;box-shadow:0 1px 3px rgba(31,56,49,.35)}
+.lg-title .c{font-size:10.5px;color:var(--ink-3);font-family:ui-monospace,monospace;font-weight:700}
+.lg-title .ar{font-size:9px;color:var(--ink-3);margin-left:auto;transition:transform .2s}
+.lg-group.collapsed .ar{transform:rotate(-90deg)}
+.lg-group.collapsed .lg-items{display:none}
+.lg-item{display:flex;gap:8px;align-items:flex-start;padding:7px 9px;border-radius:8px;cursor:pointer;transition:.15s}
+.lg-item:hover{background:var(--green-soft)}
+.lg-item.lit{background:rgba(236,72,153,.1)}
+.lg-item.lit .lg-n{color:#be185d;font-weight:700}
+.lg-y{font-size:11px;color:#8a6d2a;font-family:ui-monospace,monospace;width:48px;flex-shrink:0;
+ text-align:right;padding-top:1px;font-weight:600}
+.lg-main{flex:1;min-width:0}
+.lg-n{font-size:12.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45}
+.lg-p{font-size:10.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.lg-t{font-size:10px;color:var(--green);border:1px solid rgba(14,122,95,.35);border-radius:6px;
+ padding:0 4px;flex-shrink:0;margin-top:2px;background:rgba(14,122,95,.07)}
+.lg-item.unknown .lg-t{border-color:rgba(185,28,28,.35);color:#b91c1c;background:rgba(185,28,28,.07)}
+.lg-star{font-size:10px;flex-shrink:0;margin-top:2px;line-height:1}
+.lg-star.t1{color:var(--gold);text-shadow:0 0 4px rgba(200,162,78,.55)}
+.lg-star.t2{color:var(--green)}
+#list-close{position:absolute;right:10px;top:calc(12px + env(safe-area-inset-top));
+ width:32px;height:32px;border-radius:9px;background:rgba(31,56,49,.06);border:1px solid var(--line-g);
+ color:var(--green);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ============ 點位：默認圓點 · 點亮蓮花 ============ */
+/* --pt-size / --pt-halo 由 JS 依縮放等級動態寫入 */
+:root{--pt-size:11px;--pt-halo:.20;--pt-lotus:34px}
+.lotus-icon{background:transparent !important;border:none !important}
+.pt-wrap{width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+ position:relative;cursor:pointer}
+/* 地區色柔光暈：暗灰路網上把圓點從背景里托起來 */
+.pt-halo{position:absolute;top:50%;left:50%;width:calc(var(--pt-size) + 14px);
+ height:calc(var(--pt-size) + 14px);margin:0;transform:translate(-50%,-50%);border-radius:50%;
+ opacity:var(--pt-halo);pointer-events:none;transition:opacity .3s ease,width .3s ease,height .3s ease}
+.pt-dot{position:relative;width:var(--pt-size);height:var(--pt-size);border-radius:50%;
+ border:2px solid #fff;box-shadow:0 1px 5px rgba(31,56,49,.55);
+ transition:width .3s cubic-bezier(.4,0,.2,1),height .3s cubic-bezier(.4,0,.2,1),transform .2s cubic-bezier(.34,1.4,.64,1)}
+.pt-wrap:hover .pt-dot{transform:scale(1.5)}
+.pt-wrap:hover .pt-halo{opacity:calc(var(--pt-halo) + .22)}
+
+.pt-lotus{display:none;width:var(--pt-lotus);height:var(--pt-lotus)}
+.pt-lotus svg{width:100%;height:100%;filter:drop-shadow(0 2px 5px rgba(31,56,49,.35))}
+.pt-wrap.lit .pt-dot,.pt-wrap.lit .pt-halo{display:none}
+.pt-wrap.lit .pt-lotus{display:block;animation:lotusPop .55s cubic-bezier(.34,1.56,.64,1)}
+@keyframes lotusPop{0%{transform:scale(.25) rotate(-12deg);opacity:0}
+ 55%{transform:scale(1.18) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+/* 點亮態光暈：粉金雙層，隨蓮花呼吸 */
+.pt-wrap.lit .pt-lotus svg{animation:lotusBreathe 2.8s ease-in-out infinite .55s}
+.pt-wrap.lit .pt-lotus{filter:drop-shadow(0 0 9px rgba(236,72,153,.85))
+ drop-shadow(0 0 20px rgba(200,162,78,.55))}
+@keyframes lotusBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+/* 點亮後的金色脈衝光環 */
+.pt-wrap.lit::after{content:'';position:absolute;top:50%;left:50%;
+ width:var(--pt-lotus);height:var(--pt-lotus);margin:calc(var(--pt-lotus) / -2) 0 0 calc(var(--pt-lotus) / -2);
+ border-radius:50%;border:1.5px solid var(--gold);pointer-events:none;
+ animation:litHalo 2.8s ease-out infinite}
+@keyframes litHalo{0%{transform:scale(.55);opacity:.85}
+ 70%{transform:scale(1.9);opacity:0}100%{transform:scale(1.9);opacity:0}}
+.pt-wrap .pt-no{position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+ font-size:9px;font-family:ui-monospace,monospace;background:var(--panel);color:#8a6d2a;
+ border:1px solid var(--line-g);border-radius:6px;padding:0 3px;opacity:0;transition:.2s;white-space:nowrap}
+.pt-wrap:hover .pt-no{opacity:1}
+/* 法定等級外環：金=世遺／國保，綠=國定古蹟／國家遺產，虛灰=地方級 */
+.pt-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+ border-radius:50%;pointer-events:none;box-sizing:border-box;background:transparent;
+ transition:width .3s ease,height .3s ease}
+.pt-ring.t1{width:calc(var(--pt-size) + 9px);height:calc(var(--pt-size) + 9px);
+ border:2px solid var(--gold);box-shadow:0 0 6px rgba(200,162,78,.8),inset 0 0 3px rgba(200,162,78,.45)}
+.pt-ring.t2{width:calc(var(--pt-size) + 7px);height:calc(var(--pt-size) + 7px);
+ border:1.6px solid var(--green);box-shadow:0 0 4px rgba(14,122,95,.45)}
+.pt-ring.t3{width:calc(var(--pt-size) + 6px);height:calc(var(--pt-size) + 6px);
+ border:1.3px dashed rgba(31,56,49,.5)}
+.pt-wrap.lit .pt-ring{display:none}
+
+/* ============ 點亮特效 ============ */
+.bloom{position:fixed;pointer-events:none;z-index:200;width:80px;height:80px;margin:-40px 0 0 -40px}
+.bloom .bl{position:absolute;top:50%;left:50%;animation:rise 1.5s cubic-bezier(.22,1,.36,1) forwards}
+.bl svg{width:52px;height:52px;filter:drop-shadow(0 0 14px rgba(236,72,153,.85))}
+@keyframes rise{0%{transform:translate(-50%,-50%) scale(.2) rotate(-8deg);opacity:0}
+ 22%{transform:translate(-50%,-62%) scale(1.12) rotate(3deg);opacity:1}
+ 100%{transform:translate(-50%,-135%) scale(1.55) rotate(6deg);opacity:0}}
+.bloom .rp{position:absolute;top:50%;left:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+ border:2px solid var(--gold);animation:ripple 1.1s ease-out forwards}
+@keyframes ripple{0%{transform:scale(.3);opacity:.85}100%{transform:scale(3.8);opacity:0}}
+.bloom .pt{position:absolute;top:50%;left:50%;width:3px;height:3px;border-radius:50%;background:#ec4899;
+ animation:fly 1.25s ease-out forwards}
+@keyframes fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--px),var(--py)) scale(0);opacity:0}}
+
+/* ============ 順序點亮：浮標 + 橫幅 ============ */
+.seq-label{position:absolute;z-index:600;pointer-events:none;margin-top:-54px;
+ background:var(--panel);border:1px solid var(--gold);border-radius:10px;padding:5px 11px;
+ display:flex;align-items:baseline;gap:8px;white-space:nowrap;box-shadow:0 5px 18px rgba(31,56,49,.28);
+ transform:translate(-50%,0);animation:slIn .3s cubic-bezier(.22,1,.36,1)}
+@keyframes slIn{from{opacity:0;transform:translate(-50%,12px) scale(.88)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+.seq-label.out{opacity:0;transform:translate(-50%,-16px) scale(.95);transition:opacity .55s ease,transform .55s ease}
+.seq-label .sy{font-size:16px;color:#8a6d2a;font-weight:800;font-family:ui-monospace,monospace;letter-spacing:-.5px}
+.seq-label .sn{font-size:13.5px;color:var(--ink);font-weight:800}
+.seq-label .sa{font-size:11px;color:var(--ink-3)}
+.seq-label .sk{font-size:10px;color:var(--green);border:1px solid rgba(14,122,95,.4);
+ border-radius:6px;padding:0 4px;background:rgba(14,122,95,.08)}
+.seq-label::after{content:'';position:absolute;bottom:-6px;left:50%;margin-left:-6px;
+ border:6px solid transparent;border-top-color:var(--gold)}
+
+#seq-banner{position:fixed;left:50%;bottom:calc(112px + env(safe-area-inset-bottom));z-index:10001;
+ transform:translateX(-50%) translateY(18px);opacity:0;pointer-events:none;min-width:330px;max-width:88vw;
+ background:var(--panel);border:1px solid var(--gold);border-radius:13px;padding:9px 18px 10px;
+ box-shadow:0 10px 30px rgba(31,56,49,.26);backdrop-filter:blur(14px);
+ transition:opacity .3s ease,transform .3s cubic-bezier(.22,1,.36,1)}
+#seq-banner.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#seq-banner.pick{pointer-events:auto;cursor:pointer}
+.sb-row{display:flex;align-items:baseline;gap:10px;justify-content:center}
+.sb-n{font-size:11px;color:var(--ink-3);font-family:ui-monospace,monospace;flex-shrink:0}
+.sb-y{font-size:20px;color:#8a6d2a;font-weight:800;font-family:ui-monospace,monospace;letter-spacing:-.5px}
+.sb-name{font-size:15px;color:var(--ink);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-a{font-size:11.5px;color:var(--ink-3);flex-shrink:0}
+.sb-bar{height:3px;background:rgba(31,56,49,.13);border-radius:2px;margin-top:7px;overflow:hidden}
+.sb-fill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--gold) 55%,#ec4899);transition:width .3s linear}
+.sb-hint{font-size:10.5px;color:var(--ink-3);text-align:center;margin-top:5px}
+#seq-banner.done .sb-hint{color:var(--green);font-weight:700}
+
+/* ============ Leaflet 控件 ============ */
+.leaflet-control-layers{background:var(--panel) !important;border:1px solid var(--line-g) !important;
+ border-radius:11px !important;box-shadow:0 4px 16px rgba(31,56,49,.18) !important;backdrop-filter:blur(10px);
+ color:var(--ink);padding:0 !important;margin-bottom:130px !important}
+.leaflet-control-layers-expanded{padding:8px 10px !important}
+.leaflet-control-layers-toggle{background:var(--panel) !important;border:1px solid var(--line-g) !important;
+ border-radius:11px !important;width:40px !important;height:40px !important;margin-bottom:130px !important}
+.leaflet-control-layers-toggle::after{content:'🗺️';font-size:20px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.leaflet-control-layers-base label{color:var(--ink-2) !important;font-size:13px;padding:4px 0;display:flex;align-items:center;gap:6px}
+.leaflet-control-layers-base input[type=radio]{accent-color:var(--green)}
+.leaflet-control-layers-expanded .leaflet-control-layers-list{max-height:34vh;overflow-y:auto}
+.leaflet-control-zoom a{width:34px !important;height:34px !important;line-height:34px !important;font-size:19px !important;
+ background:var(--panel) !important;color:var(--ink) !important;border-color:var(--line-g) !important}
+.leaflet-control-zoom{margin-top:calc(158px + env(safe-area-inset-top)) !important;margin-left:12px !important}
+.leaflet-control-attribution{display:none}
+#tip{position:fixed;left:12px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:9997;
+ font-size:11.5px;color:var(--ink-2);background:var(--panel);padding:5px 10px;border-radius:9px;
+ border:1px solid var(--line-g);max-width:250px;line-height:1.5;box-shadow:0 3px 12px rgba(31,56,49,.14)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:rgba(200,162,78,.55);border-radius:3px}
+</style>
+
+<style id="mob-css">
+/* ============ 手機端適配：解決頂欄／底欄遮擋 ============ */
+:root{ --hh:168px; --bt:190px; }
+@media (max-width:760px){
+  /* 頂欄壓縮 */
+  #header{padding:6px 10px 6px !important;padding-top:calc(6px + env(safe-area-inset-top)) !important;}
+  #header h1{font-size:14.5px !important;letter-spacing:.4px !important;}
+  #header h1 small{display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;
+    overflow:hidden !important;font-size:10px !important;line-height:1.35 !important;margin-top:1px !important;}
+  .hrow{margin-top:4px !important;gap:7px !important;}
+  #progress-track{width:min(150px,34vw) !important;}
+  #progress-text{font-size:12px !important;min-width:64px !important;}
+  #header-btns{margin-top:4px !important;gap:4px !important;}
+  .h-btn{font-size:11px !important;padding:6px 9px !important;border-radius:11px !important;}
+  /* 頂欄摺疊態：隱藏副標題與進度行，只留標題＋按鈕 */
+  #header.mini h1 small,#header.mini .hrow{display:none !important;}
+  #header h1 .fold{display:none !important;}
+  #header h1 .fold{font-size:11px;color:var(--gold);margin-left:6px;}
+  #header h1 .fold{display:inline-block !important;}
+
+  /* 懸浮控件跟隨頂欄實際高度 */
+  #legend-toggle,#panel-toggle{top:calc(var(--hh) + 8px) !important;right:8px !important;
+    width:38px !important;height:38px !important;font-size:15px !important;}
+  .leaflet-control-zoom{margin-top:calc(var(--hh) + 8px) !important;margin-left:8px !important;}
+  .leaflet-control-zoom a{width:30px !important;height:30px !important;line-height:30px !important;font-size:16px !important;}
+  .leaflet-control-layers{margin-bottom:calc(var(--bt) + 8px) !important;margin-right:8px !important;}
+  .leaflet-control-layers-toggle{width:34px !important;height:34px !important;margin-bottom:calc(var(--bt) + 8px) !important;margin-right:8px !important;}
+
+  /* 圖例改為底部抽屜，不再被頂欄／底欄夾住 */
+  #legend,#panel{position:fixed !important;left:8px !important;right:8px !important;
+    top:auto !important;bottom:calc(var(--bt) + 6px) !important;width:auto !important;
+    max-height:min(46vh, 340px) !important;border-radius:14px !important;
+    box-shadow:0 -4px 24px rgba(31,56,49,.22) !important;padding:10px 12px 12px !important;}
+  #legend .lg-grid{display:grid !important;grid-template-columns:1fr 1fr !important;gap:0 12px !important;}
+  .legend-item{min-height:28px !important;padding:2px 0 !important;font-size:12px !important;}
+
+  /* 底部時間面板壓縮 */
+  #time-panel{padding:6px 10px 8px !important;padding-bottom:calc(8px + env(safe-area-inset-bottom)) !important;}
+  #time-panel .lab{font-size:11px !important;margin-bottom:3px !important;gap:6px !important;}
+  #time-panel .lab em{font-size:10.5px !important;}
+  .range-row{gap:7px !important;}
+  input[type=range]{height:22px !important;}
+  #year-display{font-size:14px !important;min-width:50px !important;padding:2px 7px !important;}
+  #visible-count{font-size:10.5px !important;margin-top:3px !important;
+    display:-webkit-box !important;-webkit-line-clamp:1 !important;-webkit-box-orient:vertical !important;overflow:hidden !important;}
+  .mini-btn{font-size:10.5px !important;padding:4px 8px !important;border-radius:8px !important;}
+  #time-panel .tbtns{gap:4px !important;margin-top:4px !important;}
+
+  /* 播放橫幅跟隨底欄 */
+  #seq-banner{bottom:calc(var(--bt) + 8px) !important;width:min(92vw,420px) !important;}
+
+  /* 名錄側欄在手機上鋪滿 */
+  #list-panel{width:100% !important;border-right:none !important;}
+
+  /* 彈窗自適應：限高並可內部滾動，避免撐出螢幕 */
+  .leaflet-popup-content{width:min(78vw,272px) !important;margin:10px 12px !important;
+    max-height:min(44vh,360px) !important;overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch !important;overscroll-behavior:contain !important;}
+  .leaflet-popup-content .p-name{font-size:15px !important;}
+  .p-tl{grid-template-columns:1fr !important;}
+  .tl-wide{grid-column:auto !important;}
+  .leaflet-popup-content-wrapper{max-width:82vw !important;}
+
+  /* 提示條 */
+  #tip{bottom:calc(var(--bt) + 6px) !important;left:8px !important;right:8px !important;
+    width:auto !important;max-width:none !important;}
+}
+
+@media (max-width:760px) and (orientation:landscape){
+  #legend,#panel{max-height:min(62vh,260px) !important;}
+}
+
+/* landscape-patch */
+@media (max-height:520px){
+  #header{padding:4px 8px 3px !important; padding-top:calc(4px + env(safe-area-inset-top)) !important;}
+  #header h1{font-size:14px !important; line-height:1.25 !important;}
+  #header .sub,#header h1 small,#header h1 .sub{display:none !important;}
+  #header h1{white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+  #header.mini #progress-row{display:none !important;}
+  #progress-row{margin:1px 0 !important;}
+  #progress-text{font-size:11px !important;min-width:60px !important;}
+  #progress-track{max-width:120px !important;height:5px !important;}
+  #header-btns{margin-top:3px !important;gap:3px !important;}
+  .h-btn{font-size:10.5px !important;padding:4px 7px !important;min-height:26px !important;border-radius:9px !important;}
+
+  /* 底部時間面板壓到最矮 */
+  #time-panel{padding:4px 8px 5px !important;padding-bottom:calc(5px + env(safe-area-inset-bottom)) !important;}
+  #time-panel .lab{font-size:10.5px !important;margin-bottom:2px !important;}
+  #time-panel .lab em{font-size:10px !important;}
+  #yearSlider{height:16px !important;}
+  #yearSlider::-webkit-slider-thumb{width:14px !important;height:14px !important;margin-top:-5px !important;}
+  #year-display{font-size:11.5px !important;padding:1px 5px !important;min-width:40px !important;}
+  #visible-count{font-size:9.5px !important;margin-top:1px !important;}
+  .tp-switches{gap:3px !important;}
+  .tp-sw{font-size:10px !important;padding:3px 6px !important;min-height:22px !important;}
+
+  /* 懸浮控件跟隨 */
+  #legend-toggle,#panel-toggle{top:calc(var(--hh) + 6px) !important;width:34px !important;height:34px !important;
+    border-radius:9px !important;font-size:15px !important;}
+  .leaflet-control-zoom{margin-top:calc(var(--hh) + 6px) !important;margin-left:6px !important;}
+  .leaflet-control-zoom a{width:26px !important;height:26px !important;line-height:26px !important;font-size:14px !important;}
+  .leaflet-control-layers{margin-bottom:calc(var(--bt) + 6px) !important;}
+  .leaflet-control-layers-toggle{width:30px !important;height:30px !important;margin-bottom:calc(var(--bt) + 6px) !important;}
+
+  /* 圖例改底部抽屜 */
+  #legend,#panel{top:auto !important;bottom:calc(var(--bt) + 4px) !important;right:6px !important;
+    width:min(300px,70vw) !important;max-height:min(56vh,220px) !important;
+    border-radius:10px !important;padding:7px 9px !important;}
+  .legend-item{min-height:26px !important;font-size:11.5px !important;margin:1px 0 !important;padding:2px 0 !important;}
+  .legend-title{font-size:10.5px !important;margin:5px 0 3px !important;}
+  .legend-note{display:none !important;}
+
+  /* 播放橫幅 */
+  #seq-banner{bottom:calc(var(--bt) + 4px) !important;left:6px !important;right:6px !important;
+    padding:5px 9px !important;border-radius:10px !important;}
+  #sb-year{font-size:15px !important;}
+  #sb-name{font-size:12px !important;}
+  #sb-meta,#sb-place{font-size:10px !important;}
+
+  /* 彈窗限高 */
+  .leaflet-popup-content{max-height:min(50vh,240px) !important;}
+  .leaflet-popup-content-wrapper{max-width:74vw !important;}
+
+  /* 名錄全屏 */
+  #list-panel{width:100vw !important;max-width:none !important;
+    top:env(safe-area-inset-top) !important;bottom:0 !important;height:auto !important;border-radius:0 !important;}
+  #tip{bottom:calc(var(--bt) + 4px) !important;font-size:10.5px !important;}
+}
+
+/* ui-tweak-patch */
+/* ① 時間軸：兩行佈局 */
+#time-panel .tp-r1{display:flex;align-items:center;gap:9px}
+#time-panel .tp-r2{display:flex;align-items:center;gap:9px;margin-top:5px}
+#time-panel .tp-title{font-size:12.5px;color:var(--green);font-weight:800;white-space:nowrap;flex-shrink:0}
+#time-panel .ylab{font-size:11.5px;color:var(--ink-3);flex-shrink:0;font-family:ui-monospace,monospace}
+#time-panel .tp-btns{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
+#time-panel .range-row{flex:1;min-width:0}
+#visible-count{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  text-align:left;margin:0 !important;font-size:12px !important}
+#time-panel .lab{display:none !important}
+
+/* ② 播放橫幅：點亮時不再顯示年代與廟名 */
+#seq-banner{display:none !important}
+
+/* ③ 地圖控件：圓形 + 左下角 */
+.leaflet-bottom.leaflet-left{display:flex !important;align-items:flex-end !important;gap:8px;
+  margin-left:12px !important;margin-bottom:calc(var(--bt, 130px) + 12px) !important;
+  pointer-events:none !important;z-index:9998}
+.leaflet-bottom.leaflet-left > *{pointer-events:auto !important}
+.leaflet-control-zoom{display:flex !important;flex-direction:column !important;gap:7px;
+  margin:0 !important;float:none !important;box-shadow:none !important;border:none !important;background:none !important}
+.leaflet-control-zoom a{width:38px !important;height:38px !important;line-height:36px !important;
+  border-radius:50% !important;font-size:19px !important;
+  background:rgba(248,245,240,.94) !important;color:var(--green) !important;
+  border:1px solid var(--line-g) !important;box-shadow:0 2px 12px rgba(31,56,49,.28) !important;
+  backdrop-filter:blur(10px);transition:.16s}
+.leaflet-control-zoom a:hover{background:#fff !important;transform:scale(1.06)}
+.leaflet-control-layers{margin:0 !important;float:none !important;box-shadow:none !important;
+  border:none !important;background:none !important}
+.leaflet-control-layers-toggle{width:38px !important;height:38px !important;border-radius:50% !important;
+  background:rgba(248,245,240,.94) !important;border:1px solid var(--line-g) !important;
+  box-shadow:0 2px 12px rgba(31,56,49,.28) !important;margin:0 !important;backdrop-filter:blur(10px)}
+.leaflet-control-layers-expanded{border-radius:14px !important;background:rgba(248,245,240,.96) !important;
+  border:1px solid var(--line-g) !important;padding:8px 10px !important;
+  box-shadow:0 4px 20px rgba(31,56,49,.3) !important;
+  margin:0 0 8px 0 !important;max-height:38vh;overflow-y:auto}
+
+@media (max-width:760px){
+  #time-panel .tp-title{display:none !important}
+  #time-panel .ylab{display:none !important}
+  #time-panel .tp-r1{gap:7px}
+  #time-panel .tp-r2{margin-top:4px;gap:7px}
+  #visible-count{font-size:11px !important}
+  .leaflet-bottom.leaflet-left{margin-left:8px !important;margin-bottom:calc(var(--bt, 130px) + 8px) !important}
+  .leaflet-control-zoom a{width:34px !important;height:34px !important;line-height:32px !important;font-size:17px !important}
+  .leaflet-control-layers-toggle{width:34px !important;height:34px !important}
+}
+@media (max-height:520px){
+  #time-panel .tp-title{display:none !important}
+  .leaflet-control-zoom a{width:32px !important;height:32px !important;line-height:30px !important;font-size:16px !important}
+  .leaflet-control-layers-toggle{width:32px !important;height:32px !important}
+  .leaflet-bottom.leaflet-left{margin-bottom:calc(var(--bt, 90px) + 8px) !important}
+}
+
+/* sheet-patch */
+#sheet{position:fixed;left:0;right:0;top:0;bottom:0;z-index:20000;
+  background:linear-gradient(168deg,#fffdf8 0%,var(--paper) 60%);
+  display:none;flex-direction:column;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+#sheet.show{display:flex;animation:sheetIn .26s cubic-bezier(.22,1,.36,1)}
+@keyframes sheetIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+
+#sheet-bar{flex-shrink:0;display:flex;align-items:center;gap:10px;
+  padding:10px 14px 9px;border-bottom:1px solid var(--line-g);
+  background:linear-gradient(120deg,rgba(200,162,78,.14),rgba(14,122,95,.10));
+  box-shadow:0 2px 12px rgba(31,56,49,.10)}
+#sheet-bar .grip{width:34px;height:4px;border-radius:2px;background:rgba(31,56,49,.22);
+  position:absolute;left:50%;transform:translateX(-50%);top:5px}
+#sheet-bar .st{font-size:14px;font-weight:800;color:var(--green);letter-spacing:.5px;flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sheet-close{flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1px solid var(--line-g);
+  background:rgba(255,255,255,.9);color:var(--ink-2);font-size:16px;line-height:32px;text-align:center;
+  cursor:pointer;box-shadow:0 2px 10px rgba(31,56,49,.16)}
+#sheet-close:active{transform:scale(.92);background:var(--gold-soft)}
+
+#sheet-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;padding:0 0 0;display:flex;flex-direction:column}
+#sheet-scroll > *{flex-shrink:0}
+#sheet .p-body{flex:1;display:flex;flex-direction:column;padding:12px 15px 0}
+
+#sheet .p-head{padding:12px 15px 11px;background:none;border-bottom:none}
+#sheet .p-badges{gap:5px;flex-wrap:wrap}
+#sheet .p-badge{font-size:10.5px;padding:3px 8px;border-radius:8px}
+#sheet .p-name{font-size:20px;line-height:1.4;letter-spacing:.4px}
+#sheet .p-place{font-size:12.5px;margin-top:5px}
+#sheet .p-year{padding:12px 15px 13px;gap:12px}
+#sheet .p-year b{font-size:34px}
+#sheet .p-year span{font-size:12.5px;line-height:1.6}
+#sheet .p-body{padding:12px 15px 0}
+#sheet .p-tl{gap:9px}
+#sheet .tl-k{font-size:10.5px}
+#sheet .tl-v{font-size:13px}
+#sheet .p-row{padding:8px 0;font-size:13px}
+#sheet .p-row .k{font-size:11.5px;min-width:66px}
+#sheet .p-row .v{font-size:13px;line-height:1.7}
+#sheet .p-warn{font-size:12.5px;line-height:1.75;padding:10px 12px}
+#sheet .p-src{font-size:11px}
+
+#sheet .p-foot{position:sticky;bottom:0;flex-shrink:0;margin-top:auto;display:flex;align-items:center;gap:10px;
+  padding:10px 15px;padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line-g);background:linear-gradient(180deg,rgba(255,253,248,.92),#fffdf8);
+  backdrop-filter:blur(12px);box-shadow:0 -3px 16px rgba(31,56,49,.12)}
+#sheet .p-foot .p-src{flex:1;min-width:0;font-size:10.5px;color:var(--ink-3);line-height:1.5}
+#sheet .p-lit{flex-shrink:0;font-size:13px;padding:9px 16px;border-radius:22px;
+  background:linear-gradient(120deg,var(--green),#149c78);color:#fff;font-weight:800;
+  box-shadow:0 3px 12px rgba(14,122,95,.32)}
+#sheet .p-lit.on{background:linear-gradient(120deg,#ec4899,#f472b6);box-shadow:0 3px 12px rgba(236,72,153,.34)}
+#sheet .p-lit:active{transform:scale(.95)}
+
+/* 提示条：手机上更小并自动收起，给地图让位 */
+#tip{transition:opacity .5s, transform .5s}
+#tip.hide{opacity:0;transform:translateY(10px);pointer-events:none}
+@media (max-width:760px){
+  #tip{font-size:10.5px !important;padding:6px 10px !important;
+    bottom:calc(var(--bt,130px) + 4px) !important;left:8px !important;right:8px !important;
+    max-width:none !important;border-radius:10px !important;}
+}
+
+/* ctrl2-patch */
+:root{ --lgTop:150px; --lgSize:22px; }
+
+/* ① 移除縮放控件 */
+.leaflet-control-zoom{display:none !important}
+.leaflet-bottom.leaflet-left{display:none !important}
+
+/* ③ 右上角：圖例按鈕 + 圖層切換，上下並列，④ 各縮小一倍 */
+#legend-toggle,#panel-toggle{
+  top:calc(var(--lgTop) + env(safe-area-inset-top)) !important;
+  right:12px !important;
+  width:var(--lgSize) !important;height:var(--lgSize) !important;
+  border-radius:7px !important;font-size:11px !important;
+  box-shadow:0 2px 8px rgba(31,56,49,.20) !important;}
+
+.leaflet-top.leaflet-right{
+  margin-top:calc(var(--lgTop) + var(--lgSize) + 8px + env(safe-area-inset-top)) !important;
+  margin-right:12px !important;z-index:9998}
+.leaflet-control-layers{margin:0 !important;float:none !important;
+  box-shadow:none !important;border:none !important;background:none !important}
+.leaflet-control-layers-toggle{
+  width:var(--lgSize) !important;height:var(--lgSize) !important;
+  border-radius:7px !important;margin:0 !important;
+  background:rgba(248,245,240,.94) !important;border:1px solid var(--line-g) !important;
+  box-shadow:0 2px 8px rgba(31,56,49,.20) !important;backdrop-filter:blur(10px);
+  background-size:60% 60% !important;background-position:center !important}
+.leaflet-control-layers-expanded{
+  border-radius:12px !important;background:rgba(248,245,240,.96) !important;
+  border:1px solid var(--line-g) !important;padding:7px 9px !important;
+  box-shadow:0 3px 16px rgba(31,56,49,.24) !important;
+  margin:0 !important;max-height:34vh;overflow-y:auto;font-size:11.5px}
+.leaflet-control-layers-expanded label{display:flex;align-items:center;gap:6px;
+  padding:3px 0;font-size:11.5px;cursor:pointer}
+
+@media (max-width:760px){
+  :root{ --lgTop:76px; --lgSize:19px; }
+  #legend-toggle,#panel-toggle{right:8px !important;border-radius:6px !important;font-size:10px !important}
+  .leaflet-top.leaflet-right{margin-right:8px !important}
+}
+@media (max-height:520px){
+  :root{ --lgTop:72px; --lgSize:18px; }
+}
+</style>
+
+<style>
+/* ===== 考錄說明面板（沿用紙感配色） ===== */
+#kao-mask{position:fixed;inset:0;background:rgba(24,32,29,.5);z-index:10030;display:none;backdrop-filter:blur(3px)}
+#kao-panel{position:fixed;z-index:10031;top:50%;left:50%;transform:translate(-50%,-50%);
+ width:min(780px,93vw);max-height:84vh;overflow-y:auto;
+ background:linear-gradient(168deg,var(--paper-2) 0%,var(--paper) 100%);color:var(--ink);
+ border:1px solid var(--line-g);border-radius:16px;box-shadow:0 22px 66px rgba(31,56,49,.42);
+ padding:18px 24px 24px;display:none;font-size:13.5px;line-height:1.85}
+#kao-panel.show,#kao-mask.show{display:block}
+#kao-panel h2{font-size:17.5px;color:var(--green);font-weight:800;margin-bottom:3px;padding-right:26px}
+#kao-panel .k-sub{font-size:12px;color:var(--ink-3);margin-bottom:12px;line-height:1.7}
+#kao-panel h3{font-size:14px;color:var(--green);font-weight:800;margin:15px 0 6px;
+ padding-left:9px;border-left:3px solid var(--gold)}
+#kao-panel p,#kao-panel li{color:var(--ink);font-size:13px;line-height:1.85}
+#kao-panel ul,#kao-panel ol{margin:5px 0 6px 21px}
+#kao-panel li{margin:3px 0}
+#kao-panel b{color:#7a5f16;font-weight:800}
+#kao-panel table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:7px}
+#kao-panel th,#kao-panel td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+#kao-panel th{background:var(--green-soft);color:var(--green);font-weight:800}
+#kao-panel .warn{background:var(--gold-soft);border-left:3px solid var(--gold);padding:8px 11px;
+ border-radius:0 9px 9px 0;color:#6b551d;font-size:12.5px;line-height:1.75;margin:7px 0}
+#kao-panel .warn b{color:#8a6d2a}
+#kao-panel .srcs{columns:2;column-gap:24px;font-size:12px;color:var(--ink-2);line-height:1.8}
+@media(max-width:680px){#kao-panel .srcs{columns:1}}
+#kao-close{position:absolute;top:13px;right:16px;font-size:21px;color:var(--ink-3);cursor:pointer;line-height:1;z-index:2}
+#kao-close:hover{color:var(--green)}
+</style>
+
+<script src="/maps/assets/tracker.js" data-slug="观音大士" data-title="🗺️ 全球觀音廟（觀音堂／觀音寺）分布交互地圖 · 考錄版"></script>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="header">
+  <h1>🗺️ 全球觀音廟（觀音堂／觀音寺）分布交互地圖
+    <small>《全球觀音廟年代考錄》編制 · 72 座點位 · 默認圓點（大區色）· 點亮綻放蓮花 · 時間軸隨點亮聯動</small>
+  </h1>
+  <div class="hrow">
+    <span id="progress-text">0 / 72</span>
+    <div id="progress-track"><div id="progress-fill"></div></div>
+  </div>
+  <div id="header-btns">
+    <button class="h-btn" id="btn-light" onclick="lightAll()">✨ 全部點亮</button>
+    <button class="h-btn" onclick="clearAll()">○ 全部熄滅</button>
+    <button class="h-btn" id="btn-list" onclick="toggleList()">📖 廟宇名錄</button>
+    <button class="h-btn" onclick="openKao()">📕 考錄說明</button>
+  </div>
+</div>
+
+<div id="legend-toggle" onclick="toggleLegend()">📋</div>
+<div id="legend">
+  <div class="legend-title">地區分類（點擊開關）</div>
+  <div class="legend-item" data-area="澳門" onclick="toggleArea('澳門')"><span class="legend-dot" style="background:#c8a24e;box-shadow:0 0 6px #c8a24e;"></span><span class="legend-name">澳門</span><span class="legend-n">7</span></div>
+  <div class="legend-item" data-area="中國內地" onclick="toggleArea('中國內地')"><span class="legend-dot" style="background:#b91c1c;box-shadow:0 0 6px #b91c1c;"></span><span class="legend-name">中國內地</span><span class="legend-n">10</span></div>
+  <div class="legend-item" data-area="香港" onclick="toggleArea('香港')"><span class="legend-dot" style="background:#0891b2;box-shadow:0 0 6px #0891b2;"></span><span class="legend-name">香港</span><span class="legend-n">7</span></div>
+  <div class="legend-item" data-area="台灣" onclick="toggleArea('台灣')"><span class="legend-dot" style="background:#f97316;box-shadow:0 0 6px #f97316;"></span><span class="legend-name">台灣</span><span class="legend-n">9</span></div>
+  <div class="legend-item" data-area="日韓" onclick="toggleArea('日韓')"><span class="legend-dot" style="background:#d946ef;box-shadow:0 0 6px #d946ef;"></span><span class="legend-name">日韓</span><span class="legend-n">10</span></div>
+  <div class="legend-item" data-area="東南亞" onclick="toggleArea('東南亞')"><span class="legend-dot" style="background:#0e7a5f;box-shadow:0 0 6px #0e7a5f;"></span><span class="legend-name">東南亞</span><span class="legend-n">12</span></div>
+  <div class="legend-item" data-area="北美洲" onclick="toggleArea('北美洲')"><span class="legend-dot" style="background:#3b82f6;box-shadow:0 0 6px #3b82f6;"></span><span class="legend-name">北美洲</span><span class="legend-n">5</span></div>
+  <div class="legend-item" data-area="南美洲" onclick="toggleArea('南美洲')"><span class="legend-dot" style="background:#d97706;box-shadow:0 0 6px #d97706;"></span><span class="legend-name">南美洲</span><span class="legend-n">2</span></div>
+  <div class="legend-item" data-area="大洋洲" onclick="toggleArea('大洋洲')"><span class="legend-dot" style="background:#6366f1;box-shadow:0 0 6px #6366f1;"></span><span class="legend-name">大洋洲</span><span class="legend-n">3</span></div>
+  <div class="legend-item" data-area="歐洲" onclick="toggleArea('歐洲')"><span class="legend-dot" style="background:#7e22ce;box-shadow:0 0 6px #7e22ce;"></span><span class="legend-name">歐洲</span><span class="legend-n">4</span></div>
+  <div class="legend-item" data-area="非洲" onclick="toggleArea('非洲')"><span class="legend-dot" style="background:#92400e;box-shadow:0 0 6px #92400e;"></span><span class="legend-name">非洲</span><span class="legend-n">3</span></div>
+  <div class="legend-title">廟宇性質（點擊開關）</div>
+  <div class="legend-item" data-kind="主祀廟宇" onclick="toggleKind('主祀廟宇')"><span class="legend-dot" style="background:#0e7a5f;"></span><span class="legend-name">主祀廟宇</span><span class="legend-n">50</span></div>
+  <div class="legend-item" data-kind="會館神廟" onclick="toggleKind('會館神廟')"><span class="legend-dot" style="background:#7c3aed;"></span><span class="legend-name">會館神廟</span><span class="legend-n">1</span></div>
+  <div class="legend-item" data-kind="會館神壇" onclick="toggleKind('會館神壇')"><span class="legend-dot" style="background:#0e7490;"></span><span class="legend-name">會館神壇</span><span class="legend-n">3</span></div>
+  <div class="legend-item" data-kind="配祀 / 合祀" onclick="toggleKind('配祀 / 合祀')"><span class="legend-dot" style="background:#94a3b8;"></span><span class="legend-name">配祀 / 合祀</span><span class="legend-n">11</span></div>
+  <div class="legend-item" data-kind="年代待核" onclick="toggleKind('年代待核')"><span class="legend-dot" style="background:#b91c1c;"></span><span class="legend-name">年代待核</span><span class="legend-n">7</span></div>
+  <div class="legend-title">法定等級外環</div>
+  <div class="legend-item legend-static"><span class="ring-demo t1"></span><span class="legend-name">世界遺產／全國重點文保／國寶</span><span class="legend-n">11</span></div>
+  <div class="legend-item legend-static"><span class="ring-demo t2"></span><span class="legend-name">法定古蹟／國定古蹟／國家遺產</span><span class="legend-n">9</span></div>
+  <div class="legend-item legend-static"><span class="ring-demo t3"></span><span class="legend-name">地方級文保／歷史建築</span><span class="legend-n">7</span></div>
+  <div class="legend-note">圓點為未點亮（顏色對應上方地區分類）；點亮後綻放蓮花並計入進度。年代不詳條目由下方「含年代不詳」開關控制。本錄最硬的門檻是<b>「有觀音像」不等於「觀音廟」</b>：漢傳佛寺幾皆奉觀音，正殿主神可能是釋迦、毗盧遮那佛、媽祖或關帝，故佛寺中觀音僅居一殿者一律列【配祀】，不入主祀榜。證據強度見彈窗徽章，待核／補充條目在全球視野自動收起。</div>
+</div>
+
+<div id="list-panel">
+  <div id="list-close" onclick="toggleList()">✕</div>
+  <div id="list-head">
+    <h2>📖 廟宇名錄 <span id="list-count"></span></h2>
+    <input id="list-search" placeholder="搜索廟名 / 地點 / 性質…" oninput="renderList()">
+  </div>
+  <div id="list-strip"></div>
+  <div id="list-body"></div>
+</div>
+
+<div id="time-panel">
+  <div class="range-row tp-r1">
+    <span class="tp-title">📅 時間軸</span>
+    <span class="ylab">400</span>
+<input type="range" id="yearSlider" min="400" max="2025" value="2025" step="1">
+    <span class="ylab">2025</span>
+    <span id="year-display">2025</span>
+  </div>
+  <div class="tp-r2">
+    <span id="visible-count"></span>
+    <span class="tp-btns">
+      <button class="mini-btn on" id="btn-unk" onclick="toggleUnknown()">含年代不詳</button>
+      <button class="mini-btn" id="btn-sec" onclick="toggleSecondary()">含次級條目</button>
+      <button class="mini-btn" onclick="playTimeline()">▶ 播放傳播</button>
+    </span>
+  </div>
+</div>
+
+<div id="sheet">
+  <div id="sheet-bar">
+    <span class="grip"></span>
+    <span class="st">廟宇考錄</span>
+    <span id="sheet-close" onclick="hideSheet()">✕</span>
+  </div>
+  <div id="sheet-scroll"></div>
+</div>
+<div id="seq-banner">
+  <div class="sb-row">
+    <span class="sb-n" id="sb-n">0 / 0</span>
+    <span class="sb-y" id="sb-y">—</span>
+    <span class="sb-name" id="sb-name">按年代順序點亮…</span>
+    <span class="sb-a" id="sb-a"></span>
+  </div>
+  <div class="sb-bar"><div class="sb-fill" id="sb-fill"></div></div>
+  <div class="sb-hint" id="sb-hint">每 0.3 秒點亮一座 · 點擊此處停止</div>
+</div>
+<div id="tip">💡 點擊圓點看考錄詳情 ·「有觀音像」不等於「觀音廟」· 拖動時間軸按年代過濾</div>
+
+<script>
+var POINTS = [{"id": "V27", "num": 17, "name": "普濟禪院（觀音堂）", "place": "中國澳門美副將大馬路", "country": "澳門", "area": "澳門", "lon": 113.5436, "lat": 22.1979, "y": 1622, "ytext": "澳門旅遊局官方：建於明朝末年，距今約三百六十多年", "evk": "爭議", "kind": "廟", "knote": "", "est": "澳門旅遊局官方：建於明朝末年，距今約三百六十多年；院內碑記稱「創於明天啓間」、一說天啓三年（1622）；大雄寶殿古銅鐘爲崇禎五年（1632）；廟方官網稱1698年石濂大汕和尚在原有閩人觀音廟基礎上興建普濟禪院，1818與1858兩度擴建；新聞報道稱大雄寶殿在1868年重修", "ev": "最早可證 1632 年", "exs": "", "re": "最近重修 1868 年", "level": "已列入《澳門文物名錄》", "lineage": "澳門三大古剎之一，觀音殿爲正殿、主祀觀音大士；主殿觀音殿供奉樟木雕塑觀音大士蓮台，十八羅漢分列兩旁", "scale": "", "note": "四項時間宜並列：始建傳說明天啓年間（一說1622），最早可證器物1632年銅鐘，1698年爲禪院正式興建節點（石濂大汕），現存主體屢修、大雄寶殿1868年重修。1844年7月3日中美《望廈條約》在禪院後花園石案簽訂，是歷史事件而非建廟年代。「元代創建」屬需剔除的過寬說法。", "src": "澳門特區政府旅遊局；澳門普濟禪院官網；央視網；澎湃新聞；[6][7][24][25]", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 0, "tier": 2}, {"id": "V28", "num": 20, "name": "蓮峯廟（慈護宮）", "place": "中國澳門罅些喇提督大馬路", "country": "澳門", "area": "澳門", "lon": 113.548, "lat": 22.201, "y": 1723, "ytext": "澳門文化遺產網（MM024）官方：相傳始建於明朝晚年，但據廟內碑文，該廟鼎建於清雍正元年（1…", "evk": "可核", "kind": "配祀", "knote": "", "est": "澳門文化遺產網（MM024）官方：相傳始建於明朝晚年，但據廟內碑文，該廟鼎建於清雍正元年（1723年）；後經多次擴建，乾隆年間重修稱蓮峯廟", "ev": "最早可證 1723 年", "exs": "", "re": "", "level": "澳門文物名錄", "lineage": "澳門三大古廟之一，多神格局；觀音非主神", "scale": "", "note": "澳門「觀音廟」不可由專名推定主祀——蓮峯廟等華人廟宇常形成多神格局，未取得足以區分正殿神位的政府或碑銘材料前，不列入主祀榜。", "src": "澳門文化遺產網 MM024", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 1, "tier": 2}, {"id": "V29", "num": 23, "name": "觀音閣", "place": "中國澳門媽閣廟前地（媽閣廟內）", "country": "澳門", "area": "澳門", "lon": 113.532, "lat": 22.186, "y": 1751, "ytext": "1751年之前已有雛型（據《澳門記略》）", "evk": "可核", "kind": "廟", "knote": "", "est": "1751年之前已有雛型（據《澳門記略》）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "位於媽閣廟內", "scale": "", "note": "", "src": "澳門特區政府新聞局", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 2, "tier": 0}, {"id": "V30", "num": 29, "name": "觀音古廟（路環）", "place": "中國澳門路環市區", "country": "澳門", "area": "澳門", "lon": 113.552, "lat": 22.12, "y": 1800, "ytext": "嘉慶五年（1800年）", "evk": "可核", "kind": "廟", "knote": "", "est": "嘉慶五年（1800年）；廟內有碑記提及廟宇由「艇戶船戶」集資興建", "ev": "最早可證 1800 年", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "1800年有廟內碑記「艇戶船戶集資興建」爲憑，證據強度高於多數港澳廟宇。", "src": "澳門特區政府新聞局《非遺視野下的觀音信仰》", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 3, "tier": 0}, {"id": "V31", "num": 36, "name": "觀音巖", "place": "中國澳門氹仔東北大馬路（原施督憲正街）", "country": "澳門", "area": "澳門", "lon": 113.566, "lat": 22.156, "y": 1871, "ytext": "同治十年（1871年）", "evk": "可核", "kind": "廟", "knote": "", "est": "同治十年（1871年）；廟體緊貼岩石，觀音神像置於石洞內，故稱「觀音巖」", "ev": "最早可證 1871 年", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "澳門特區政府新聞局", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 4, "tier": 0}, {"id": "V32", "num": 38, "name": "觀音廟（九澳村）", "place": "中國澳門路環九澳村", "country": "澳門", "area": "澳門", "lon": 113.57, "lat": 22.12, "y": 1881, "ytext": "光緒七年（1881年）", "evk": "可核", "kind": "廟", "knote": "", "est": "光緒七年（1881年）；依山而建，可遠眺九澳灣", "ev": "最早可證 1881 年", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "澳門特區政府新聞局", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 5, "tier": 0}, {"id": "V33", "num": 41, "name": "觀音堂（提督馬路）", "place": "中國澳門提督馬路", "country": "澳門", "area": "澳門", "lon": 113.545, "lat": 22.205, "y": 1902, "ytext": "光緒二十八年（1902年）", "evk": "可核", "kind": "廟", "knote": "", "est": "光緒二十八年（1902年）；室中供奉一尊鑲金箔、有百多年曆史的觀音神像", "ev": "最早可證 1902 年", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "澳門特區政府新聞局", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 6, "tier": 0}, {"id": "B05", "num": 0, "name": "廣州光孝寺", "place": "中國廣東廣州越秀區光孝路", "country": "中國內地", "area": "中國內地", "lon": 113.255, "lat": 23.128, "y": 400, "ytext": "397—401年（東晉）建", "evk": "偏弱", "kind": "配祀", "knote": "", "est": "397—401年（東晉）建，嶺南最古老佛寺，觀音殿著名（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "全國重點文物保護單位", "lineage": "嶺南最古老佛寺，觀音居一殿；寺名與正殿主神均不指向觀音", "scale": "", "note": "佛寺中觀音僅居一殿者列【配祀】——本錄最核心的判別：有觀音像不等於觀音廟。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "exact", "idx": 7, "tier": 1}, {"id": "V09", "num": 8, "name": "隆興寺（大佛寺）", "place": "中國河北正定中山東路109號", "country": "中國內地", "area": "中國內地", "lon": 114.574, "lat": 38.147, "y": 586, "ytext": "隋開皇六年（586）始建，初名龍藏寺，唐改稱龍興寺", "evk": "可核", "kind": "廟", "knote": "", "est": "隋開皇六年（586）始建，初名龍藏寺，唐改稱龍興寺；北宋開寶二年（969）宋太祖趙匡胤敕令於寺內鑄大悲菩薩金身並蓋大悲寶閣；開寶四年（971）興工、開寶八年（975）落成；此後以大悲閣爲主體形成宋代建築羣；康熙四十九年（1710）賜額「隆興寺」", "ev": "最早可證 969 年", "exs": "現存建築 975 年", "re": "", "level": "1961年首批全國重點文物保護單位", "lineage": "大悲閣爲寺之主體，閣內銅鑄千手千眼觀音高21.3米，爲我國現存最高的宋代銅鑄觀音像", "scale": "", "note": "586是始建、969是敕令、971是興工、975是落成，四個節點分屬不同性質，不能合併。梁思成譽「京外名剎之首」。", "src": "正定縣人民政府；隆興寺官網；河北省文物與古建築保護研究院；[35]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 8, "tier": 1}, {"id": "V15", "num": 6, "name": "不肯去觀音院（普陀山觀音道場前身）", "place": "中國浙江舟山普陀山", "country": "中國內地", "area": "中國內地", "lon": 122.388, "lat": 30.005, "y": 916, "ytext": "後梁貞明二年（916）傳統建院", "evk": "爭議", "kind": "廟", "knote": "", "est": "後梁貞明二年（916）傳統建院；唐鹹通四年（863）日僧慧鍔請像受阻爲留像傳說，兩者不可合併；南宋寶慶《四明志》已載「不肯去觀音」故事", "ev": "", "exs": "", "re": "", "level": "", "lineage": "普陀山觀音道場核心", "scale": "", "note": "863年是留像傳說節點，916年是傳統建院節點，不得合併成「始建於863年」。916年是有傳統依據的定點年，但不是現代考古絕對年代——若日後取得五代碑刻、題記或建築遺蹟，纔可升級爲「最早實物可證」。現普濟寺、法雨寺、慧濟寺均爲觀音道場，研究某一古物時應逐寺、逐殿判斷。", "src": "地方文史；舟山市普陀區人民政府；[5]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 9, "tier": 0}, {"id": "V10", "num": 9, "name": "獨樂寺", "place": "中國天津薊州區武定街41號", "country": "中國內地", "area": "中國內地", "lon": 117.4, "lat": 40.042, "y": 984, "ytext": "始建於隋", "evk": "可核", "kind": "廟", "knote": "", "est": "始建於隋；遼統和二年（984）重建山門與觀音閣——《日下舊聞》引《盤山志》「故尚父秦王請談真大師入獨樂寺，修觀音閣，以統和二年冬月再建……重塑十一面觀音菩薩像」；明萬曆二十五年（1597）大修", "ev": "最早可證 984 年", "exs": "", "re": "最近重修 1597 年", "level": "首批全國重點文物保護單位", "lineage": "觀音閣爲中國現存最古老的木結構高層樓閣，閣內十一面觀音塑像高16.08米，爲我國現存最高大的彩色泥塑站像之一", "scale": "", "note": "「始建於隋」但「不知創自何代」，984年纔是可證的遼代重建年——觀音閣與十一面觀音塑像同爲984年所造。1932年梁思成發表《薊縣獨樂寺觀音閣山門考》。", "src": "天津市人民政府；薊州區人民政府", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 10, "tier": 1}, {"id": "V11", "num": 10, "name": "華嚴寺（薄伽教藏殿）", "place": "中國山西大同古城西南隅", "country": "中國內地", "area": "中國內地", "lon": 113.295, "lat": 40.08, "y": 1038, "ytext": "遼重熙七年（1038）——薄伽教藏殿內右側椽底題「維重熙七年歲次戊寅九月甲午朔十五日戊申午時…", "evk": "可核", "kind": "配祀", "knote": "", "est": "遼重熙七年（1038）——薄伽教藏殿內右側椽底題「維重熙七年歲次戊寅九月甲午朔十五日戊申午時建」；大雄寶殿始建於遼、1122年保大之亂毀於兵火、金天眷三年（1140）依舊址重建", "ev": "最早可證 1038 年", "exs": "現存建築 1140 年", "re": "最近重修 1140 年", "level": "全國重點文物保護單位", "lineage": "依《華嚴經》命名，主供華嚴系統；薄伽教藏殿爲藏經殿，殿內遼代彩塑29—31尊（含「東方維納斯」露齒菩薩）", "scale": "", "note": "殿名與寺名均不指向觀音，主供華嚴系統，故列【配祀】而不入主祀榜。", "src": "山西省人民政府；山西省文物局", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 11, "tier": 1}, {"id": "V12", "num": 12, "name": "新津觀音寺", "place": "中國四川成都新津", "country": "中國內地", "area": "中國內地", "lon": 103.812, "lat": 30.418, "y": 1181, "ytext": "南宋淳熙八年（1181）傳統", "evk": "可核", "kind": "配祀", "knote": "", "est": "南宋淳熙八年（1181）傳統；現存明代觀音殿與觀音三大士塑像及1475年塑匠題記爲可證節點；2001年列爲第五批全國重點文物保護單位", "ev": "最早可證 1475 年", "exs": "", "re": "", "level": "第五批全國重點文物保護單位（2001）", "lineage": "殿名觀音，但政府資料明言毗盧殿主供毗盧遮那佛", "scale": "", "note": "不能因寺名列主祀榜——其價值在「觀音造像與殿宇」，不在「專祀主殿」。列【配祀】恰是保護其作爲綜合佛寺的歷史真實性。", "src": "成都市新津區人民政府《觀音寺》；[2]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 12, "tier": 1}, {"id": "A01", "num": 0, "name": "普陀山法雨寺", "place": "中國浙江舟山普陀山", "country": "中國內地", "area": "中國內地", "lon": 122.395, "lat": 30.008, "y": 1580, "ytext": "傳統創建年爲明萬曆八年（1580）", "evk": "待覈", "kind": "廟", "knote": "", "est": "傳統創建年爲明萬曆八年（1580）；現存寺院歷經多朝興廢", "ev": "", "exs": "", "re": "", "level": "", "lineage": "普陀山觀音道場三寺之一；傳統紀年，無建築紀年", "scale": "", "note": "研究某一古物時應逐寺、逐殿判斷，不能以「普陀山觀音道場始於唐」覆蓋三寺建築史。本條爲附錄，不參與最早名錄排序。", "src": "考錄正文「源於中華內地」節；[5]", "chain": "佛教寺院本尊", "flag": "附錄", "prec": "city", "idx": 13, "tier": 0}, {"id": "V13", "num": 14, "name": "長治梁家莊觀音堂", "place": "中國山西長治潞州區梁家莊", "country": "中國內地", "area": "中國內地", "lon": 113.112, "lat": 36.195, "y": 1581, "ytext": "明萬曆九年至十一年（1581—1583）創建", "evk": "可核", "kind": "廟", "knote": "", "est": "明萬曆九年至十一年（1581—1583）創建；現存正殿爲創建時原構，餘屋多爲清代重建；門楣有萬曆十一年「觀音堂」鎏金匾", "ev": "最早可證 1583 年", "exs": "現存建築 1583 年", "re": "", "level": "第五批全國重點文物保護單位", "lineage": "名稱、主殿與紀年三重互證", "scale": "", "note": "鎏金匾是名稱、主殿與紀年三重互證的典型，證據質量明顯高於傳說式始建年。", "src": "山西省文物局《觀音堂（第五批國保）》；長治市潞州區人民政府；[1][25]", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 14, "tier": 1}, {"id": "V14", "num": 25, "name": "柳林觀音廟", "place": "中國山西呂梁柳林", "country": "中國內地", "area": "中國內地", "lon": 110.78, "lat": 37.44, "y": null, "ytext": "始建不詳", "evk": "可核", "kind": "廟", "knote": "", "est": "始建不詳；廟內碑碣可證萬曆四十二年（1614）重修，後續重修有1665、1695、1730—1731、1763—1765等節點；亦稱觀音堂、白衣庵、清泉寺", "ev": "最早可證 1614 年", "exs": "", "re": "最近重修 1765 年", "level": "山西省第三批省級文物保護單位", "lineage": "時代斷爲明、清", "scale": "", "note": "可證的是「重修」，不是始建——不能把1614年重修碑寫成始建年。", "src": "山西省文物局《觀音廟（第三批省保）》；[20]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 15, "tier": 3}, {"id": "V16", "num": 45, "name": "東莞南城水濂山白衣廟", "place": "中國廣東東莞南城水濂山", "country": "中國內地", "area": "中國內地", "lon": 113.753, "lat": 22.988, "y": null, "ytext": "南宋（考古推斷）", "evk": "偏弱", "kind": "廟", "knote": "", "est": "南宋（考古推斷）；明清曾修繕擴建；揭露遺存主要是明清建築；2013年列爲東莞市文物保護單位；2005年據發掘成果復原並設觀音文化陳列館", "ev": "", "exs": "現存建築 2005 年", "re": "", "level": "東莞市文物保護單位（2013）", "lineage": "「白衣觀音」獨立專祀傳統", "scale": "", "note": "考古推斷不等於碑銘紀年，證據層級低於長治萬曆匾。四項時間應寫作：始建南宋（考古推斷）、最早可證材料爲南宋相關層位、現存建築2005年復原、遺址保護2013年。", "src": "東莞市人民政府《白衣廟遺址》；[3]", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 16, "tier": 3}, {"id": "V22", "num": 24, "name": "大埔八鄉觀音古廟", "place": "中國香港新界大埔八鄉", "country": "香港", "area": "香港", "lon": 114.128, "lat": 22.448, "y": 1763, "ytext": "可追溯至1763年（「較早有史可稽」的香港觀音廟之一）", "evk": "偏弱", "kind": "廟", "knote": "", "est": "可追溯至1763年（「較早有史可稽」的香港觀音廟之一）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "主祀觀音", "scale": "", "note": "", "src": "大公文匯／香港樹仁大學專欄（證據中等）；[27]", "chain": "華人專廟", "flag": "正表", "prec": "region", "idx": 17, "tier": 0}, {"id": "V23", "num": 26, "name": "塔門水月宮", "place": "中國香港塔門", "country": "香港", "area": "香港", "lon": 114.36, "lat": 22.47, "y": 1788, "ytext": "落成於1788年", "evk": "偏弱", "kind": "廟", "knote": "", "est": "落成於1788年", "ev": "", "exs": "", "re": "", "level": "", "lineage": "主祀觀音", "scale": "", "note": "", "src": "大公文匯（證據中等）；[27]", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 18, "tier": 0}, {"id": "V24", "num": 32, "name": "大坑蓮花宮", "place": "中國香港大坑蓮花宮西街", "country": "香港", "area": "香港", "lon": 114.189, "lat": 22.278, "y": 1863, "ytext": "大概建於同治二年（1863）", "evk": "可核", "kind": "廟", "knote": "", "est": "大概建於同治二年（1863）；廟內古鐘鑄有同治三年農曆十二月（1865）字樣，花崗石雕刻祭台1864年、神壇1885年、彩門1909年、牌匾1925年", "ev": "最早可證 1865 年", "exs": "", "re": "", "level": "2010年評一級歷史建築；2014年列爲法定古蹟", "lineage": "主祀觀音，另供奉太歲、財神、韋馱和福德等；港島區最古老和最具特色的觀音廟，本港現存七間已評級觀音廟之一", "scale": "", "note": "法定古蹟並不等於年代最古——蓮花宮的價值在評級體系而非最早紀年。1975年起交由華人廟宇委員會管理。", "src": "香港古物諮詢委員會《蓮花宮文物價值評估報告》；立法會參考資料摘要（2014）；[14][26]", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 19, "tier": 2}, {"id": "V25", "num": 33, "name": "鴨脷洲水月宮", "place": "中國香港鴨脷洲大街181號", "country": "香港", "area": "香港", "lon": 114.155, "lat": 22.246, "y": 1866, "ytext": "約同治五年（1866）由當地漁民社羣興建（古物諮詢委員會評估「built around 18…", "evk": "可核", "kind": "廟", "knote": "", "est": "約同治五年（1866）由當地漁民社羣興建（古物諮詢委員會評估「built around 1866 by the fishing community of the area according to the local elders」）；廟內存1891年器物", "ev": "最早可證 1891 年", "exs": "", "re": "", "level": "", "lineage": "華人廟宇委員會直轄管理的三間觀音廟之一（另二爲紅磡觀音廟、大坑蓮花宮）", "scale": "", "note": "", "src": "香港古物諮詢委員會評估；[27]", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 20, "tier": 3}, {"id": "V26", "num": 35, "name": "紅磡觀音廟", "place": "中國香港九龍紅磡差館裏", "country": "香港", "area": "香港", "lon": 114.185, "lat": 22.307, "y": 1873, "ytext": "同治十二年（1873）建", "evk": "可核", "kind": "廟", "knote": "", "est": "同治十二年（1873）建；1889、1901重修", "ev": "最早可證 1889 年", "exs": "", "re": "最近重修 1901 年", "level": "香港一級歷史建築（2010年評）", "lineage": "華人廟宇委員會直轄管理的三間觀音廟之一", "scale": "", "note": "", "src": "大公文匯／香港樹仁大學專欄；[15][27]", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 21, "tier": 3}, {"id": "B01", "num": 0, "name": "香港寶蓮禪寺", "place": "中國香港大嶼山昂坪", "country": "香港", "area": "香港", "lon": 113.905, "lat": 22.253, "y": 1905, "ytext": "約1905年建", "evk": "待覈", "kind": "廟", "knote": "", "est": "約1905年建，大嶼山天壇大佛所在地，香港著名佛教聖地（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄亞洲名錄未收", "scale": "", "note": "考錄正表未收此條；原圖點位保留，年代與主祀關係需以香港古物古蹟辦事處評估複覈。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "region", "idx": 22, "tier": 0}, {"id": "B02", "num": 0, "name": "香港志蓮淨苑", "place": "中國香港鑽石山", "country": "香港", "area": "香港", "lon": 114.206, "lat": 22.34, "y": 1934, "ytext": "1934年建", "evk": "待覈", "kind": "廟", "knote": "", "est": "1934年建，鑽石山志蓮淨苑，香港著名尼眾道場（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄亞洲名錄未收", "scale": "", "note": "", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "exact", "idx": 23, "tier": 0}, {"id": "V17", "num": 16, "name": "鹿港龍山寺", "place": "中國台灣彰化鹿港鎮金門巷81號", "country": "台灣", "area": "台灣", "lon": 120.434, "lat": 24.052, "y": 1653, "ytext": "明永曆七年（1653）由台灣佛教開山祖肇善禪師創建，原址在鹿仔港舊河道邊（今大有街一帶），1…", "evk": "可核", "kind": "廟", "knote": "", "est": "明永曆七年（1653）由台灣佛教開山祖肇善禪師創建，原址在鹿仔港舊河道邊（今大有街一帶），1661年改建爲磚造；乾隆五十一年（1786）都閫府陳邦光倡議遷建現址，泉郊日茂行林振嵩及士紳許樂山負責籌建", "ev": "最早可證 1786 年", "exs": "", "re": "", "level": "1983年12月28日公告爲國定古蹟（72台內民字第202452號）", "lineage": "《彰化縣誌》卷五祀典志：「龍山寺前大殿祀觀音佛祖，後祀北極上帝」；有「台灣紫禁城」之譽", "scale": "", "note": "台灣五座龍山寺之一：淡水、艋舺、台南、鳳山、鹿港。名稱「龍山寺」同時包含釋迦、觀音、諸天等多重神系，須先核正殿神位再核創建碑。", "src": "新修彰化縣誌·卷七文化志古蹟篇；鹿港龍山寺官網；世界佛教美術圖說大辭典", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 24, "tier": 2}, {"id": "V18", "num": 19, "name": "大觀音亭（觀音宮）", "place": "中國台灣台南北區成功路86號", "country": "台灣", "area": "台灣", "lon": 120.202, "lat": 22.998, "y": 1678, "ytext": "明鄭永曆三十二年（1678）軍民擇九月十九日觀音出道紀念日立廟，在台灣府城北側尖山南面坡、德…", "evk": "可核", "kind": "廟", "knote": "", "est": "明鄭永曆三十二年（1678）軍民擇九月十九日觀音出道紀念日立廟，在台灣府城北側尖山南面坡、德慶溪北岸的「山南水北」陽方位建「觀音宮」；隔年（1679）泉州同安鄭軍將士在旁建「大道公廟」奉祀保生大帝，即今「興濟宮」；可核重修年包括1693、1791、1815、1830、1871", "ev": "最早可證 1693 年", "exs": "", "re": "最近重修 1871 年", "level": "1985年11月27日公告爲古蹟（內政部，台內民字第357272號）", "lineage": "正殿主祀觀音；與隔鄰興濟宮（主祀保生大帝）並立", "scale": "", "note": "康熙35年《台灣府志》：「觀音宮，在府治鎮北坊，前後泥金色相，左右塑十八羅漢，俗呼爲觀音亭，相傳最遠。康熙32年，後堂重建。」", "src": "台灣文化資產公告《大觀音亭》；高拱乾《台灣府志》（1696）；國際在線；[4][29]", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 25, "tier": 2}, {"id": "V19", "num": 21, "name": "艋舺龍山寺", "place": "中國台灣台北萬華區廣州街211號", "country": "台灣", "area": "台灣", "lon": 121.4997, "lat": 25.037, "y": 1738, "ytext": "清乾隆三年（1738）五月十八日初建，乾隆五年（1740）二月八日落成", "evk": "可核", "kind": "廟", "knote": "", "est": "清乾隆三年（1738）五月十八日初建，乾隆五年（1740）二月八日落成；由晉江、南安、惠安三邑人合資興建，迎請福建晉江安海龍山寺觀世音菩薩香火", "ev": "最早可證 1740 年", "exs": "", "re": "", "level": "國定古蹟", "lineage": "主祀觀世音菩薩", "scale": "", "note": "", "src": "台灣古蹟體系", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 26, "tier": 2}, {"id": "V20", "num": 27, "name": "壽山岩觀音寺", "place": "中國台灣桃園龜山", "country": "台灣", "area": "台灣", "lon": 121.333, "lat": 25.04, "y": 1797, "ytext": "清嘉慶二年（1797）落成", "evk": "可核", "kind": "廟", "knote": "", "est": "清嘉慶二年（1797）落成", "ev": "", "exs": "", "re": "", "level": "三級古蹟", "lineage": "三級古蹟", "scale": "", "note": "", "src": "台灣古蹟體系", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 27, "tier": 3}, {"id": "V21", "num": 28, "name": "蓮座山觀音寺", "place": "中國台灣桃園大溪", "country": "台灣", "area": "台灣", "lon": 121.287, "lat": 24.879, "y": 1797, "ytext": "清嘉慶三年（1797）傳統創建", "evk": "可核", "kind": "廟", "knote": "", "est": "清嘉慶三年（1797）傳統創建；1801、1835等重修材料", "ev": "最早可證 1801 年", "exs": "", "re": "最近重修 1835 年", "level": "三級古蹟", "lineage": "三級古蹟", "scale": "", "note": "", "src": "台灣古蹟體系", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 28, "tier": 3}, {"id": "V43", "num": 42, "name": "淡水龍山寺", "place": "中國台灣新北淡水", "country": "台灣", "area": "台灣", "lon": 121.446, "lat": 25.17, "y": 1858, "ytext": "清咸豐八年（1858）（台灣五座龍山寺之一）", "evk": "偏弱", "kind": "廟", "knote": "", "est": "清咸豐八年（1858）（台灣五座龍山寺之一）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "年代爲朝代斷代", "scale": "", "note": "", "src": "鹿港龍山寺官網（記台灣五座龍山寺）", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 29, "tier": 0}, {"id": "B03", "num": 0, "name": "台灣佛光山大悲殿", "place": "中國台灣高雄大樹區", "country": "台灣", "area": "台灣", "lon": 120.446, "lat": 22.762, "y": 1967, "ytext": "1967年建", "evk": "待覈", "kind": "廟", "knote": "", "est": "1967年建，高雄佛光山，星雲大師創建，大悲殿主祀千手觀音（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄亞洲名錄未收", "scale": "", "note": "", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "exact", "idx": 30, "tier": 0}, {"id": "V44", "num": 43, "name": "台南龍山寺", "place": "中國台灣台南", "country": "台灣", "area": "台灣", "lon": 120.202, "lat": 22.99, "y": null, "ytext": "清雍正年間（1723—1735）", "evk": "待覈", "kind": "廟", "knote": "", "est": "清雍正年間（1723—1735）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "年代爲朝代斷代", "scale": "", "note": "", "src": "鹿港龍山寺官網", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 31, "tier": 0}, {"id": "V45", "num": 44, "name": "鳳山龍山寺", "place": "中國台灣高雄鳳山", "country": "台灣", "area": "台灣", "lon": 120.358, "lat": 22.628, "y": null, "ytext": "清乾隆年間（1736—1795）", "evk": "待覈", "kind": "廟", "knote": "", "est": "清乾隆年間（1736—1795）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "年代爲朝代斷代", "scale": "", "note": "", "src": "鹿港龍山寺官網", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 32, "tier": 0}, {"id": "V01", "num": 1, "name": "淺草寺（金龍山）", "place": "日本東京都台東區淺草", "country": "日本", "area": "日韓", "lon": 139.7975, "lat": 35.7148, "y": 628, "ytext": "推古天皇36年（628）——官網緣起載該年3月18日檜前浜成、竹成兄弟於隅田川感得觀音像，後…", "evk": "爭議", "kind": "廟", "knote": "", "est": "推古天皇36年（628）——官網緣起載該年3月18日檜前浜成、竹成兄弟於隅田川感得觀音像，后土師中知以私邸爲寺奉安，本堂（觀音堂）創建即溯此年；本尊聖觀世音菩薩（「淺草觀音」）；慶安2年（1649）德川家光再建之舊本堂1907年指定爲國寶，1945年3月10日東京大空襲燒燬，1958年重建今本堂", "ev": "", "exs": "現存建築 1958 年", "re": "最近重修 1958 年", "level": "舊本堂曾爲日本國寶（1907指定，1945燒燬）", "lineage": "聖觀音宗總本山；本尊聖觀世音菩薩", "scale": "", "note": "628年屬寺傳緣起，未取得寺傳原文與國寶明細前，不把寺傳「創建年」直接寫成最早可證年。", "src": "淺草寺官網《本堂》；[30]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 33, "tier": 1}, {"id": "V06", "num": 5, "name": "洛山寺", "place": "韓國江原道襄陽郡", "country": "韓國", "area": "日韓", "lon": 128.6436, "lat": 38.1133, "y": 671, "ytext": "671年新羅高僧義湘大師創建（義湘曾入唐從智儼學華嚴，670年返韓，隔年在海邊祈見觀音現身遂…", "evk": "偏弱", "kind": "廟", "knote": "", "est": "671年新羅高僧義湘大師創建（義湘曾入唐從智儼學華嚴，670年返韓，隔年在海邊祈見觀音現身遂建法堂）；別稱「海東第一座觀音道場」；與菩提庵、釜山龍宮寺並稱韓國三大觀音聖地", "ev": "", "exs": "", "re": "", "level": "", "lineage": "年代待覈（來源爲百科類整理，未見韓國文物廳原始登錄）", "scale": "", "note": "韓國觀音聖地多爲綜合山寺，主神證明仍需逐寺核本尊；未取得韓國文物廳原始登錄前，不列定年榜的絕對年代。", "src": "觀音百科整理（證據偏弱）", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 34, "tier": 0}, {"id": "V02", "num": 2, "name": "長谷寺（奈良·總本山）", "place": "日本奈良縣櫻井市初瀨", "country": "日本", "area": "日韓", "lon": 135.9083, "lat": 34.5356, "y": 686, "ytext": "686年道明上人爲祈天武天皇病癒製作安放「法華說相圖」，啓創建之端", "evk": "爭議", "kind": "廟", "knote": "", "est": "686年道明上人爲祈天武天皇病癒製作安放「法華說相圖」，啓創建之端；727年德道得聖武天皇許可造十一面觀音像並開立寺院；本堂爲日本國寶", "ev": "最早可證 727 年", "exs": "", "re": "", "level": "本堂爲日本國寶", "lineage": "本尊十一面觀音，「西國三十三所」第八番，觀音信仰發源地", "scale": "", "note": "", "src": "日本國土交通省官方資料；[31]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 35, "tier": 1}, {"id": "V04", "num": 4, "name": "長谷寺（鎌倉·海光山）", "place": "日本神奈川鎌倉市長谷", "country": "日本", "area": "日韓", "lon": 139.7667, "lat": 35.3119, "y": 721, "ytext": "天平八年（736）開創（坂東三十三觀音靈場官方）", "evk": "爭議", "kind": "廟", "knote": "", "est": "天平八年（736）開創（坂東三十三觀音靈場官方）；傳721年奈良以同一神木雕兩尊觀音，一尊入奈良長谷寺、一尊投海，736年漂至相模國長井浦洋上，藤原房前遷座鎌倉而開基", "ev": "最早可證 736 年", "exs": "", "re": "", "level": "", "lineage": "坂東三十三觀音第4番；本尊十一面觀世音菩薩像高9.18米，爲日本現存最大級木雕觀音之一", "scale": "", "note": "", "src": "坂東三十三觀音靈場官網；鎌倉長谷寺官網；[33]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 36, "tier": 0}, {"id": "V03", "num": 3, "name": "清水寺（音羽山）", "place": "日本京都東山區清水", "country": "日本", "area": "日韓", "lon": 135.7849, "lat": 34.9949, "y": 778, "ytext": "778年開山（官網《歷史》）", "evk": "爭議", "kind": "廟", "knote": "", "est": "778年開山（官網《歷史》）；賢心（後改名延鎮）得行叡居士所授靈木雕觀音像建堂；798年坂上田村麻呂與妻三善高子以十一面千手觀世音菩薩爲御本尊建立寺院；現存大部分建築1633年德川家光重修", "ev": "最早可證 798 年", "exs": "現存建築 1633 年", "re": "最近重修 1633 年", "level": "1994年作爲古京都文化遺產一部分列入世界遺產", "lineage": "西國三十三所第16番", "scale": "", "note": "778年屬寺傳開山；1633年重修纔是現存主體。", "src": "清水寺官網《歴史》；[32]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 37, "tier": 1}, {"id": "V08", "num": 7, "name": "觀音寺", "place": "朝鮮黃海北道開城樸淵裏", "country": "朝鮮", "area": "日韓", "lon": 126.55, "lat": 37.97, "y": 970, "ytext": "高麗光宗二十一年（970）由法印國師提議興建", "evk": "可核", "kind": "廟", "knote": "", "est": "高麗光宗二十一年（970）由法印國師提議興建；朝鮮太祖二年（1393）大規模擴建；1592—1598年壬辰倭亂毀於火災，1646年重建；寺內有高麗時期七層石塔與觀音窟，觀音窟內兩尊大理石觀音菩薩像（高約1.2米）爲高麗石刻典範", "ev": "最早可證 1393 年", "exs": "", "re": "最近重修 1646 年", "level": "朝鮮國寶第125號（大雄殿）", "lineage": "歷代高麗王常至此禮拜", "scale": "", "note": "", "src": "世界佛教美術圖說大辭典；[34]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 38, "tier": 1}, {"id": "V05", "num": 11, "name": "三十三間堂（蓮華王院）", "place": "日本京都東山區", "country": "日本", "area": "日韓", "lon": 135.7744, "lat": 34.9876, "y": 1164, "ytext": "長寬二年（1164）由平清盛奉後白河法皇命創建", "evk": "可核", "kind": "廟", "knote": "", "est": "長寬二年（1164）由平清盛奉後白河法皇命創建；建長元年（1249）燒燬；現存本堂爲文永三年（1266）重建；本尊千手觀音", "ev": "最早可證 1164 年", "exs": "現存建築 1266 年", "re": "最近重修 1266 年", "level": "日本國寶", "lineage": "本尊千手觀音；建築、本尊、二十八部衆及風神雷神像均爲日本國寶", "scale": "", "note": "本錄年代最明確者：1164創建、1266重建是兩個節點，且建築、本尊、二十八部衆像等國寶體系完整。", "src": "[8]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "exact", "idx": 39, "tier": 1}, {"id": "V07", "num": 13, "name": "海東龍宮寺", "place": "韓國釜山機張郡", "country": "韓國", "area": "日韓", "lon": 129.2211, "lat": 35.2433, "y": 1376, "ytext": "1376年高麗禑王二年，恭愍王的王師懶翁大師創建", "evk": "偏弱", "kind": "廟", "knote": "", "est": "1376年高麗禑王二年，恭愍王的王師懶翁大師創建；背山面海，內有海水觀音大佛、大雄殿、龍王堂、窟法堂、四獅子三層石塔", "ev": "", "exs": "", "re": "", "level": "", "lineage": "年代待覈（來源爲旅遊類資料，未見韓國文物廳原始登錄）", "scale": "", "note": "1970年代重建，現存建築並非1376原構。", "src": "韓國觀光公社相關旅遊資料（證據偏弱）", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 40, "tier": 0}, {"id": "B07", "num": 0, "name": "日本長崎新地觀音堂", "place": "日本長崎新地町", "country": "日本", "area": "日韓", "lon": 129.874, "lat": 32.75, "y": 1737, "ytext": "1737年（日本元文二年）建", "evk": "待覈", "kind": "廟", "knote": "", "est": "1737年（日本元文二年）建，長崎新地觀音堂，日本最古老觀音堂之一（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄亞洲名錄未收", "scale": "", "note": "考錄未收此條；原圖點位保留，年代需以長崎市史料複覈。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "exact", "idx": 41, "tier": 0}, {"id": "A02", "num": 0, "name": "南海菩提庵", "place": "韓國慶尚南道南海郡", "country": "韓國", "area": "日韓", "lon": 128.01, "lat": 34.75, "y": null, "ytext": "與襄陽洛山寺、釜山龍宮寺並稱韓國三大觀音聖地", "evk": "待覈", "kind": "廟", "knote": "", "est": "與襄陽洛山寺、釜山龍宮寺並稱韓國三大觀音聖地；本寺主殿、國寶指定與現存建築資料未在本輪覈查中齊備", "ev": "", "exs": "", "re": "", "level": "", "lineage": "更適合歸入「觀音道場」研究，而非直接認定爲觀音專廟", "scale": "", "note": "本輪不列定年榜——主神證明仍需逐寺核本尊。", "src": "考錄正文「傳承海外」節", "chain": "佛教寺院本尊", "flag": "附錄", "prec": "region", "idx": 42, "tier": 0}, {"id": "V34", "num": 15, "name": "金德院", "place": "印尼雅加達", "country": "印尼", "area": "東南亞", "lon": 106.8451, "lat": -6.1386, "y": 1650, "ytext": "1650年", "evk": "爭議", "kind": "廟", "knote": "", "est": "1650年", "ev": "", "exs": "", "re": "", "level": "", "lineage": "觀音正座，天后配祀——與天后廟考錄中的雅加達金德院爲同一座廟，在媽祖譜系中作配祀、在觀音譜系中爲主祀", "scale": "", "note": "補入第15席前後的關鍵說明：本輪未取得神位碑銘，考錄另一處又稱「雅加達金德院被通俗稱爲最著名觀音廟，但觀音崇拜盛不等於金德院主神，現存雍正二年（1724）木桌等只能證明18世紀遺存」。此處按名錄表列觀音正座，兩說並存待覈。", "src": "中國僑網《印尼金德院》；天后廟考錄同源材料；[11]", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 43, "tier": 0}, {"id": "B06", "num": 0, "name": "馬六甲青雲亭", "place": "馬來西亞馬六甲", "country": "馬來西亞", "area": "東南亞", "lon": 102.2501, "lat": 2.1896, "y": 1673, "ytext": "1673年建，馬來西亞最古老華人廟宇（原地圖標註）", "evk": "待覈", "kind": "配祀", "knote": "", "est": "1673年建，馬來西亞最古老華人廟宇（原地圖標註）；天后廟考錄作正殿主祀觀音、左右配祀關帝與天上聖母", "ev": "", "exs": "", "re": "", "level": "馬來西亞國家遺產", "lineage": "主神歸屬兩說並存，須以馬來西亞國家遺產局資料複覈", "scale": "", "note": "天后廟考錄與觀音考錄對青雲亭主神記載不一（觀音正座／媽祖系配祀），本圖按「名稱與主祀待覈」保留，不推定主祀。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "會館配祀", "flag": "補充", "prec": "city", "idx": 44, "tier": 0}, {"id": "V36", "num": 22, "name": "溫陵會館", "place": "越南胡志明市", "country": "越南", "area": "東南亞", "lon": 106.699, "lat": 10.76, "y": 1740, "ytext": "1740年（傳統）", "evk": "偏弱", "kind": "館廟", "knote": "", "est": "1740年（傳統）；並祀天后等", "ev": "", "exs": "", "re": "", "level": "2002年認定爲國家級藝術建築遺蹟", "lineage": "會館內設廟宇；館內同時供奉天后聖母、觀音、關聖帝君等", "scale": "", "note": "因觀音非唯一主神，性質標【館廟】——別稱觀音廟，但正殿並祀天后與關帝。", "src": "[11]", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 45, "tier": 2}, {"id": "V37", "num": 30, "name": "Wat Bamphen Chin Phrot（永福寺）", "place": "泰國曼谷耀華力路三攀他旺縣", "country": "泰國", "area": "東南亞", "lon": 100.51, "lat": 13.74, "y": 1795, "ytext": "約1795年由旅暹華人設觀音禮拜處", "evk": "偏弱", "kind": "配祀", "knote": "", "est": "約1795年由旅暹華人設觀音禮拜處；後荒廢，1867年由華僧 Sok Heng 重建；拉瑪五世賜泰名，御賜匾額仍懸於大殿", "ev": "", "exs": "現存建築 1867 年", "re": "最近重修 1867 年", "level": "", "lineage": "被譽爲「泰國最靈驗的觀音廟」之一，但屬華人綜合佛寺", "scale": "", "note": "", "src": "泰國華人社會與宗教研究（證據偏弱）", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 46, "tier": 0}, {"id": "V38", "num": 31, "name": "仰光廣東觀音古廟", "place": "緬甸仰光唐人街", "country": "緬甸", "area": "東南亞", "lon": 96.16, "lat": 16.78, "y": 1824, "ytext": "三說並列：駐外台北經濟文化代表處2024年「200週年慶典」報道作1824年建立", "evk": "爭議", "kind": "廟", "knote": "", "est": "三說並列：駐外台北經濟文化代表處2024年「200週年慶典」報道作1824年建立；百科作廣東公司1831年創建；緬華網作1852年（第二次英緬戰爭後英政府撥地建廟）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "緬甸仰光唐人街廣東籍華人觀音廟", "scale": "", "note": "2024年辦「200週年慶典」反推爲1824，與百科的1831、緬華網的1852互不相容，本錄並列不裁斷。", "src": "駐外台北經濟文化代表處2024年報道；百科；緬華網", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 47, "tier": 0}, {"id": "V39", "num": 34, "name": "仰光慶福宮（福建觀音亭）", "place": "緬甸仰光海濱街", "country": "緬甸", "area": "東南亞", "lon": 96.165, "lat": 16.77, "y": 1861, "ytext": "咸豐十年（1861）據廟內石碑創建", "evk": "待覈", "kind": "配祀", "knote": "", "est": "咸豐十年（1861）據廟內石碑創建；咸豐二年至十一年間已有廟宇規模，碑載「召集坡長義士四方船戶」；光緒二十三年重建；1852年英政府免費撥地", "ev": "最早可證 1861 年", "exs": "", "re": "最近重修 1897 年", "level": "", "lineage": "實主祀媽祖，觀音後來增置", "scale": "", "note": "這是本次覈查中最典型的「專名誤導」案例——慶福宮又稱觀音廟，實質主祀媽祖。", "src": "百科《慶福宮》；[16]", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 48, "tier": 0}, {"id": "V40", "num": 37, "name": "龍蓮寺", "place": "泰國曼谷石龍軍路", "country": "泰國", "area": "東南亞", "lon": 100.515, "lat": 13.73, "y": 1871, "ytext": "1871年創建", "evk": "待覈", "kind": "廟", "knote": "", "est": "1871年創建；屬大乘禪宗寺院", "ev": "", "exs": "", "re": "", "level": "", "lineage": "年代待覈（來源爲宗親網整理，未見泰國官方登錄）", "scale": "", "note": "", "src": "泰國華人社會與宗教研究（證據偏弱）", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 49, "tier": 0}, {"id": "V41", "num": 39, "name": "四馬路觀音堂（Kwan Im Thong Hood Cho Temple）", "place": "新加坡滑鐵盧街178號", "country": "新加坡", "area": "東南亞", "lon": 103.852, "lat": 1.301, "y": 1884, "ytext": "1884年建", "evk": "可核", "kind": "廟", "knote": "", "est": "1884年建；1895年改建；1970年代末拆除、1982年重建（Tay & Yeo Architects），規模倍增；1990年成爲新加坡首座提供英文解籤的廟宇", "ev": "最早可證 1884 年", "exs": "現存建築 1982 年", "re": "最近重修 1895 年", "level": "2001年列爲國家文物局歷史地標", "lineage": "專名、觀音主神與創建年三者相互支持；新加坡香火最盛觀音廟", "scale": "", "note": "新加坡少數「專名—主神—創建年」三者互證、性質明確爲【廟】的條目。", "src": "新加坡國家圖書館（NLB）《Kwan Im Thong Hood Cho Temple》；[19][28]", "chain": "華人專廟", "flag": "正表", "prec": "exact", "idx": 50, "tier": 2}, {"id": "V42", "num": 40, "name": "極樂寺（鶴山極樂禪寺）", "place": "馬來西亞檳城亞依淡", "country": "馬來西亞", "area": "東南亞", "lon": 100.275, "lat": 5.402, "y": 1891, "ytext": "兩說並列：中國駐檳城總領事館作始建於1891年、1904年全面竣工", "evk": "爭議", "kind": "配祀", "knote": "", "est": "兩說並列：中國駐檳城總領事館作始建於1891年、1904年全面竣工；另有清光緒十五年（1889）福州鼓山湧泉寺方丈妙蓮禪師開山說、及1890年說", "ev": "最早可證 1904 年", "exs": "現存建築 1904 年", "re": "", "level": "", "lineage": "東南亞最大佛教寺院之一，萬佛塔著名；觀音非唯一主神", "scale": "", "note": "1891（總領事館口徑）與1889／1890（妙蓮開山說）並存，不能擇一裁斷。", "src": "中國駐檳城總領事館；檳城極樂寺資料", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 51, "tier": 0}, {"id": "B04", "num": 0, "name": "新加坡雙林寺", "place": "新加坡惹蘭大巴窯", "country": "新加坡", "area": "新加坡", "lon": 103.886, "lat": 1.332, "y": 1898, "ytext": "新加坡：雙林寺（1898）", "evk": "待覈", "kind": "廟", "knote": "", "est": "1898年建，新加坡最古老佛教寺院，國家古蹟（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "新加坡國家古蹟", "lineage": "原地圖點位保留；考錄亞洲名錄未收", "scale": "", "note": "", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "local", "idx": 52, "tier": 2, "cont": "亞洲"}, {"id": "V35", "num": 18, "name": "會安觀音寺（Chùa Quan Âm／明鄉佛寺）", "place": "越南會安（今峴港直轄市會安坊阮惠街）", "country": "越南", "area": "東南亞", "lon": 108.33, "lat": 15.879, "y": null, "ytext": "「370餘年歷史」，即約17世紀中葉", "evk": "待覈", "kind": "廟", "knote": "", "est": "「370餘年歷史」，即約17世紀中葉；會安世界文化遺產保護中心稱其爲會安現存最古老的佛寺；save 兩座珍貴文物", "ev": "", "exs": "", "re": "", "level": "", "lineage": "會安現存最古老的佛寺", "scale": "", "note": "「370餘年」爲相對年代，無絕對紀年；越南華人廟宇常把觀音置於會館神殿，主祀判斷必須查神位。", "src": "會安世界文化遺產保護中心", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 53, "tier": 0}, {"id": "A03", "num": 0, "name": "馬尼拉中路觀音堂", "place": "菲律賓馬尼拉", "country": "菲律賓", "area": "東南亞", "lon": 120.975, "lat": 14.6, "y": null, "ytext": "有資料稱屬近代華僑佛道場", "evk": "待覈", "kind": "待覈", "knote": "", "est": "有資料稱屬近代華僑佛道場，但缺正式創建年與神位材料", "ev": "", "exs": "", "re": "", "level": "", "lineage": "待覈：有廟名與佛道場線索但缺紀年", "scale": "", "note": "可能因後續資料升級，也可能因正殿主神不同而被排除。", "src": "考錄正文「傳承海外」節；考錄取材說明", "chain": "會館配祀", "flag": "附錄", "prec": "city", "idx": 54, "tier": 0}, {"id": "B09", "num": 0, "name": "美國檀香山觀音廟", "place": "美國檀香山", "country": "美國", "area": "北美洲", "lon": -157.8583, "lat": 21.3069, "y": 1878, "ytext": "1878年建", "evk": "待覈", "kind": "廟", "knote": "", "est": "1878年建，美國最古老華人廟宇，檀香山觀音廟（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄未核出可驗證紀年", "scale": "", "note": "考錄未找到可核的建年材料；原圖點位保留待複覈。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "華人專廟", "flag": "補充", "prec": "exact", "idx": 55, "tier": 0}, {"id": "N01", "num": 1, "name": "紐約大乘寺", "place": "美國紐約", "country": "美國", "area": "北美洲", "lon": -73.99, "lat": 40.715, "y": 1970, "ytext": "1970年創建", "evk": "可核", "kind": "待覈", "knote": "", "est": "1970年創建；觀音堂爲院內一殿", "ev": "", "exs": "", "re": "", "level": "", "lineage": "待覈：觀音堂爲院內一殿", "scale": "", "note": "", "src": "百度百科《紐約大乘寺》；[12]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 56, "tier": 0}, {"id": "N02", "num": 2, "name": "莊嚴寺", "place": "美國紐約州", "country": "美國", "area": "北美洲", "lon": -73.93, "lat": 41.29, "y": 1975, "ytext": "1975年建設", "evk": "可核", "kind": "待覈", "knote": "", "est": "1975年建設；大殿主供毗盧遮那佛，另有觀音殿", "ev": "", "exs": "", "re": "", "level": "", "lineage": "待覈：大殿主供毗盧遮那佛，另有觀音殿", "scale": "", "note": "北美華人佛教從社團、研究組織走向寺院，19世紀唐人街更多保存關帝廟與先人祭祀；觀音常進入綜合佛寺的觀音殿。兩者均不宜寫爲「觀音主廟」。溫哥華、舊金山、洛杉磯材料仍待查會館佛堂與獨立觀音堂的正式檔案。", "src": "搜狗百科《紐約大乘寺》相關莊嚴寺資料；[22]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 57, "tier": 0}, {"id": "B10", "num": 0, "name": "加拿大溫哥華國際佛教觀音寺", "place": "加拿大溫哥華", "country": "加拿大", "area": "北美洲", "lon": -123.1207, "lat": 49.2827, "y": 1981, "ytext": "1981年建", "evk": "待覈", "kind": "廟", "knote": "", "est": "1981年建，溫哥華國際佛教觀音寺，加拿大著名觀音道場（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄未核出可驗證紀年", "scale": "", "note": "考錄明確：溫哥華、舊金山、洛杉磯材料仍待查會館佛堂與獨立觀音堂的正式檔案。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "city", "idx": 58, "tier": 0}, {"id": "B08", "num": 0, "name": "美國洛杉磯西來寺", "place": "美國洛杉磯哈仙達崗", "country": "美國", "area": "北美洲", "lon": -118.0, "lat": 34.002, "y": 1986, "ytext": "1986年建", "evk": "待覈", "kind": "配祀", "knote": "", "est": "1986年建，星雲大師創建，北美最大佛教寺院，五聖殿配祀觀音（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "五聖殿配祀觀音，觀音非主神", "scale": "", "note": "考錄明確：北美洲僅2席待覈（紐約大乘寺、莊嚴寺）。西來寺屬綜合佛寺配祀，不入主祀榜。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "city", "idx": 59, "tier": 0}, {"id": "S01", "num": 1, "name": "中觀寺", "place": "阿根廷布宜諾斯艾利斯", "country": "阿根廷", "area": "南美洲", "lon": -58.3816, "lat": -34.6037, "y": 1985, "ytext": "原名旅阿中國佛教會，1985年6月30日創建，1989年佛像開光安座，1990年擴建", "evk": "可核", "kind": "待覈", "knote": "", "est": "原名旅阿中國佛教會，1985年6月30日創建，1989年佛像開光安座，1990年擴建；資料稱其爲阿根廷最早華人佛寺", "ev": "最早可證 1989 年", "exs": "", "re": "最近重修 1990 年", "level": "", "lineage": "待覈：未證明觀音爲正殿主神", "scale": "", "note": "", "src": "中國新聞網《細數那些登上外國郵票的中國傳統寺廟》；[23]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 60, "tier": 0}, {"id": "S02", "num": 2, "name": "聖保羅觀音寺", "place": "巴西聖保羅", "country": "巴西", "area": "南美洲", "lon": -46.6333, "lat": -23.5505, "y": null, "ytext": "年代不詳", "evk": "待覈", "kind": "待覈", "knote": "", "est": "年代不詳；現有名稱指觀音，缺創建紀年", "ev": "", "exs": "", "re": "", "level": "", "lineage": "待覈：現有名稱指觀音，缺創建紀年", "scale": "", "note": "巴西聖保羅觀音寺的現名與主祀特徵明確，但本次未獲得建寺碑記、官方檔案或寺史紀年，故列待覈。這裏的「材料缺口」不能外推爲「南美無更早觀音信仰」。", "src": "考錄南美洲名錄", "chain": "華人專廟", "flag": "正表", "prec": "city", "idx": 61, "tier": 0}, {"id": "O01", "num": 1, "name": "四邑關帝廟觀音閣", "place": "澳大利亞墨爾本", "country": "澳大利亞", "area": "大洋洲", "lon": 144.9631, "lat": -37.8136, "y": 1856, "ytext": "1856年由淘金華工捐建，列入澳大利亞歷史建築名錄", "evk": "可核", "kind": "配祀", "knote": "", "est": "1856年由淘金華工捐建，列入澳大利亞歷史建築名錄；現設協天宮、觀音閣、財星宮及祠堂", "ev": "最早可證 1856 年", "exs": "", "re": "", "level": "列入澳大利亞歷史建築名錄", "lineage": "正殿主祀關帝，觀音閣爲附屬", "scale": "", "note": "這是大洋洲早期華人宗教的重要材料，但不是主祀觀音廟。若把1856年列入「觀音廟最早榜」，將把主祀關係偷換爲「有觀音神位」。新西蘭、悉尼、墨爾本另有近代佛教道場，未獲創建年與主祀承重證據，故不填充。", "src": "中國駐墨爾本總領事館；[13]", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 62, "tier": 3}, {"id": "B11", "num": 0, "name": "澳洲伍倫貢南天寺", "place": "澳大利亞伍倫貢", "country": "澳大利亞", "area": "大洋洲", "lon": 150.89, "lat": -34.408, "y": 1992, "ytext": "1992年建", "evk": "待覈", "kind": "廟", "knote": "", "est": "1992年建，佛光山南天寺，南半球最大佛教寺院（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄大洋洲僅1席（墨爾本四邑關帝廟觀音閣）", "scale": "", "note": "考錄明確：新西蘭、悉尼、墨爾本另有近代佛教道場，未獲創建年與主祀承重證據，故不填充。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "exact", "idx": 63, "tier": 0}, {"id": "B12", "num": 0, "name": "紐西蘭奧克蘭佛光山", "place": "新西蘭奧克蘭", "country": "新西蘭", "area": "大洋洲", "lon": 174.7633, "lat": -36.8485, "y": 2007, "ytext": "2007年建", "evk": "待覈", "kind": "廟", "knote": "", "est": "2007年建，奧克蘭佛光山，紐西蘭著名佛教道場（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄大洋洲僅1席", "scale": "", "note": "", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "exact", "idx": 64, "tier": 0}, {"id": "E01", "num": 1, "name": "觀世音菩薩玄武山佛教神壇", "place": "法國巴黎13區", "country": "法國", "area": "歐洲", "lon": 2.356, "lat": 48.826, "y": 1989, "ytext": "1989年開光", "evk": "可核", "kind": "館壇", "knote": "", "est": "1989年開光；同祀玄天上帝", "ev": "", "exs": "", "re": "", "level": "", "lineage": "同祀玄天上帝", "scale": "", "note": "", "src": "山東大學《法國的華人佛教道場之初步調查》；[9]", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 65, "tier": 0}, {"id": "E02", "num": 2, "name": "廣肇佛院", "place": "法國94省", "country": "法國", "area": "歐洲", "lon": 2.44, "lat": 48.79, "y": 1992, "ytext": "1992年開光", "evk": "可核", "kind": "館壇", "knote": "", "est": "1992年開光；同祀多神", "ev": "", "exs": "", "re": "", "level": "", "lineage": "同祀多神", "scale": "", "note": "", "src": "山東大學《法國的華人佛教道場之初步調查》；[9]", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 66, "tier": 0}, {"id": "E03", "num": 3, "name": "潮州會館佛堂", "place": "法國巴黎13區", "country": "法國", "area": "歐洲", "lon": 2.358, "lat": 48.828, "y": 1994, "ytext": "1994年觀音、地藏開光", "evk": "可核", "kind": "館壇", "knote": "", "est": "1994年觀音、地藏開光", "ev": "", "exs": "", "re": "", "level": "", "lineage": "會館佛堂", "scale": "", "note": "歐洲落地主要由印支華人會館在1980年代末至1990年代設佛壇，同室常供觀音、地藏、媽祖、玄天上帝、財神等，社會功能是同鄉互助與儀式空間的綜攝。倫敦、阿姆斯特丹、柏林等地的佛寺或禪中心可能更早，但本輪未獲得可核創建年與主殿神位，故不臆測。", "src": "山東大學《法國的華人佛教道場之初步調查》；[9]", "chain": "會館配祀", "flag": "正表", "prec": "city", "idx": 67, "tier": 0}, {"id": "B13", "num": 0, "name": "法國巴黎法華寺", "place": "法國巴黎", "country": "法國", "area": "歐洲", "lon": 2.3522, "lat": 48.8566, "y": 2012, "ytext": "2012年建", "evk": "待覈", "kind": "廟", "knote": "", "est": "2012年建，巴黎法華寺，法國著名佛教道場（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "原地圖點位保留；考錄歐洲3席均爲印支華人會館【館壇】", "scale": "", "note": "考錄歐洲落地的3席1989／1992／1994均由印支華人會館設佛壇，屬【館壇】；本條爲另一獨立道場線索，待覈。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "佛教寺院本尊", "flag": "補充", "prec": "city", "idx": 68, "tier": 0}, {"id": "B14", "num": 0, "name": "毛里求斯關帝廟（求子觀音）", "place": "毛里求斯路易港", "country": "毛里求斯", "area": "非洲", "lon": 57.5522, "lat": -20.3484, "y": 1842, "ytext": "1842年建", "evk": "待覈", "kind": "配祀", "knote": "", "est": "1842年建，路易港關帝廟，配祀求子觀音，非洲華人信仰中心（原地圖標註）", "ev": "", "exs": "", "re": "", "level": "", "lineage": "正殿主祀關帝，求子觀音配祀", "scale": "", "note": "考錄非洲2席爲毛里求斯普濟寺（1950）與南非南華寺（1992），均標待覈；本條關帝廟配祀觀音，不屬主祀榜。", "src": "原地圖點位；《全球觀音廟分類考錄》未收錄", "chain": "會館配祀", "flag": "補充", "prec": "city", "idx": 69, "tier": 0}, {"id": "F01", "num": 1, "name": "普濟寺", "place": "毛里求斯路易港", "country": "毛里求斯", "area": "非洲", "lon": 57.4989, "lat": -20.1609, "y": 1950, "ytext": "人類學資料記爲1950年由仁和會館會長曾祖母發起興建", "evk": "待覈", "kind": "待覈", "knote": "", "est": "人類學資料記爲1950年由仁和會館會長曾祖母發起興建，但未見神位資料", "ev": "", "exs": "", "re": "", "level": "", "lineage": "待覈：主祀關係未證", "scale": "", "note": "", "src": "搜狐轉載《毛里求斯華人社團與社會探析》；[18]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 70, "tier": 0}, {"id": "F02", "num": 2, "name": "南華寺", "place": "南非布隆赫斯普魯伊特", "country": "南非", "area": "非洲", "lon": 28.4, "lat": -25.75, "y": 1992, "ytext": "1992年由佛光山開闢", "evk": "可核", "kind": "待覈", "knote": "", "est": "1992年由佛光山開闢，建有觀音殿，卻同時有大雄寶殿、普賢殿", "ev": "", "exs": "", "re": "", "level": "", "lineage": "待覈：綜合佛寺，觀音僅一殿", "scale": "", "note": "二者只標待覈，不能據名稱或殿名進入主祀榜。這屬於「材料缺口」：有觀音信仰活動，但缺主祀紀年證據，不等於證明非洲沒有更早的觀音廟。", "src": "中國僑網《南非南華寺新年法會吸引萬餘人》；[21]", "chain": "佛教寺院本尊", "flag": "正表", "prec": "city", "idx": 71, "tier": 0}];
+var AREA_COLOR = {"澳門": "#c8a24e", "中國內地": "#b91c1c", "香港": "#0891b2", "台灣": "#f97316", "日韓": "#d946ef", "東南亞": "#0e7a5f", "北美洲": "#3b82f6", "南美洲": "#d97706", "大洋洲": "#6366f1", "歐洲": "#7e22ce", "非洲": "#92400e"};
+var GROUPS = ["澳門", "中國內地", "香港", "台灣", "日韓", "東南亞", "北美洲", "南美洲", "大洋洲", "歐洲", "非洲"];
+var G_COLOR = {"澳門": "#c8a24e", "中國內地": "#b91c1c", "香港": "#0891b2", "台灣": "#f97316", "日韓": "#d946ef", "東南亞": "#0e7a5f", "北美洲": "#3b82f6", "南美洲": "#d97706", "大洋洲": "#6366f1", "歐洲": "#7e22ce", "非洲": "#92400e"};
+var G_MAP = {"澳門": "澳門", "中國內地": "中國內地", "香港": "香港", "台灣": "台灣", "日韓": "日韓", "東南亞": "東南亞", "北美洲": "北美洲", "南美洲": "南美洲", "大洋洲": "大洋洲", "歐洲": "歐洲", "非洲": "非洲", "其他": "其他", "新加坡": "東南亞"};
+var TIER_LABEL = {"1": "世界遺產／全國重點文保", "2": "法定古蹟／國定古蹟／國家遺產", "3": "地方級文保／歷史建築"};
+
+var LOTUS = '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">'
+ +'<ellipse cx="32" cy="30" rx="8" ry="15" fill="#ec4899"/>'
+ +'<ellipse cx="21" cy="35" rx="7" ry="12" fill="#f472b6" transform="rotate(-28 21 35)"/>'
+ +'<ellipse cx="43" cy="35" rx="7" ry="12" fill="#f472b6" transform="rotate(28 43 35)"/>'
+ +'<ellipse cx="14" cy="42" rx="6" ry="9.5" fill="#f9a8d4" opacity=".7" transform="rotate(-48 14 42)"/>'
+ +'<ellipse cx="50" cy="42" rx="6" ry="9.5" fill="#f9a8d4" opacity=".7" transform="rotate(48 50 42)"/>'
+ +'<ellipse cx="32" cy="34" rx="5.5" ry="10" fill="#fce7f3"/>'
+ +'<ellipse cx="26" cy="38" rx="4.5" ry="7.5" fill="#fbcfe8" transform="rotate(-18 26 38)"/>'
+ +'<ellipse cx="38" cy="38" rx="4.5" ry="7.5" fill="#fbcfe8" transform="rotate(18 38 38)"/>'
+ +'<circle cx="32" cy="38" r="4.2" fill="#C8A24E"/><circle cx="32" cy="38" r="2.2" fill="#E8D9A8"/>'
+ +'</svg>';
+
+var map = L.map('map',{zoomControl:false,attributionControl:false,worldCopyJump:true,minZoom:1.2,zoomSnap:0.25,zoomDelta:0.5}).setView([22,80],2.3);
+/* 默認底圖：暗灰路網（第一個鍵即 L.control.layers 的選中項） */
+var DEFAULT_TILE='🌃 暗灰路網';
+var TILES = {
+ '🌃 暗灰路網':{u:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',f:'brightness(1.04) contrast(1.08)'},
+ '🌑 深色簡約':{u:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',f:'brightness(1.05) contrast(1.05)',s:'abcd'},
+ '☀️ 標準地圖':{u:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',f:'brightness(.96) contrast(1.06) saturate(.9)'},
+ '🛰️ 衛星影像':{u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',f:'brightness(.85) contrast(1.1) saturate(.9)'},
+ '⛰️ 地形地圖':{u:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',f:'brightness(.95)'},
+ '🏙️ 淺灰路網':{u:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',f:'brightness(.98) contrast(1.05)'}
+};
+var baseLayers={}, curName=null;
+Object.keys(TILES).forEach(function(k){
+  var t=TILES[k];
+  var ly=L.tileLayer(t.u,{maxZoom:18,subdomains:t.s||'abc'});
+  baseLayers[k]=ly;
+  if(k===DEFAULT_TILE){ ly.addTo(map); curName=k; applyFilter(t.f); }
+});
+if(!curName){ var k0=Object.keys(TILES)[0]; baseLayers[k0].addTo(map); curName=k0; applyFilter(TILES[k0].f); }
+function applyFilter(f){
+  var el=document.querySelector('.leaflet-tile-pane');
+  if(el) el.style.filter=f;
+}
+L.control.layers(baseLayers,null,{collapsed:true,position:'topleft'}).addTo(map);
+map.on('baselayerchange',function(e){applyFilter(TILES[e.name].f);curName=e.name;});
+
+/* ---------- 狀態 ---------- */
+var lit = {};                // idx -> true
+var visN = 0;                // 當前可見點數
+var spiderN = 0;             // 已微偏移展開的點位數
+var offArea = {};            // area -> true (關閉)
+var offKind = {};            // 性質組 -> true
+var includeUnknown = true;
+var year = 2025;
+var markers = {};
+
+var KG = {"主祀廟宇": ["廟"], "會館神廟": ["館廟"], "會館神壇": ["館壇"], "配祀 / 合祀": ["配祀", "配並"], "年代待核": ["待覈", "待核"]};
+function kindGroup(k){
+  for(var g in KG){ if(KG[g].indexOf(k)>=0) return g; }
+  return '其他';
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* 默認＝地區色圓點（與右上角圖例同色）；點亮後才綻放蓮花 */
+function makeIcon(p){
+  var c = AREA_COLOR[p.area] || '#94a3b8';
+  var t = p.tier||0;
+  var ring = t? '<span class="pt-ring t'+t+'"></span>' : '';
+  var lv = t? (TIER_LABEL[t]||'') : '無法定等級記錄';
+  var h = '<div class="pt-wrap" id="lw'+p.idx+'" title="'+esc(p.name)+' · '+esc(lv)+'">'
+        + '<span class="pt-halo" style="background:'+c+'"></span>'
+        + ring
+        + '<span class="pt-dot" style="background:'+c+'"></span>'
+        + '<div class="pt-lotus">'+LOTUS+'</div>'
+        + '<span class="pt-no">'+p.id+'</span></div>';
+  return L.divIcon({html:h,className:'lotus-icon',iconSize:[44,44],iconAnchor:[22,22],popupAnchor:[0,-18]});
+}
+/* 點亮切換：圓點 ⇄ 蓮花，兩組動畫分別觸發 */
+function setLitDom(i, on){
+  var el=document.getElementById('lw'+i);
+  if(!el) return;
+  el.classList.toggle('lit', !!on);
+  var lo=el.querySelector('.pt-lotus');
+  if(lo && on){ lo.style.animation='none'; void lo.offsetWidth; lo.style.animation=''; }
+}
+
+POINTS.forEach(function(p){
+  var m = L.marker([p.lat,p.lon],{icon:makeIcon(p),riseOnHover:true,keyboard:false}).addTo(map);
+  m.on('click',function(){ openPopup(p); });
+  markers[p.idx]=m;
+});
+
+/* 次級條目（候補／存疑／資料不足）在全球視野下抽稀，避免密集區糊成一團；
+   放大到 z>=5 自動展開，也可由「含次級條目」按鈕強制開關（secondManual 非空時以手動為準） */
+function isSecondary(p){ return p.flag==='補充'||p.evk==='待核'; }
+var secondManual=null;
+function showSecondary(){
+  if(secondManual!==null) return secondManual;
+  return map.getZoom()>=5;
+}
+function visible(p){
+  if(offArea[p.area]) return false;
+  if(offKind[kindGroup(p.kind)]) return false;
+  if(isSecondary(p) && !showSecondary()) return false;
+  if(p.y===null){ if(!includeUnknown) return false; }
+  else if(p.y>year) return false;
+  return true;
+}
+/* ---------- 密集點位微偏移展開（澳門這類同址多廟） ---------- */
+var spiderLines = L.layerGroup().addTo(map);
+var SPIDER_MIN_Z = 9;          /* 低於此級別不展開，全球視野保持原貌 */
+function spiderGap(){
+  var s=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pt-size'))||11;
+  return s + 11;                 /* 圓點直徑外再留空隙 */
+}
+function clearSpider(){
+  spiderLines.clearLayers();
+  POINTS.forEach(function(p){
+    var m=markers[p.idx];
+    var ll=m.getLatLng();
+    if(Math.abs(ll.lat-p.lat)>1e-7 || Math.abs(ll.lng-p.lon)>1e-7) m.setLatLng([p.lat,p.lon]);
+  });
+}
+function applySpider(){
+  clearSpider();
+  var z=map.getZoom();
+  if(z < SPIDER_MIN_Z) return 0;
+  var gap=spiderGap();
+  var vis=[];
+  POINTS.forEach(function(p){
+    if(!map.hasLayer(markers[p.idx])) return;
+    var c=map.latLngToContainerPoint([p.lat,p.lon]);
+    vis.push({p:p,x:c.x,y:c.y});
+  });
+  if(vis.length<2) return 0;
+  /* 單鏈接聚類：屏幕距離小於 gap 的歸為一簇 */
+  var clusters=[];
+  vis.forEach(function(a){
+    var placed=false;
+    for(var k=0;k<clusters.length && !placed;k++){
+      var cl=clusters[k];
+      for(var m=0;m<cl.length;m++){
+        var b=cl[m];
+        if(Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)) < gap){ cl.push(a); placed=true; break; }
+      }
+    }
+    if(!placed) clusters.push([a]);
+  });
+  var moved=0;
+  clusters.forEach(function(cl){
+    if(cl.length<2) return;
+    moved+=cl.length;
+    var cx=0,cy=0;
+    cl.forEach(function(a){ cx+=a.x; cy+=a.y; });
+    cx/=cl.length; cy/=cl.length;
+    /* 按原方位角排序，展開方向跟隨點位自然分布 */
+    cl.forEach(function(a){ a.ang=Math.atan2(a.y-cy,a.x-cx); });
+    cl.sort(function(a,b){ return a.ang-b.ang; });
+    var r=Math.max(gap*0.85, 8+cl.length*3.2);
+    var a0=cl[0].ang;
+    cl.forEach(function(a,i){
+      var ang=a0 + i*2*Math.PI/cl.length;
+      var ox=Math.cos(ang)*r, oy=Math.sin(ang)*r;
+      var base=map.latLngToContainerPoint([a.p.lat,a.p.lon]);
+      var tgt=map.containerPointToLatLng([base.x+ox,base.y+oy]);
+      markers[a.p.idx].setLatLng(tgt);
+      var c=AREA_COLOR[a.p.area]||'#94a3b8';
+      L.polyline([[a.p.lat,a.p.lon],tgt],{color:c,weight:1,opacity:.5,interactive:false}).addTo(spiderLines);
+    });
+  });
+  return moved;
+}
+/* 展開條目的引線用虛線更輕盈 */
+spiderLines.eachLayer(function(){});
+
+/* 圓點尺寸 / 光暈 / 蓮花隨縮放等級自適應 */
+function zoomStyle(){
+  var z=map.getZoom(), rs=document.documentElement.style;
+  var s, halo, lot;
+  if(z<=3){ s=9;  halo=.16; lot=28; }
+  else if(z<=5){ s=11; halo=.20; lot=32; }
+  else if(z<=8){ s=13; halo=.26; lot=38; }
+  else        { s=15; halo=.32; lot=44; }
+  rs.setProperty('--pt-size', s+'px');
+  rs.setProperty('--pt-halo', halo);
+  rs.setProperty('--pt-lotus', lot+'px');
+}
+map.on('zoomend',function(){
+  zoomStyle();
+  /* 縮放會改變可見集合，播放中則中止以免序列錯亂 */
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  syncSecBtn(); refresh(); syncList();
+});
+
+function refresh(){
+  var n=0, hiddenSec=0;
+  POINTS.forEach(function(p){
+    var v=visible(p), m=markers[p.idx];
+    if(v){ if(!map.hasLayer(m)) m.addTo(map); n++; }
+    else {
+      if(map.hasLayer(m)) map.removeLayer(m);
+      if(isSecondary(p) && !showSecondary()) hiddenSec++;
+    }
+    setLitDom(p.idx, !!lit[p.idx]);
+  });
+  var lc=Object.keys(lit).length;
+  visN=n;
+  spiderN = applySpider();   /* 先算展開，再寫提示文案，避免計數滯後一幀 */
+  document.getElementById('progress-text').textContent = lc+' / '+POINTS.length;
+  document.getElementById('progress-fill').style.width = (lc/POINTS.length*100)+'%';
+  var tipTxt = hiddenSec? (' · 次級條目 '+hiddenSec+' 座已收起（放大或點「含次級條目」展開）') : '';
+  if(spiderN) tipTxt += ' · '+spiderN+' 座同址廟宇已微偏移展開';
+  document.getElementById('visible-count').innerHTML = '顯示 <b>'+n+'</b> / '+POINTS.length
+    +' 座廟宇 · 已點亮 <b>'+lc+'</b> 座'+tipTxt;
+  var lc2=document.getElementById('list-count');
+  if(lc2) lc2.textContent='共 '+n+' 座（當前篩選）';
+}
+
+function openPopup(p){
+  var m=markers[p.idx];
+  m.bindPopup(popupHTML(p),{maxWidth:340,minWidth:320,className:'p-card',autoPanPadding:[30,90]}).openPopup();
+  setTimeout(function(){ syncLitBtn(p); },30);
+}
+
+function syncLitBtn(p){
+  var b=document.getElementById('litbtn');
+  if(!b) return;
+  if(lit[p.idx]){ b.classList.add('on'); b.innerHTML='🌸 已點亮 · 點擊熄滅'; }
+  else { b.classList.remove('on'); b.innerHTML='○ 點亮蓮花'; }
+}
+
+function popupHTML(p){
+  var c = AREA_COLOR[p.area] || '#94a3b8';
+  var yv = (p.y===null)? '年代不詳' : p.y;
+  var ysub = (p.y===null)? (p.ytext || '未見可靠紀年材料，僅列線索') : (p.ytext||'');
+  /* 四項時間線：始建 / 最早可證 / 現存建築 / 最近重修 —— 彼此關聯但不可互換 */
+  var tl='';
+  [['始建年代',p.est],['最早可證',p.ev],['現存建築',p.exs],['最近重修',p.re]].forEach(function(t){
+    if(!t[1]) return;
+    tl += '<div class="tl-cell"><div class="tl-k">'+t[0]+'</div><div class="tl-v">'+esc(t[1])+'</div></div>';
+  });
+  var rows='';
+  if(p.level && p.level!=='—')
+     rows+='<div class="p-row"><span class="k">法定等級</span><span class="v gold">'+esc(p.level)+'</span></div>';
+  if(p.lineage)
+     rows+='<div class="p-row"><span class="k">系譜定位</span><span class="v">'+esc(p.lineage)+'</span></div>';
+  if(p.knote)
+     rows+='<div class="p-row"><span class="k">性質說明</span><span class="v">'+esc(p.knote)+'</span></div>';
+  if(p.country)
+     rows+='<div class="p-row"><span class="k">國家/地區</span><span class="v">'+esc(p.country)+'</span></div>';
+  var warn = p.note? '<div class="p-warn"><b>⚠ 考訂</b> '+esc(p.note)+'</div>' : '';
+  var evMap={'可核':'ev0','偏弱':'ev1','待核':'ev2','爭議':'ev3','相傳':'ev4'};
+  var evBadge = p.evk
+    ? '<span class="p-badge badge-'+(evMap[p.evk]||'ev4')+'" title="年代證據強度">證據·'+esc(p.evk)+'</span>'
+    : '';
+  var flagCls = (p.flag==='正表')?'badge-flag ok':'badge-flag';
+  var lvMark = {1:'★ 世遺／國保',2:'☆ 法定古蹟',3:'○ 地方文保'}[p.tier||0];
+  var lvBadge = lvMark? '<span class="p-badge badge-lv'+(p.tier)+'">'+lvMark+'</span>' : '';
+  return '<div class="p-head">'
+    + '<div class="p-badges">'
+    +   '<span class="p-badge badge-kind">'+esc(p.kind)+'</span>'
+    +   '<span class="p-badge badge-chain">'+esc(p.chain)+'</span>'
+    +   evBadge + lvBadge
+    +   '<span class="p-badge '+flagCls+'">'+esc(p.flag)+'</span>'
+    +   '<span class="badge-rank">'+esc(p.id)+(p.num?(' · 席'+p.num):'')+'</span>'
+    + '</div>'
+    + '<div class="p-name">'+esc(p.name)+'</div>'
+    + '<div class="p-place"><i style="background:'+c+'"></i>'+esc(p.area)+' · '+esc(p.place)+'</div>'
+    + '</div>'
+    + '<div class="p-year"><b>'+esc(String(yv))+'</b><span>'+esc(ysub)+'</span></div>'
+    + '<div class="p-body">'
+    +   (tl? '<div class="p-tl">'+tl+'</div>' : '')
+    +   rows + warn
+    + '<div class="p-foot"><span class="p-src">出處：'+esc(p.src||'—')+'</span>'
+    + '<span class="p-lit" id="litbtn" data-i="'+p.idx+'">○ 點亮蓮花</span></div>'
+    + '</div>';
+}
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest? e.target.closest('#litbtn'):null;
+
+  if(b){ var i=+b.getAttribute('data-i'); toggleLit(i); }
+});
+
+/* ---------- 點亮 ---------- */
+function toggleLit(i, silent){
+  var p=POINTS[i];
+  if(lit[i]){ delete lit[i]; }
+  else {
+    lit[i]=true;
+    var m=markers[i];
+    if(map.hasLayer(m)){
+      var pt=map.latLngToContainerPoint(m.getLatLng());
+      bloom(pt.x+map.getContainer().getBoundingClientRect().left, pt.y+map.getContainer().getBoundingClientRect().top);
+    }
+    if(!silent) chime();
+  }
+  refresh();
+  var b=document.getElementById('litbtn');
+  if(b && b.getAttribute('data-i')==String(i)) syncLitBtn(p);
+  if(document.getElementById('list-panel').classList.contains('show')) updateItem(i);
+}
+/* ---------- 按年代順序依次點亮 ---------- */
+var seqTimer=null, seqList=[], seqIdx=0, STEP=300;
+var seqLinkYear=false, seqStartYear=2025;
+
+function seqBtns(running){
+  var b=document.getElementById('btn-light');
+  if(b){ b.innerHTML = running? '⏹ 停止播放' : '✨ 全部點亮'; b.classList.toggle('on',running); }
+  var bn=document.getElementById('seq-banner');
+  if(bn) bn.classList.toggle('pick',running);
+}
+function stopSeq(finished){
+  if(seqTimer){ clearInterval(seqTimer); seqTimer=null; }
+  /* 中途停止：時間軸還原到播放前的年份；播完則停在最後一座的年代 */
+  if(!finished && seqLinkYear){
+    year = seqStartYear;
+    if(typeof slider!=='undefined' && slider){
+      slider.value = year;
+      document.getElementById('year-display').textContent = year;
+    }
+  }
+  seqLinkYear = false;
+  refresh();
+  var bn=document.getElementById('seq-banner');
+  seqBtns(false);
+  if(!bn) return;
+  if(finished){
+    bn.classList.add('done');
+    document.getElementById('sb-name').textContent='✅ 全部點亮完成';
+    document.getElementById('sb-hint').textContent='共 '+seqList.length+' 座 · 點擊關閉';
+    setTimeout(function(){
+      bn.classList.remove('show'); bn.classList.remove('done');
+      bn.classList.remove('pick');
+    },2600);
+  }else{
+    bn.classList.remove('show'); bn.classList.remove('pick');
+  }
+}
+/* 點位旁的浮標：名稱 + 年代 + 地區 */
+function flyLabel(p){
+  var m=markers[p.idx];
+  if(!map.hasLayer(m)) return;
+  function put(){
+    if(!map.hasLayer(m)) return;
+    var pt=map.latLngToContainerPoint(m.getLatLng());
+    var d=document.createElement('div');
+    d.className='seq-label';
+    d.innerHTML='<span class="sy">'+((p.y===null)?'年代不詳':p.y)+'</span>'
+      +'<span class="sn">'+esc(p.name)+'</span>'
+      +'<span class="sk">'+esc(p.kind)+'</span>'
+      +'<span class="sa">'+esc(p.area)+'</span>';
+    d.style.left=pt.x+'px'; d.style.top=pt.y+'px';
+    map.getContainer().appendChild(d);
+    setTimeout(function(){ d.classList.add('out'); },1250);
+    setTimeout(function(){ if(d.parentNode) d.remove(); },1900);
+  }
+  /* 只在點位處於視口內時彈標籤，避免逐點平移導致畫面抖動；
+     視口外的點位由底部橫幅統一顯示名稱與年代 */
+  var b=map.getBounds().pad(-0.12);
+  if(b.contains(L.latLng(p.lat,p.lon))) put();
+}
+function seqStep(){
+  if(seqIdx>=seqList.length){ stopSeq(true); syncList(); return; }
+  var p=seqList[seqIdx];
+  /* 時間軸聯動：先把年份推到當前廟宇年代，再落地圖可見性，
+     這樣點位是「隨年代逐一浮現 + 逐一綻放」，而不是一開始就全在圖上了 */
+  if(seqLinkYear && p.y!==null && p.y!==year){
+    year = p.y;
+    slider.value = year;
+    document.getElementById('year-display').textContent = year;
+    refresh();
+  }
+  lit[p.idx]=true;
+  setLitDom(p.idx, true);
+  var m=markers[p.idx];
+  if(map.hasLayer(m)){
+    var pt=map.latLngToContainerPoint(m.getLatLng());
+    var r=map.getContainer().getBoundingClientRect();
+    bloom(pt.x+r.left, pt.y+r.top);
+  }
+  chime(true);
+  flyLabel(p);
+  seqIdx++;
+  /* 時間軸聯動：滑塊與年份顯示跟着當前點亮廟宇的年代走 */
+  if(seqLinkYear && p.y!==null && p.y!==year){
+    year = p.y;
+    slider.value = year;
+    document.getElementById('year-display').textContent = year;
+  }
+  var bn=document.getElementById('seq-banner');
+  document.getElementById('sb-n').textContent = seqIdx+' / '+seqList.length;
+  document.getElementById('sb-y').textContent = (p.y===null)? '年代不詳' : p.y;
+  document.getElementById('sb-name').textContent = p.name;
+  document.getElementById('sb-a').textContent = p.area+' · '+p.place;
+  document.getElementById('sb-fill').style.width = (seqIdx/seqList.length*100)+'%';
+  var lc=Object.keys(lit).length;
+  document.getElementById('progress-text').textContent = lc+' / '+POINTS.length;
+  document.getElementById('progress-fill').style.width = (lc/POINTS.length*100)+'%';
+  document.getElementById('visible-count').innerHTML = '顯示 <b>'+visN+'</b> / '+POINTS.length+' 座廟宇 · 已點亮 <b>'+lc+'</b> 座';
+  if(document.getElementById('list-panel').classList.contains('show')) updateItem(p.idx);
+}
+function lightAll(){
+  if(seqTimer){ stopSeq(false); return; }   /* 播放中再點一次即停止 */
+  lit={}; refresh();
+  /* 關鍵：先按「當前篩選」取出完整序列，再把年份回捲到最早年代，
+     否則序列會被回捲後的年份條件截斷成只剩頭幾座 */
+  seqList = POINTS.filter(visible).slice().sort(function(a,b){
+    var ya=(a.y===null? 9999:a.y), yb=(b.y===null? 9999:b.y);
+    return ya-yb || a.idx-b.idx;
+  });
+  if(!seqList.length){ refresh(); return; }
+  seqStartYear = year;
+  seqLinkYear = true;
+  var ymin = null;
+  seqList.forEach(function(p){ if(p.y!==null && (ymin===null || p.y<ymin)) ymin=p.y; });
+  if(ymin!==null){
+    year = ymin; slider.value = year;
+    document.getElementById('year-display').textContent = year;
+    refresh();
+  }
+  seqIdx=0;
+  var bn=document.getElementById('seq-banner');
+  bn.classList.remove('done'); bn.classList.add('show');
+  document.getElementById('sb-fill').style.width='0%';
+  document.getElementById('sb-hint').textContent='每 0.3 秒點亮一座 · 時間軸同步推進 · 點擊此處停止';
+  seqBtns(true);
+  seqStep();
+  seqTimer=setInterval(seqStep,STEP);
+}
+function clearAll(){ stopSeq(false); lit={}; refresh(); syncList(); }
+function syncList(){ if(document.getElementById('list-panel').classList.contains('show')) renderList(); }
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest? e.target.closest('#seq-banner'):null;
+  if(b){ stopSeq(false); }
+});
+
+function bloom(x,y){
+  var d=document.createElement('div'); d.className='bloom';
+  d.style.left=x+'px'; d.style.top=y+'px';
+  var l=document.createElement('div'); l.className='bl'; l.innerHTML=LOTUS; d.appendChild(l);
+  var r=document.createElement('div'); r.className='rp'; d.appendChild(r);
+  for(var i=0;i<12;i++){
+    var q=document.createElement('div'); q.className='pt';
+    var a=Math.PI*2*i/12, r2=34+Math.random()*26;
+    q.style.setProperty('--px',(Math.cos(a)*r2)+'px');
+    q.style.setProperty('--py',(Math.sin(a)*r2)+'px');
+    q.style.animationDelay=(Math.random()*.16)+'s';
+    d.appendChild(q);
+  }
+  document.body.appendChild(d);
+  setTimeout(function(){ d.remove(); },1700);
+}
+
+/* ---------- 音效 ---------- */
+var ac=null;
+function chime(soft){
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.state==='suspended'){ ac.resume(); }
+    if(soft){
+      /* 順序連播：單音短促，避免 0.3s 間隔疊成噪音 */
+      var so=ac.createOscillator(), sg=ac.createGain();
+      so.type='sine'; so.frequency.value=880;
+      var st=ac.currentTime;
+      sg.gain.setValueAtTime(0,st); sg.gain.linearRampToValueAtTime(0.055,st+0.012);
+      sg.gain.exponentialRampToValueAtTime(0.0001,st+0.3);
+      so.connect(sg); sg.connect(ac.destination); so.start(st); so.stop(st+0.34);
+      return;
+    }
+    [523.25,659.25,783.99].forEach(function(f,i){
+      var o=ac.createOscillator(), g=ac.createGain();
+      o.type='sine'; o.frequency.value=f;
+      var t=ac.currentTime+i*0.07;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.09,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.9);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+1);
+    });
+  }catch(e){}
+}
+
+/* ---------- 圖例 ---------- */
+function toggleLegend(){ document.getElementById('legend').classList.toggle('show'); }
+function toggleArea(a){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  offArea[a]=!offArea[a];
+  document.querySelectorAll('.legend-item[data-area]').forEach(function(el){
+    if(el.getAttribute('data-area')===a) el.classList.toggle('off',!!offArea[a]);
+  });
+  refresh(); if(document.getElementById('list-panel').classList.contains('show')) renderList();
+}
+function toggleKind(k){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  offKind[k]=!offKind[k];
+  document.querySelectorAll('.legend-item[data-kind]').forEach(function(el){
+    if(el.getAttribute('data-kind')===k) el.classList.toggle('off',!!offKind[k]);
+  });
+  refresh(); if(document.getElementById('list-panel').classList.contains('show')) renderList();
+}
+function toggleUnknown(){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  includeUnknown=!includeUnknown;
+  document.getElementById('btn-unk').classList.toggle('on',includeUnknown);
+  refresh(); if(document.getElementById('list-panel').classList.contains('show')) renderList();
+}
+/* 次級條目（候補／存疑／資料不足）：null=隨縮放自動，true/false=手動鎖定 */
+function toggleSecondary(){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  secondManual = (secondManual===null)? true : (secondManual? false : null);
+  syncSecBtn(); refresh(); syncList();
+}
+function syncSecBtn(){
+  var b=document.getElementById('btn-sec');
+  if(!b) return;
+  var on = (secondManual===null)? showSecondary() : secondManual;
+  b.classList.toggle('on', !!on);
+  b.textContent = (secondManual===null)? '含次級條目' : (secondManual? '次級：全部顯示' : '次級：僅正表');
+}
+
+/* ---------- 時間軸 ---------- */
+var slider=document.getElementById('yearSlider');
+slider.addEventListener('input',function(){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  year=+slider.value;
+  document.getElementById('year-display').textContent = year;
+  refresh();
+});
+var playing=null;
+function playTimeline(){
+  if(playing){ clearInterval(playing); playing=null; return; }
+  year=400; slider.value=400; document.getElementById('year-display').textContent=400; refresh();
+  playing=setInterval(function(){
+    year+=8;
+    if(year>=2025){ year=2025; clearInterval(playing); playing=null; }
+    slider.value=year; document.getElementById('year-display').textContent=year; refresh();
+  },110);
+}
+
+/* ---------- 名錄 ---------- */
+function toggleList(){
+  var el=document.getElementById('list-panel');
+  el.classList.toggle('show');
+  document.getElementById('btn-list').classList.toggle('on',el.classList.contains('show'));
+  if(el.classList.contains('show')) renderList();
+}
+/* 名錄統一按 11 個大區順序羅列（組內按年代升序） */
+var collapsedG = {}, stripLock = false;
+function grpOf(p){ return G_MAP[p.area] || '其他'; }
+
+function renderList(){
+  var q=(document.getElementById('list-search').value||'').trim().toLowerCase();
+  var groups={};
+  GROUPS.forEach(function(g){ groups[g]=[]; });
+  var extraG=[];
+  var tot=0;
+  POINTS.forEach(function(p){
+    if(!visible(p)) return;
+    if(q && (p.name+' '+p.place+' '+p.area+' '+grpOf(p)+' '+p.kind+' '+(p.lineage||'')+' '+(p.level||'')).toLowerCase().indexOf(q)<0) return;
+    var _g=grpOf(p);
+    if(!groups[_g]){ groups[_g]=[]; extraG.push(_g); }
+    groups[_g].push(p); tot++;
+  });
+  var ORDER=GROUPS.concat(extraG);
+  var h='';
+  ORDER.forEach(function(g){
+    var list=groups[g];
+    if(!list.length) return;
+    list.sort(function(a,b){
+      var ya=(a.y===null?9999:a.y), yb=(b.y===null?9999:b.y);
+      return ya-yb || (a.name<b.name?-1:1);
+    });
+    var c=G_COLOR[g]||'#94a3b8';
+    var litN=list.filter(function(p){ return !!lit[p.idx]; }).length;
+    h+='<div class="lg-group'+(collapsedG[g]?' collapsed':'')+'" data-g="'+g+'" id="grp-'+g+'">'
+      +'<div class="lg-title" data-toggle-g="'+g+'"><i style="background:'+c+'"></i><span>'+g+'</span>'
+      +'<span class="c">'+list.length+' 座'+(litN?(' · 已亮 '+litN):'')+'</span><span class="ar">▼</span></div>'
+      +'<div class="lg-items">';
+    list.forEach(function(p){
+      h+='<div class="lg-item'+(lit[p.idx]?' lit':'')+((p.y===null)?' unknown':'')
+        +'" data-i="'+p.idx+'" onclick="flyTo('+p.idx+')">'
+        +'<span class="lg-y">'+((p.y===null)?'年代不詳':p.y)+'</span>'
+        +(p.tier?('<span class="lg-star t'+p.tier+'" title="'+esc(TIER_LABEL[p.tier]||'')
+          +'">'+(p.tier===1?'★':'☆')+'</span>'):'')
+        +'<span class="lg-main"><span class="lg-n">'+esc(p.name)+'</span>'
+        +'<span class="lg-p">'+esc(p.place)+'</span></span>'
+        +'<span class="lg-t">'+esc(p.kind)+'</span></div>';
+    });
+    h+='</div></div>';
+  });
+  var body=document.getElementById('list-body');
+  body.innerHTML = h || '<div style="padding:22px 16px;color:#8a9490;font-size:12.5px;line-height:1.8">'
+    + '無匹配條目。<br>可清空搜索框，或檢查時間軸與地區／性質篩選。</div>';
+  document.getElementById('list-count').textContent='共 '+tot+' 座（當前篩選）';
+  renderStrip(groups);
+}
+/* 單條輕量更新：避免點亮時整表重渲染導致滾動跳位 */
+function updateItem(i){
+  var body=document.getElementById('list-body');
+  if(!body || !body.children.length) return;
+  var el=body.querySelector('.lg-item[data-i="'+i+'"]');
+  if(el) setLitDom(i, !!lit[i]);
+  var grp=document.getElementById('grp-'+grpOf(POINTS[i]));
+  if(grp){
+    var n=grp.querySelectorAll('.lg-item').length;
+    var ln=grp.querySelectorAll('.lg-item.lit').length;
+    var c=grp.querySelector('.lg-title .c');
+    if(c) c.textContent = n+' 座'+(ln?(' · 已亮 '+ln):'');
+  }
+}
+/* ---------- 大區滑條 ---------- */
+function renderStrip(groups){
+  var s=document.getElementById('list-strip'), h='';
+  var ORDER2=GROUPS.concat(Object.keys(groups).filter(function(g){return GROUPS.indexOf(g)<0;}));
+  ORDER2.forEach(function(g){
+    var n=(groups[g]||[]).length, c=G_COLOR[g]||'#94a3b8';
+    h+='<div class="strip-chip'+(n?'':' empty')+'" data-g="'+g+'"'
+      +(n?(' onclick="jumpGroup(\''+g+'\')"'):'')
+      +'><i style="background:'+c+'"></i>'+g+'<b>'+n+'</b></div>';
+  });
+  s.innerHTML=h;
+  syncStrip();
+}
+function jumpGroup(g){
+  var el=document.getElementById('grp-'+g), body=document.getElementById('list-body');
+  if(!el||!body) return;
+  if(collapsedG[g]){ collapsedG[g]=false; el.classList.remove('collapsed'); }
+  stripLock=true;
+  body.scrollTo({top:Math.max(0,el.offsetTop-2),behavior:'smooth'});
+  setActiveGroup(g);
+  setTimeout(function(){ stripLock=false; },700);
+}
+function setActiveGroup(g){
+  var nodes=document.querySelectorAll('#list-strip .strip-chip');
+  for(var k=0;k<nodes.length;k++){
+    nodes[k].classList.toggle('active', nodes[k].getAttribute('data-g')===g);
+  }
+  var chip=document.querySelector('#list-strip .strip-chip[data-g="'+g+'"]');
+  var strip=document.getElementById('list-strip');
+  if(!chip||!strip) return;
+  var l=chip.offsetLeft, r=l+chip.offsetWidth;
+  if(l<strip.scrollLeft) strip.scrollTo({left:Math.max(0,l-16),behavior:'smooth'});
+  else if(r>strip.scrollLeft+strip.clientWidth) strip.scrollTo({left:r-strip.clientWidth+16,behavior:'smooth'});
+}
+function syncStrip(){
+  var body=document.getElementById('list-body');
+  var gs=body.querySelectorAll('.lg-group');
+  if(!gs.length) return;
+  var top=body.scrollTop+8, cur=gs[0].getAttribute('data-g');
+  for(var k=0;k<gs.length;k++){ if(gs[k].offsetTop<=top) cur=gs[k].getAttribute('data-g'); }
+  setActiveGroup(cur);
+}
+(function(){
+  var body=document.getElementById('list-body');
+  body.addEventListener('scroll',function(){ if(!stripLock) syncStrip(); });
+  body.addEventListener('click',function(e){
+    var t=e.target.closest? e.target.closest('[data-toggle-g]'):null;
+    if(!t) return;
+    var g=t.getAttribute('data-toggle-g'), wrap=t.parentNode;
+    if(wrap&&wrap.classList){ wrap.classList.toggle('collapsed'); collapsedG[g]=wrap.classList.contains('collapsed'); }
+  },true);
+  /* 滑條支持鼠標拖動與滾輪橫向滾動 */
+  var s=document.getElementById('list-strip');
+  var down=false, moved=false, sx=0, sl=0;
+  s.addEventListener('mousedown',function(e){ down=true; moved=false; sx=e.clientX; sl=s.scrollLeft; s.classList.add('dragging'); });
+  window.addEventListener('mousemove',function(e){
+    if(!down) return;
+    if(Math.abs(e.clientX-sx)>4) moved=true;
+    s.scrollLeft=sl-(e.clientX-sx);
+  });
+  window.addEventListener('mouseup',function(){ if(down){ down=false; s.classList.remove('dragging'); } });
+  s.addEventListener('click',function(e){ if(moved){ e.stopPropagation(); e.preventDefault(); } },true);
+  s.addEventListener('wheel',function(e){
+    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){ s.scrollLeft+=e.deltaY; e.preventDefault(); }
+  },{passive:false});
+})();
+function flyTo(i){
+  var p=POINTS[i];
+  map.flyTo([p.lat,p.lon],Math.max(map.getZoom(),9),{duration:.9});
+  setTimeout(function(){ openPopup(p); },900);
+}
+function fitAll(){ map.flyTo([22,80],2.3,{duration:.9}); }
+
+/* ---------- 啓動 ---------- */
+zoomStyle(); syncSecBtn(); refresh();
+setTimeout(function(){ document.getElementById('tip').style.transition='opacity .8s'; document.getElementById('tip').style.opacity='0'; },7000);
+</script>
+
+<script id="mob-js">
+(function(){
+  var root = document.documentElement;
+  var head = document.getElementById('header');
+  var tp   = document.getElementById('time-panel');
+
+  /* 依寬度或高度判斷小螢幕：橫屏 844x390 也算 */
+  function isSmall(){ return window.innerWidth <= 760 || window.innerHeight <= 520; }
+  function sync(){
+    var hh = head ? head.offsetHeight : 0;
+    var bt = tp ? tp.offsetHeight : 0;
+    root.style.setProperty('--hh', hh + 'px');
+    root.style.setProperty('--bt', bt + 'px');
+    // 地圖容器避開頂欄與底欄，避免內容被壓在下面
+    var m = document.getElementById('map');
+    if(m && isSmall()){
+      var pad = Math.round(hh + bt);
+      L.DomUtil && map && map.invalidateSize && setTimeout(function(){ map.invalidateSize(); }, 60);
+    }
+  }
+  sync();
+  window.addEventListener('resize', sync);
+  window.addEventListener('orientationchange', function(){ setTimeout(sync, 250); });
+  window.addEventListener('load', sync);
+  if(window.ResizeObserver){
+    try{
+      var ro = new ResizeObserver(sync);
+      if(head) ro.observe(head);
+      if(tp) ro.observe(tp);
+    }catch(e){}
+  }
+  // 頂欄摺疊開關（僅手機）：點標題收起副標題與進度條，給地圖騰空間
+  var h1 = head ? head.querySelector('h1') : null;
+  if(h1){
+    var fold = document.createElement('span');
+    fold.className = 'fold';
+    fold.textContent = '⌃';
+    h1.appendChild(fold);
+    h1.style.cursor = 'pointer';
+    h1.title = '點擊收起／展開說明';
+    h1.addEventListener('click', function(e){
+      if(!isSmall()) return;
+      e.stopPropagation();
+      head.classList.toggle('mini');
+      fold.textContent = head.classList.contains('mini') ? '⌄' : '⌃';
+      setTimeout(sync, 60);
+    });
+  }
+  // 首次在手機上打開時默認摺疊一半，讓地圖先露出來
+  if(isSmall() && head){
+    head.classList.add('mini');
+    var f = head.querySelector('h1 .fold');
+    if(f) f.textContent = '⌄';
+    setTimeout(sync, 80);
+  }
+})();
+</script>
+
+<script id="ui-tweak-js">
+(function(){
+  /* 地圖控件移至左下角並改圓形 */
+  function moveControls(){
+    var tr = document.querySelector('.leaflet-top.leaflet-right');
+    if(!tr) return;
+    var l = document.querySelector('.leaflet-control-layers');
+    if(l && l.parentNode !== tr) tr.appendChild(l);
+    var z = document.querySelector('.leaflet-control-zoom');
+    if(z && z.parentNode) z.parentNode.removeChild(z);
+  }
+  moveControls();
+  setTimeout(moveControls, 300);
+  window.addEventListener('load', function(){ setTimeout(moveControls, 400); });
+})();
+</script>
+
+<script id="sheet-js">
+(function(){
+  /* 依寬度或高度判斷小螢幕 */
+  window.__isSmall = function(){
+    return window.innerWidth <= 760 || window.innerHeight <= 520;
+  };
+
+  var sheet = document.getElementById('sheet');
+  var scroll = document.getElementById('sheet-scroll');
+  var titleEl = document.querySelector('#sheet-bar .st');
+  var sheetP = null;
+
+  window.showSheet = function(p){
+    sheetP = p;
+    titleEl.textContent = p.name;
+    scroll.innerHTML = popupHTML(p);
+    scroll.scrollTop = 0;
+    sheet.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function(){ if(sheetP) syncLitBtn(sheetP); }, 30);
+  };
+  window.hideSheet = function(){
+    sheet.classList.remove('show');
+    document.body.style.overflow = '';
+    sheetP = null;
+  };
+  document.getElementById('sheet-close').addEventListener('click', function(e){
+    e.stopPropagation(); hideSheet();
+  });
+  /* 下滑關閉 */
+  var sy0 = null;
+  scroll.addEventListener('touchstart', function(e){ sy0 = e.touches[0].clientY; }, {passive:true});
+  scroll.addEventListener('touchmove', function(e){
+    if(sy0 === null) return;
+    var dy = e.touches[0].clientY - sy0;
+    if(dy > 90 && scroll.scrollTop <= 0){ hideSheet(); sy0 = null; }
+  }, {passive:true});
+
+  /* 小螢幕改為全屏卡片 */
+  var _orig = window.openPopup;
+  window.openPopup = function(p){
+    if(window.__isSmall()){
+      try{ map.closePopup(); }catch(e){}
+      showSheet(p);
+      return;
+    }
+    return _orig(p);
+  };
+
+  /* 旋屏／放大到桌面時關掉全屏卡片 */
+  window.addEventListener('resize', function(){
+    if(!window.__isSmall()){ hideSheet(); }
+  });
+
+  /* 提示條自動收起，騰出地圖空間 */
+  var tip = document.getElementById('tip');
+  if(tip){
+    setTimeout(function(){ tip.classList.add('hide'); }, 6000);
+    tip.addEventListener('click', function(){ tip.classList.add('hide'); });
+  }
+})();
+</script>
+
+<script id="ctrl2-js">
+(function(){
+  /* 右上角兩個圖標跟隨頂欄高度 */
+  var head = document.getElementById('header');
+  function syncTop(){
+    var h = head ? head.offsetHeight : 150;
+    var base = (window.innerWidth <= 760 || window.innerHeight <= 520) ? (h + 8) : (h + 12);
+    document.documentElement.style.setProperty('--lgTop', base + 'px');
+  }
+  syncTop();
+  window.addEventListener('resize', syncTop);
+  window.addEventListener('orientationchange', function(){ setTimeout(syncTop, 250); });
+  if(window.ResizeObserver && head){
+    try{ new ResizeObserver(syncTop).observe(head); }catch(e){}
+  }
+
+  /* ② 默認視圖 = 全球視野 */
+  function toWorld(){
+    if(typeof map === 'undefined' || !map) return;
+    var sm = window.innerWidth <= 760;
+    map.setView([22, 80], sm ? 1.5 : 2.3, {animate:false});
+  }
+  toWorld();
+  window.addEventListener('resize', function(){
+    clearTimeout(window.__rz);
+    window.__rz = setTimeout(toWorld, 300);
+  });
+
+  /* ① 移除縮放控件 DOM */
+  setTimeout(function(){
+    var z = document.querySelector('.leaflet-control-zoom');
+    if(z && z.parentNode) z.parentNode.removeChild(z);
+  }, 100);
+})();
+</script>
+
+<div id="kao-mask" onclick="closeKao()"></div>
+<div id="kao-panel">
+  <div id="kao-close" onclick="closeKao()">✕</div>
+  <h2>📕 全球觀音廟（觀音堂／觀音寺）年代考錄 · 說明</h2>
+  <div class="k-sub">本圖點位與彈窗全部取自《全球觀音廟分類考錄》；地圖交互沿用北帝廟考錄版格式：默認圓點（大區色）· 點亮綻放蓮花 · 時間軸隨點亮聯動 · 同址廟宇微偏移展開。</div>
+
+  <h3>一、最容易的誤判：「以像證廟」</h3>
+  <p>觀音信仰最容易造成<b>「以像證廟」</b>的誤判：漢傳佛寺幾乎皆奉觀音，華人廟宇也常設觀音殿、觀音閣，但主神可能是釋迦、毗盧遮那佛、媽祖、關帝或祖先牌位。本考錄因此只把<b>正殿主供、廟宇專名與創建目的共同指向觀世音者</b>列作【廟】；會館佛堂同室多神者列【館壇】；佛寺中觀音僅居一殿者列【配祀】。</p>
+  <p>本圖除考錄正表 55 席（亞洲 45＋大洋洲 1＋非洲 2＋歐洲 3＋北美 2＋南美 2）外，另保留 <b>3 條附錄條目</b>（普陀山法雨寺、南海菩提庵、馬尼拉中路觀音堂）與 <b>14 條原圖點位</b>。附錄與補充條目在名錄中標記來源，不與正表混計。</p>
+  <div class="warn">最典型的專名誤導：新津觀音寺雖存明代觀音殿、觀音三大士塑像及 1475 年塑匠題記，但政府資料明言毗盧殿「主供毗盧遮那佛」，故列【配祀】；仰光慶福宮與曼德勒中華會館俗稱觀音廟，實質主祀媽祖；會安福建會館正殿供天后聖母，皆不收。</div>
+
+  <h3>二、四項時間必須分別記錄</h3>
+  <ul>
+    <li><b>始建年代</b>：傳說或傳統認定的建廟年。</li>
+    <li><b>最早可證年代</b>：碑刻、鐘銘、匾額、建築構件、方志、檔案所能證明的最早節點。</li>
+    <li><b>現存建築年代</b>：可斷代的主體、殿宇或經過重大改建形成的現貌。</li>
+    <li><b>最近重修年代</b>：有明確紀年的重修、擴建或復原。</li>
+  </ul>
+  <p>凡僅有僧團駐錫、神像來源、廟方宣傳、網絡傳說而缺載體的，不寫作始建年代。每條彈窗的四格時間線即按此分別列出，彼此關聯但不可互換。</p>
+  <div class="warn">五條年代陷阱：①正定隆興寺 586 是始建、969 是敕令、971 是興工、975 是落成，四個節點性質各異。②天津獨樂寺「始建於隋」但「不知創自何代」，984 年才是可證的遼代重建年——觀音閣與十一面觀音塑像同為 984 年所造。③緬甸仰光廣東觀音古廟 1824／1831／1852 三說並存，本錄並列不裁斷。④檳城極樂寺 1891（總領事館口徑）與 1889／1890（妙蓮開山說）並存。⑤普陀山 863 年是留像傳說、916 年是傳統建院，兩者不得合併成「始建於 863 年」。</div>
+
+  <h3>三、性質代碼四檔</h3>
+  <table>
+    <tr><th>代碼</th><th>含義</th><th>收錄決定</th></tr>
+    <tr><td>【廟】</td><td>獨立廟宇，正殿或主神為觀音</td><td>主收</td></tr>
+    <tr><td>【館廟】</td><td>會館內設主神偏向觀音的神殿</td><td>謹慎收，註明並祀</td></tr>
+    <tr><td>【館壇】</td><td>會館或社團內設觀音神壇，同室多神</td><td>不列「最早前十」，只作材料</td></tr>
+    <tr><td>【配祀】</td><td>觀音非主神，僅居別殿或偏位</td><td>不收；必要說明</td></tr>
+  </table>
+  <p>判斷主祀時至少滿足其一：廟宇名稱專指觀音；正殿神位、神龕或傳統神譜以觀音為主；會館雖供多神但觀音位於正殿中心且有「觀音堂」專名。反之，正殿供媽祖、關帝或釋迦牟尼，只因別殿有觀音，即排除。</p>
+
+  <h3>四、證據優先級</h3>
+  <p>建築構件與銘文 &gt; 廟內碑刻、鐘銘、匾額 &gt; 政府文物部門、古蹟主管部門 &gt; 地方志、官方檔案 &gt; 學術論著 &gt; 可靠權威媒體。百科、旅遊網站、廟方網頁只作線索。數字與說法衝突時並列，例如澳門普濟禪院「天啟年間」「1622」「1632」分別指向傳統創建年、某說定點年與最早器物年，不能擅裁。</p>
+
+  <h3>五、亞洲 45 席的構成：五姊妹篇中最特殊的一份</h3>
+  <p>亞洲放寬到 50 席，實填 45 席，其中 13 席只有朝代斷代、傳統紀年或明確標註「待核」，第 46—50 席為「暫無可核」。構成最說明問題：<b>日本 5 席、韓國 3 席、中國內地 8 席、台灣 5 席、香港 5 席、澳門 7 席、東南亞 9 席</b>——它是五姊妹篇中唯一「東亞佛教圈（日韓共 8 席）席位數超過除中國內地以外任一華人地區」的信仰，因為觀音早在華人移民時代之前就已隨佛教東傳在日、韓、越扎根，而關帝、天后、北帝、哪吒只在華人廟宇系統內傳播。</p>
+  <p>橫向對照：天后廟、關帝廟亞洲各滿 100 席，北帝廟 42 席，哪吒廟 35 席，觀音廟 45 席排第二高。</p>
+  <p>落地機制是<b>「佛教寺院本尊＋華人專廟＋會館配祀」三軌並行</b>。日本靠寺院緣起、本尊與國寶體系保持極高材料可見度（淺草寺 628 緣起—1649 再建—1945 燒毀—1958 重建，四個節點全部可核）；中國內地與台灣既有觀音專堂（長治 1581—1583），也有綜合佛寺中的觀音主殿（隆興寺大悲閣、獨樂寺觀音閣）；港澳形成「專祀觀音堂」與「綜合禪院」並行；東南亞則多由會館與綜合佛寺承擔（溫陵會館、極樂寺、慶福宮）。</p>
+
+  <h3>六、法定保護等級與信仰核心等級是兩套排序</h3>
+  <p>全國重點文物保護單位、省級或市級文保、香港法定古蹟／歷史建築、台灣古蹟、日本國寶／重要文化財、新加坡歷史地標等，反映建築、藝術、歷史或國家認定價值；寺廟在觀音分香譜系、祖廟地位、信眾網絡中的位置，則是另一套「信仰等級」。兩者可能重合，也可能分離：長治觀音堂是國保且有明確觀音主殿，等級高度重合；三十三間堂則是建築、造像與寺院本尊共同形成的國寶級體系；普陀山是道場核心，但具體「不肯去觀音院」遺址或殿宇不能等同整個普陀山建築群。</p>
+  <div class="warn">本考錄不以「觀音誕人數」「香火旺」「網絡知名度」替代法定等級。香火、遊客數常由旅遊、節慶與都市區位放大，且統計口徑不一。未來若做信仰等級，應建立獨立證據：分靈廟名單與年代、分香碑、爐主組織、祭祀圈田野、歷屆重修碑，而不是把文物保護級別直接轉寫為宗教影響力。</div>
+
+  <h3>七、信眾規模：本考錄不列「全球信眾人數」</h3>
+  <p>全球觀音信眾沒有可比較的統一統計主體。觀音不是單一法人宗教組織，既跨漢傳佛教、日本佛教、越南佛教，也進入華人民間祭祀；同一佛寺內「來寺信眾」與「專拜觀音信眾」無法分開。日本寺院可公布年度參拜人次，台灣古蹟廟宇可公布祭典活動人數，新加坡廟宇可公布香期人流，但這些數字混合觀光、祈福、社區與宗教動機，不能相加為全球信眾數。資料出現歧異時，本報告記錄「統計對象不同」，不取最大值。</p>
+
+  <h3>八、海外落地：會館佛堂與綜合佛寺承擔</h3>
+  <p>海外落地多由華人會館、同鄉組織及綜合佛寺承擔，主祀連續譜系弱於關帝、天后等專祀神明。歐洲 3 席全部是印支華人會館在 1980 年代末至 1990 年代設立的【館壇】，同室常供觀音、地藏、媽祖、玄天上帝、財神等，社會功能是同鄉互助與儀式空間的綜攝。北美 2 席（紐約大乘寺 1970、莊嚴寺 1975）均標待核——大乘寺觀音堂為院內一殿，莊嚴寺大殿主供毗盧遮那佛。大洋洲僅 1 席是墨爾本四邑關帝廟觀音閣【配祀】，正殿主祀關帝。</p>
+  <div class="warn">這裡的「空」是材料缺口，不是史實空白：有觀音信仰活動，但缺主祀紀年證據，不等於證明當地沒有更早的觀音廟。墨爾本四邑關帝廟 1856 年是整體廟宇創建年，正殿主神是關帝，觀音閣為附屬；若把 1856 年列入「觀音廟最早榜」，將把主祀關係偷換為「有觀音神位」。</div>
+
+  <h3>九、主要出處</h3>
+  <div class="srcs">
+    <b>中國內地</b>：山西省文物局、成都市新津區人民政府、東莞市人民政府、正定縣人民政府、天津市人民政府、薊州區人民政府、長治市潞州區人民政府、舟山市普陀區人民政府、河北省文物與古建築保護研究院<br>
+    <b>港澳台</b>：澳門特別行政區政府旅遊局、澳門文化遺產網 MM024、澳門普濟禪院官網、澳門特區政府新聞局、央視網、澎湃新聞、香港古物諮詢委員會、立法會參考資料摘要、華人廟宇委員會、大公文匯／香港樹仁大學專欄、台灣文化資產公告、高拱乾《台灣府志》、新修彰化縣志、國際在線<br>
+    <b>日韓</b>：淺草寺官網《本堂》、日本國土交通省、清水寺官網《歴史》、坂東三十三觀音靈場官網、鐮倉長谷寺官網、世界佛教美術圖說大辭典、韓國觀光公社<br>
+    <b>東南亞·海外</b>：新加坡國家圖書館（NLB）、中國僑網《印尼金德院》《越南古城會安的華人會館與寺廟》、中國駐墨爾本總領事館、中國駐檳城總領事館、會安世界文化遺產保護中心、緬華網、駐外台北經濟文化代表處<br>
+    <b>學術·其他</b>：山東大學《法國的華人佛教道場之初步調查》、搜狐轉載《毛里求斯華人社團與社會探析》、中國新聞網、梁思成《薊縣獨樂寺觀音閣山門考》（1932）
+  </div>
+  <p style="font-size:12px;color:#8a9490;margin-top:8px;">考錄正文引注編號 [1]—[35]，本圖彈窗「出處」欄為簡要標註；完整引注以考錄原文為準。</p>
+
+  <h3>十、本圖用法</h3>
+  <ul>
+    <li><b>圓點 ⇄ 蓮花</b>：點擊圓點開彈窗，點彈窗底部「點亮蓮花」即綻放；「✨ 全部點亮」按年代順序依次綻放，時間軸同步推進。</li>
+    <li><b>時間軸</b>：拖動按年代過濾；「含年代不詳」控制無紀年條目；「含次級條目」控制待核／補充條目（全球視野自動收起，放大到 z≥5 自動展開）。</li>
+    <li><b>圖例</b>：地區、性質兩組可點擊開關；外環表示法定等級（金＝世遺／國保／國寶，綠＝法定古蹟，虛線＝地方文保）。</li>
+    <li><b>廟宇名錄</b>：左側抽屜，支持搜索、大區快速跳轉、點擊飛至該廟；同址多廟會微偏移展開並連引線。</li>
+    <li><b>證據徽章</b>：可核／偏弱／爭議／待核四檔，點位旁另有考錄按語說明為何不能合併年代。</li>
+  </ul>
+</div>
+
+<script>
+function openKao(){
+  document.getElementById('kao-panel').classList.add('show');
+  document.getElementById('kao-mask').classList.add('show');
+}
+function closeKao(){
+  document.getElementById('kao-panel').classList.remove('show');
+  document.getElementById('kao-mask').classList.remove('show');
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeKao(); });
+</script>
+
+</body>
+</html>

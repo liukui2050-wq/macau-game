@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>🗺️ 全球譚仙分布交互地圖</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --paper:#f8f5f0;          /* 米白 */
+  --paper-2:#fffdf9;
+  --ink:#1f3831;            /* 墨綠（正文） */
+  --ink-2:#4a5a55;          /* 次要文字 */
+  --ink-3:#8a9490;          /* 弱化文字 */
+  --green:#0e7a5f;          /* 澳門綠 */
+  --green-soft:rgba(14,122,95,.12);
+  --gold:#c8a24e;           /* 思辨金 */
+  --gold-soft:rgba(200,162,78,.16);
+  --line:rgba(14,122,95,.22);
+  --line-g:rgba(200,162,78,.35);
+  --panel:rgba(248,245,240,.96);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+ background:#eeeae2;color:var(--ink)}
+#map{width:100%;height:100%;background:#eeeae2}
+.leaflet-container{background:#eeeae2;font-family:inherit}
+.leaflet-tile-pane{transition:filter .45s ease}
+
+/* ============ 頂欄 ============ */
+#header{position:fixed;top:0;left:0;right:0;z-index:9999;
+ background:linear-gradient(180deg,rgba(248,245,240,.98),rgba(248,245,240,.92));
+ border-bottom:1px solid var(--line-g);padding:9px 16px 8px;
+ padding-top:calc(9px + env(safe-area-inset-top));backdrop-filter:blur(14px);
+ box-shadow:0 2px 16px rgba(31,56,49,.10)}
+#header h1{font-size:18px;font-weight:800;color:var(--green);text-align:center;letter-spacing:1px}
+#header h1 small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:400;letter-spacing:.4px;margin-top:2px}
+.hrow{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:7px;flex-wrap:wrap}
+#progress-text{font-size:13px;color:var(--gold);font-weight:800;font-family:ui-monospace,monospace;min-width:76px;text-align:center}
+#progress-track{width:180px;height:7px;background:rgba(31,56,49,.12);border-radius:4px;overflow:hidden}
+#progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--gold));
+ border-radius:4px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+#header-btns{display:flex;gap:6px;justify-content:center;margin-top:7px;flex-wrap:wrap}
+.h-btn{font-size:12.5px;padding:7px 13px;border-radius:13px;border:1px solid var(--line-g);
+ background:var(--gold-soft);color:#8a6d2a;cursor:pointer;transition:.18s;white-space:nowrap;font-weight:600}
+.h-btn:hover{background:rgba(200,162,78,.26);border-color:var(--gold)}
+.h-btn:active{transform:scale(.95)}
+.h-btn.on{background:rgba(14,122,95,.16);border-color:var(--green);color:var(--green)}
+
+/* ============ 圖例 ============ */
+#legend-toggle{position:fixed;right:12px;z-index:9998;top:calc(150px + env(safe-area-inset-top));
+ width:44px;height:44px;border-radius:12px;background:var(--panel);border:1px solid var(--line-g);
+ display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;
+ backdrop-filter:blur(10px);box-shadow:0 3px 14px rgba(31,56,49,.18)}
+#legend{position:fixed;right:12px;z-index:9998;top:calc(202px + env(safe-area-inset-top));
+ width:218px;background:var(--panel);border:1px solid var(--line-g);
+ border-radius:12px;backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(31,56,49,.22);
+ display:none;max-height:calc(100vh - 320px);overflow-y:auto;padding:10px 12px}
+#legend.show{display:block;animation:fadeIn .25s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.legend-title{font-size:11.5px;color:var(--green);font-weight:800;letter-spacing:1.5px;margin:8px 0 5px;
+ padding-bottom:4px;border-bottom:1px solid var(--line)}
+.legend-title:first-child{margin-top:0}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-2);
+ padding:4px 5px;border-radius:7px;cursor:pointer;transition:.15s;user-select:none}
+.legend-item:hover{background:var(--green-soft)}
+.legend-item.off{opacity:.32}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;
+ border:2px solid #fff;box-shadow:0 1px 4px rgba(31,56,49,.35)}
+.legend-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend-n{font-size:11px;color:var(--ink-3);font-family:ui-monospace,monospace}
+.legend-note{font-size:11px;color:var(--ink-3);line-height:1.55;margin-top:7px;padding-top:6px;
+ border-top:1px solid var(--line)}
+.legend-item.legend-static{cursor:default}
+.legend-item.legend-static:hover{background:transparent}
+.ring-demo{width:13px;height:13px;border-radius:50%;flex-shrink:0;box-sizing:border-box;
+ background:rgba(31,56,49,.22)}
+.ring-demo.t1{border:2px solid var(--gold);box-shadow:0 0 5px rgba(200,162,78,.7)}
+.ring-demo.t2{border:1.6px solid var(--green)}
+.ring-demo.t3{border:1.3px dashed rgba(31,56,49,.55)}
+
+/* ============ 時間軸 ============ */
+#time-panel{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--panel);
+ border-top:1px solid var(--line-g);padding:9px 16px 11px;
+ padding-bottom:calc(11px + env(safe-area-inset-bottom));backdrop-filter:blur(14px);
+ box-shadow:0 -2px 16px rgba(31,56,49,.10)}
+#time-panel .lab{font-size:12px;color:var(--green);font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+#time-panel .lab em{font-style:normal;color:var(--ink-3);font-weight:400;font-size:11.5px}
+.range-row{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--green);height:26px;-webkit-appearance:none;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:5px;background:rgba(31,56,49,.16);border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+ background:var(--gold);border:2px solid var(--green);margin-top:-8.5px;box-shadow:0 0 10px rgba(200,162,78,.5)}
+#year-display{font-size:16px;color:#8a6d2a;font-weight:800;min-width:58px;text-align:center;
+ font-family:ui-monospace,monospace;background:var(--gold-soft);padding:3px 9px;border-radius:6px;
+ border:1px solid var(--line-g)}
+#visible-count{font-size:11.5px;color:var(--ink-3);margin-top:5px;text-align:center}
+#visible-count b{color:var(--green);font-weight:800}
+.mini-btn{font-size:11px;padding:4px 9px;border-radius:9px;border:1px solid var(--line-g);
+ background:var(--gold-soft);color:#8a6d2a;cursor:pointer;white-space:nowrap;font-weight:600}
+.mini-btn.on{background:rgba(14,122,95,.16);border-color:var(--green);color:var(--green)}
+
+/* ============ 彈窗（米白卡片） ============ */
+.leaflet-popup-content-wrapper{background:linear-gradient(168deg,var(--paper-2) 0%,var(--paper) 100%);
+ color:var(--ink);border-radius:14px;border:1px solid var(--line-g);
+ box-shadow:0 12px 38px rgba(31,56,49,.28);overflow:hidden}
+.leaflet-popup-tip{background:var(--paper);border:1px solid var(--line-g)}
+.leaflet-popup-content{margin:0 !important;width:320px !important;line-height:1.6}
+.leaflet-popup-close-button{color:var(--ink-3) !important;font-size:20px !important;
+ right:8px !important;top:6px !important;width:26px !important;height:26px !important}
+.leaflet-popup-close-button:hover{color:var(--green) !important;background:transparent !important}
+.p-head{padding:11px 14px 10px;background:linear-gradient(120deg,rgba(200,162,78,.16),rgba(14,122,95,.12));
+ border-bottom:1px solid var(--line-g)}
+.p-badges{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:5px}
+.p-badge{font-size:10.5px;padding:2px 7px;border-radius:7px;letter-spacing:.5px;font-weight:700}
+.badge-kind{background:var(--gold-soft);color:#8a6d2a;border:1px solid var(--line-g)}
+.badge-chain{background:rgba(14,122,95,.14);color:var(--green);border:1px solid rgba(14,122,95,.4)}
+.badge-flag{background:rgba(185,28,28,.10);color:#b91c1c;border:1px solid rgba(185,28,28,.32)}
+.badge-flag.ok{background:rgba(37,99,235,.10);color:#1d4ed8;border-color:rgba(37,99,235,.32)}
+.badge-rank{font-size:10.5px;color:var(--ink-3);font-family:ui-monospace,monospace;margin-left:auto}
+.badge-lv1{background:linear-gradient(120deg,rgba(200,162,78,.28),rgba(200,162,78,.14));
+ color:#7a5f16;border:1px solid var(--gold);font-weight:800}
+.badge-lv2{background:rgba(14,122,95,.14);color:var(--green);border:1px solid rgba(14,122,95,.42)}
+.badge-lv3{background:rgba(31,56,49,.08);color:var(--ink-2);border:1px dashed rgba(31,56,49,.45)}
+.p-name{font-size:17px;font-weight:800;color:var(--ink);line-height:1.35;letter-spacing:.3px}
+.p-place{font-size:12px;color:var(--ink-2);margin-top:3px;display:flex;align-items:center;gap:5px}
+.p-place i{width:8px;height:8px;border-radius:50%;display:inline-block;font-style:normal;
+ border:1.5px solid #fff;box-shadow:0 1px 3px rgba(31,56,49,.35)}
+.p-year{display:flex;align-items:baseline;gap:8px;padding:9px 14px 8px;background:rgba(200,162,78,.09);
+ border-bottom:1px solid var(--line-g)}
+.p-year b{font-size:23px;color:#8a6d2a;font-family:ui-monospace,monospace;font-weight:800;letter-spacing:-.5px}
+.p-year span{font-size:11.5px;color:var(--ink-2);line-height:1.45}
+.p-body{padding:10px 14px 12px}
+.p-tl{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.tl-cell{background:rgba(31,56,49,.045);border:1px solid rgba(31,56,49,.1);
+ border-radius:8px;padding:6px 8px}
+.tl-k{font-size:10px;color:var(--ink-3);letter-spacing:.5px;margin-bottom:2px}
+.tl-v{font-size:11.5px;color:var(--ink);line-height:1.45;word-break:break-word}
+.p-row{display:flex;gap:7px;font-size:11.5px;margin-bottom:5px;align-items:flex-start}
+.p-row .k{color:var(--ink-3);flex-shrink:0;width:52px}
+.p-row .v{color:var(--ink);flex:1;word-break:break-word}
+.p-row .v.gold{color:#8a6d2a;font-weight:700}
+.p-warn{margin-top:8px;background:rgba(200,162,78,.12);border-left:3px solid var(--gold);
+ border-radius:0 8px 8px 0;padding:7px 10px;font-size:11.5px;color:#6b551d;line-height:1.6}
+.p-warn b{color:#8a6d2a;font-weight:800}
+.p-foot{margin-top:8px;padding-top:7px;border-top:1px solid rgba(31,56,49,.12);
+ display:flex;justify-content:space-between;align-items:center;gap:8px}
+.p-src{font-size:10.5px;color:var(--ink-3);font-style:italic;flex:1}
+.p-lit{font-size:11.5px;padding:4px 10px;border-radius:9px;cursor:pointer;white-space:nowrap;
+ border:1px solid var(--line-g);background:var(--gold-soft);color:#8a6d2a;font-weight:700;transition:.16s}
+.p-lit:hover{background:rgba(200,162,78,.28)}
+.p-lit.on{background:rgba(236,72,153,.14);border-color:#ec4899;color:#be185d}
+
+/* ============ 名錄面板 ============ */
+#list-panel{position:fixed;left:0;top:0;bottom:0;width:348px;z-index:10000;
+ background:rgba(248,245,240,.975);border-right:1px solid var(--line-g);
+ backdrop-filter:blur(16px);transform:translateX(-105%);transition:transform .32s cubic-bezier(.4,0,.2,1);
+ display:flex;flex-direction:column;box-shadow:8px 0 30px rgba(31,56,49,.18)}
+#list-panel.show{transform:none}
+#list-head{padding:14px 16px 10px;padding-top:calc(14px + env(safe-area-inset-top));
+ border-bottom:1px solid var(--line)}
+#list-head h2{font-size:16px;color:var(--green);font-weight:800;display:flex;align-items:center;gap:8px}
+#list-head h2 span{font-size:11.5px;color:var(--ink-3);font-weight:400}
+#list-search{width:100%;margin-top:9px;padding:7px 11px;border-radius:9px;font-size:12.5px;
+ background:rgba(31,56,49,.05);border:1px solid var(--line-g);color:var(--ink);outline:none;font-family:inherit}
+#list-search:focus{border-color:var(--green);background:#fff}
+#list-search::placeholder{color:var(--ink-3)}
+
+/* 大區快速跳轉滑條 */
+#list-strip{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;overflow-y:hidden;
+ border-bottom:1px solid var(--line);background:rgba(31,56,49,.03);
+ cursor:grab;scrollbar-width:none;flex-shrink:0}
+#list-strip.dragging{cursor:grabbing}
+#list-strip::-webkit-scrollbar{display:none}
+.strip-chip{display:flex;align-items:center;gap:5px;flex-shrink:0;padding:5px 10px;border-radius:11px;
+ font-size:12px;white-space:nowrap;user-select:none;cursor:pointer;transition:.16s;color:var(--ink-2);
+ background:rgba(31,56,49,.05);border:1px solid rgba(14,122,95,.24)}
+.strip-chip:hover{background:rgba(200,162,78,.2)}
+.strip-chip i{width:9px;height:9px;border-radius:50%;font-style:normal;flex-shrink:0;
+ border:1.5px solid #fff;box-shadow:0 1px 3px rgba(31,56,49,.35)}
+.strip-chip b{font-size:10.5px;color:var(--ink-3);font-family:ui-monospace,monospace;font-weight:700}
+.strip-chip.active{background:var(--gold-soft);border-color:var(--gold);color:var(--ink);
+ box-shadow:0 0 0 1px rgba(200,162,78,.35) inset;font-weight:700}
+.strip-chip.active b{color:#8a6d2a}
+.strip-chip.empty{opacity:.35;cursor:default}
+.strip-chip.empty:hover{background:rgba(31,56,49,.05)}
+
+#list-body{flex:1;overflow-y:auto;padding:6px 8px 24px}
+.lg-group{margin-top:6px;scroll-margin-top:4px}
+.lg-title{font-size:11.5px;color:var(--green);font-weight:800;letter-spacing:1px;padding:8px 8px 6px;
+ display:flex;align-items:center;gap:7px;position:sticky;top:0;background:rgba(248,245,240,.985);z-index:2;
+ border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+.lg-title i{width:9px;height:9px;border-radius:50%;font-style:normal;
+ border:1.5px solid #fff;box-shadow:0 1px 3px rgba(31,56,49,.35)}
+.lg-title .c{font-size:10.5px;color:var(--ink-3);font-family:ui-monospace,monospace;font-weight:700}
+.lg-title .ar{font-size:9px;color:var(--ink-3);margin-left:auto;transition:transform .2s}
+.lg-group.collapsed .ar{transform:rotate(-90deg)}
+.lg-group.collapsed .lg-items{display:none}
+.lg-item{display:flex;gap:8px;align-items:flex-start;padding:7px 9px;border-radius:8px;cursor:pointer;transition:.15s}
+.lg-item:hover{background:var(--green-soft)}
+.lg-item.lit{background:rgba(236,72,153,.1)}
+.lg-item.lit .lg-n{color:#be185d;font-weight:700}
+.lg-y{font-size:11px;color:#8a6d2a;font-family:ui-monospace,monospace;width:48px;flex-shrink:0;
+ text-align:right;padding-top:1px;font-weight:600}
+.lg-main{flex:1;min-width:0}
+.lg-n{font-size:12.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.45}
+.lg-p{font-size:10.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.lg-t{font-size:10px;color:var(--green);border:1px solid rgba(14,122,95,.35);border-radius:6px;
+ padding:0 4px;flex-shrink:0;margin-top:2px;background:rgba(14,122,95,.07)}
+.lg-item.unknown .lg-t{border-color:rgba(185,28,28,.35);color:#b91c1c;background:rgba(185,28,28,.07)}
+.lg-star{font-size:10px;flex-shrink:0;margin-top:2px;line-height:1}
+.lg-star.t1{color:var(--gold);text-shadow:0 0 4px rgba(200,162,78,.55)}
+.lg-star.t2{color:var(--green)}
+#list-close{position:absolute;right:10px;top:calc(12px + env(safe-area-inset-top));
+ width:32px;height:32px;border-radius:9px;background:rgba(31,56,49,.06);border:1px solid var(--line-g);
+ color:var(--green);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ============ 點位：默認圓點 · 點亮蓮花 ============ */
+/* --pt-size / --pt-halo 由 JS 依縮放等級動態寫入 */
+:root{--pt-size:11px;--pt-halo:.20;--pt-lotus:34px}
+.lotus-icon{background:transparent !important;border:none !important}
+.pt-wrap{width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+ position:relative;cursor:pointer}
+/* 地區色柔光暈：暗灰路網上把圓點從背景里托起來 */
+.pt-halo{position:absolute;top:50%;left:50%;width:calc(var(--pt-size) + 14px);
+ height:calc(var(--pt-size) + 14px);margin:0;transform:translate(-50%,-50%);border-radius:50%;
+ opacity:var(--pt-halo);pointer-events:none;transition:opacity .3s ease,width .3s ease,height .3s ease}
+.pt-dot{position:relative;width:var(--pt-size);height:var(--pt-size);border-radius:50%;
+ border:2px solid #fff;box-shadow:0 1px 5px rgba(31,56,49,.55);
+ transition:width .3s cubic-bezier(.4,0,.2,1),height .3s cubic-bezier(.4,0,.2,1),transform .2s cubic-bezier(.34,1.4,.64,1)}
+.pt-wrap:hover .pt-dot{transform:scale(1.5)}
+.pt-wrap:hover .pt-halo{opacity:calc(var(--pt-halo) + .22)}
+
+.pt-lotus{display:none;width:var(--pt-lotus);height:var(--pt-lotus)}
+.pt-lotus svg{width:100%;height:100%;filter:drop-shadow(0 2px 5px rgba(31,56,49,.35))}
+.pt-wrap.lit .pt-dot,.pt-wrap.lit .pt-halo{display:none}
+.pt-wrap.lit .pt-lotus{display:block;animation:lotusPop .55s cubic-bezier(.34,1.56,.64,1)}
+@keyframes lotusPop{0%{transform:scale(.25) rotate(-12deg);opacity:0}
+ 55%{transform:scale(1.18) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+/* 點亮態光暈：粉金雙層，隨蓮花呼吸 */
+.pt-wrap.lit .pt-lotus svg{animation:lotusBreathe 2.8s ease-in-out infinite .55s}
+.pt-wrap.lit .pt-lotus{filter:drop-shadow(0 0 9px rgba(236,72,153,.85))
+ drop-shadow(0 0 20px rgba(200,162,78,.55))}
+@keyframes lotusBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+/* 點亮後的金色脈衝光環 */
+.pt-wrap.lit::after{content:'';position:absolute;top:50%;left:50%;
+ width:var(--pt-lotus);height:var(--pt-lotus);margin:calc(var(--pt-lotus) / -2) 0 0 calc(var(--pt-lotus) / -2);
+ border-radius:50%;border:1.5px solid var(--gold);pointer-events:none;
+ animation:litHalo 2.8s ease-out infinite}
+@keyframes litHalo{0%{transform:scale(.55);opacity:.85}
+ 70%{transform:scale(1.9);opacity:0}100%{transform:scale(1.9);opacity:0}}
+.pt-wrap .pt-no{position:absolute;top:-2px;left:50%;transform:translateX(-50%);
+ font-size:9px;font-family:ui-monospace,monospace;background:var(--panel);color:#8a6d2a;
+ border:1px solid var(--line-g);border-radius:6px;padding:0 3px;opacity:0;transition:.2s;white-space:nowrap}
+.pt-wrap:hover .pt-no{opacity:1}
+/* 法定等級外環：金=世遺／國保，綠=國定古蹟／國家遺產，虛灰=地方級 */
+.pt-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+ border-radius:50%;pointer-events:none;box-sizing:border-box;background:transparent;
+ transition:width .3s ease,height .3s ease}
+.pt-ring.t1{width:calc(var(--pt-size) + 9px);height:calc(var(--pt-size) + 9px);
+ border:2px solid var(--gold);box-shadow:0 0 6px rgba(200,162,78,.8),inset 0 0 3px rgba(200,162,78,.45)}
+.pt-ring.t2{width:calc(var(--pt-size) + 7px);height:calc(var(--pt-size) + 7px);
+ border:1.6px solid var(--green);box-shadow:0 0 4px rgba(14,122,95,.45)}
+.pt-ring.t3{width:calc(var(--pt-size) + 6px);height:calc(var(--pt-size) + 6px);
+ border:1.3px dashed rgba(31,56,49,.5)}
+.pt-wrap.lit .pt-ring{display:none}
+
+/* ============ 點亮特效 ============ */
+.bloom{position:fixed;pointer-events:none;z-index:200;width:80px;height:80px;margin:-40px 0 0 -40px}
+.bloom .bl{position:absolute;top:50%;left:50%;animation:rise 1.5s cubic-bezier(.22,1,.36,1) forwards}
+.bl svg{width:52px;height:52px;filter:drop-shadow(0 0 14px rgba(236,72,153,.85))}
+@keyframes rise{0%{transform:translate(-50%,-50%) scale(.2) rotate(-8deg);opacity:0}
+ 22%{transform:translate(-50%,-62%) scale(1.12) rotate(3deg);opacity:1}
+ 100%{transform:translate(-50%,-135%) scale(1.55) rotate(6deg);opacity:0}}
+.bloom .rp{position:absolute;top:50%;left:50%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+ border:2px solid var(--gold);animation:ripple 1.1s ease-out forwards}
+@keyframes ripple{0%{transform:scale(.3);opacity:.85}100%{transform:scale(3.8);opacity:0}}
+.bloom .pt{position:absolute;top:50%;left:50%;width:3px;height:3px;border-radius:50%;background:#ec4899;
+ animation:fly 1.25s ease-out forwards}
+@keyframes fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--px),var(--py)) scale(0);opacity:0}}
+
+/* ============ 順序點亮：浮標 + 橫幅 ============ */
+.seq-label{position:absolute;z-index:600;pointer-events:none;margin-top:-54px;
+ background:var(--panel);border:1px solid var(--gold);border-radius:10px;padding:5px 11px;
+ display:flex;align-items:baseline;gap:8px;white-space:nowrap;box-shadow:0 5px 18px rgba(31,56,49,.28);
+ transform:translate(-50%,0);animation:slIn .3s cubic-bezier(.22,1,.36,1)}
+@keyframes slIn{from{opacity:0;transform:translate(-50%,12px) scale(.88)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+.seq-label.out{opacity:0;transform:translate(-50%,-16px) scale(.95);transition:opacity .55s ease,transform .55s ease}
+.seq-label .sy{font-size:16px;color:#8a6d2a;font-weight:800;font-family:ui-monospace,monospace;letter-spacing:-.5px}
+.seq-label .sn{font-size:13.5px;color:var(--ink);font-weight:800}
+.seq-label .sa{font-size:11px;color:var(--ink-3)}
+.seq-label .sk{font-size:10px;color:var(--green);border:1px solid rgba(14,122,95,.4);
+ border-radius:6px;padding:0 4px;background:rgba(14,122,95,.08)}
+.seq-label::after{content:'';position:absolute;bottom:-6px;left:50%;margin-left:-6px;
+ border:6px solid transparent;border-top-color:var(--gold)}
+
+#seq-banner{position:fixed;left:50%;bottom:calc(112px + env(safe-area-inset-bottom));z-index:10001;
+ transform:translateX(-50%) translateY(18px);opacity:0;pointer-events:none;min-width:330px;max-width:88vw;
+ background:var(--panel);border:1px solid var(--gold);border-radius:13px;padding:9px 18px 10px;
+ box-shadow:0 10px 30px rgba(31,56,49,.26);backdrop-filter:blur(14px);
+ transition:opacity .3s ease,transform .3s cubic-bezier(.22,1,.36,1)}
+#seq-banner.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#seq-banner.pick{pointer-events:auto;cursor:pointer}
+.sb-row{display:flex;align-items:baseline;gap:10px;justify-content:center}
+.sb-n{font-size:11px;color:var(--ink-3);font-family:ui-monospace,monospace;flex-shrink:0}
+.sb-y{font-size:20px;color:#8a6d2a;font-weight:800;font-family:ui-monospace,monospace;letter-spacing:-.5px}
+.sb-name{font-size:15px;color:var(--ink);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-a{font-size:11.5px;color:var(--ink-3);flex-shrink:0}
+.sb-bar{height:3px;background:rgba(31,56,49,.13);border-radius:2px;margin-top:7px;overflow:hidden}
+.sb-fill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--gold) 55%,#ec4899);transition:width .3s linear}
+.sb-hint{font-size:10.5px;color:var(--ink-3);text-align:center;margin-top:5px}
+#seq-banner.done .sb-hint{color:var(--green);font-weight:700}
+
+/* ============ Leaflet 控件 ============ */
+.leaflet-control-layers{background:var(--panel) !important;border:1px solid var(--line-g) !important;
+ border-radius:11px !important;box-shadow:0 4px 16px rgba(31,56,49,.18) !important;backdrop-filter:blur(10px);
+ color:var(--ink);padding:0 !important;margin-bottom:130px !important}
+.leaflet-control-layers-expanded{padding:8px 10px !important}
+.leaflet-control-layers-toggle{background:var(--panel) !important;border:1px solid var(--line-g) !important;
+ border-radius:11px !important;width:40px !important;height:40px !important;margin-bottom:130px !important}
+.leaflet-control-layers-toggle::after{content:'🗺️';font-size:20px;display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+.leaflet-control-layers-base label{color:var(--ink-2) !important;font-size:13px;padding:4px 0;display:flex;align-items:center;gap:6px}
+.leaflet-control-layers-base input[type=radio]{accent-color:var(--green)}
+.leaflet-control-layers-expanded .leaflet-control-layers-list{max-height:34vh;overflow-y:auto}
+.leaflet-control-zoom a{width:34px !important;height:34px !important;line-height:34px !important;font-size:19px !important;
+ background:var(--panel) !important;color:var(--ink) !important;border-color:var(--line-g) !important}
+.leaflet-control-zoom{margin-top:calc(158px + env(safe-area-inset-top)) !important;margin-left:12px !important}
+.leaflet-control-attribution{display:none}
+#tip{position:fixed;left:12px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:9997;
+ font-size:11.5px;color:var(--ink-2);background:var(--panel);padding:5px 10px;border-radius:9px;
+ border:1px solid var(--line-g);max-width:250px;line-height:1.5;box-shadow:0 3px 12px rgba(31,56,49,.14)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:rgba(200,162,78,.55);border-radius:3px}
+</style>
+
+<style id="mob-css">
+/* ============ 手機端適配：解決頂欄／底欄遮擋 ============ */
+:root{ --hh:168px; --bt:190px; }
+@media (max-width:760px){
+  /* 頂欄壓縮 */
+  #header{padding:6px 10px 6px !important;padding-top:calc(6px + env(safe-area-inset-top)) !important;}
+  #header h1{font-size:14.5px !important;letter-spacing:.4px !important;}
+  #header h1 small{display:-webkit-box !important;-webkit-line-clamp:2 !important;-webkit-box-orient:vertical !important;
+    overflow:hidden !important;font-size:10px !important;line-height:1.35 !important;margin-top:1px !important;}
+  .hrow{margin-top:4px !important;gap:7px !important;}
+  #progress-track{width:min(150px,34vw) !important;}
+  #progress-text{font-size:12px !important;min-width:64px !important;}
+  #header-btns{margin-top:4px !important;gap:4px !important;}
+  .h-btn{font-size:11px !important;padding:6px 9px !important;border-radius:11px !important;}
+  /* 頂欄摺疊態：隱藏副標題與進度行，只留標題＋按鈕 */
+  #header.mini h1 small,#header.mini .hrow{display:none !important;}
+  #header h1 .fold{display:none !important;}
+  #header h1 .fold{font-size:11px;color:var(--gold);margin-left:6px;}
+  #header h1 .fold{display:inline-block !important;}
+
+  /* 懸浮控件跟隨頂欄實際高度 */
+  #legend-toggle,#panel-toggle{top:calc(var(--hh) + 8px) !important;right:8px !important;
+    width:38px !important;height:38px !important;font-size:15px !important;}
+  .leaflet-control-zoom{margin-top:calc(var(--hh) + 8px) !important;margin-left:8px !important;}
+  .leaflet-control-zoom a{width:30px !important;height:30px !important;line-height:30px !important;font-size:16px !important;}
+  .leaflet-control-layers{margin-bottom:calc(var(--bt) + 8px) !important;margin-right:8px !important;}
+  .leaflet-control-layers-toggle{width:34px !important;height:34px !important;margin-bottom:calc(var(--bt) + 8px) !important;margin-right:8px !important;}
+
+  /* 圖例改為底部抽屜，不再被頂欄／底欄夾住 */
+  #legend,#panel{position:fixed !important;left:8px !important;right:8px !important;
+    top:auto !important;bottom:calc(var(--bt) + 6px) !important;width:auto !important;
+    max-height:min(46vh, 340px) !important;border-radius:14px !important;
+    box-shadow:0 -4px 24px rgba(31,56,49,.22) !important;padding:10px 12px 12px !important;}
+  #legend .lg-grid{display:grid !important;grid-template-columns:1fr 1fr !important;gap:0 12px !important;}
+  .legend-item{min-height:28px !important;padding:2px 0 !important;font-size:12px !important;}
+
+  /* 底部時間面板壓縮 */
+  #time-panel{padding:6px 10px 8px !important;padding-bottom:calc(8px + env(safe-area-inset-bottom)) !important;}
+  #time-panel .lab{font-size:11px !important;margin-bottom:3px !important;gap:6px !important;}
+  #time-panel .lab em{font-size:10.5px !important;}
+  .range-row{gap:7px !important;}
+  input[type=range]{height:22px !important;}
+  #year-display{font-size:14px !important;min-width:50px !important;padding:2px 7px !important;}
+  #visible-count{font-size:10.5px !important;margin-top:3px !important;
+    display:-webkit-box !important;-webkit-line-clamp:1 !important;-webkit-box-orient:vertical !important;overflow:hidden !important;}
+  .mini-btn{font-size:10.5px !important;padding:4px 8px !important;border-radius:8px !important;}
+  #time-panel .tbtns{gap:4px !important;margin-top:4px !important;}
+
+  /* 播放橫幅跟隨底欄 */
+  #seq-banner{bottom:calc(var(--bt) + 8px) !important;width:min(92vw,420px) !important;}
+
+  /* 名錄側欄在手機上鋪滿 */
+  #list-panel{width:100% !important;border-right:none !important;}
+
+  /* 彈窗自適應：限高並可內部滾動，避免撐出螢幕 */
+  .leaflet-popup-content{width:min(78vw,272px) !important;margin:10px 12px !important;
+    max-height:min(44vh,360px) !important;overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch !important;overscroll-behavior:contain !important;}
+  .leaflet-popup-content .p-name{font-size:15px !important;}
+  .p-tl{grid-template-columns:1fr !important;}
+  .tl-wide{grid-column:auto !important;}
+  .leaflet-popup-content-wrapper{max-width:82vw !important;}
+
+  /* 提示條 */
+  #tip{bottom:calc(var(--bt) + 6px) !important;left:8px !important;right:8px !important;
+    width:auto !important;max-width:none !important;}
+}
+
+@media (max-width:760px) and (orientation:landscape){
+  #legend,#panel{max-height:min(62vh,260px) !important;}
+}
+
+/* landscape-patch */
+@media (max-height:520px){
+  #header{padding:4px 8px 3px !important; padding-top:calc(4px + env(safe-area-inset-top)) !important;}
+  #header h1{font-size:14px !important; line-height:1.25 !important;}
+  #header .sub,#header h1 small,#header h1 .sub{display:none !important;}
+  #header h1{white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}
+  #header.mini #progress-row{display:none !important;}
+  #progress-row{margin:1px 0 !important;}
+  #progress-text{font-size:11px !important;min-width:60px !important;}
+  #progress-track{max-width:120px !important;height:5px !important;}
+  #header-btns{margin-top:3px !important;gap:3px !important;}
+  .h-btn{font-size:10.5px !important;padding:4px 7px !important;min-height:26px !important;border-radius:9px !important;}
+
+  /* 底部時間面板壓到最矮 */
+  #time-panel{padding:4px 8px 5px !important;padding-bottom:calc(5px + env(safe-area-inset-bottom)) !important;}
+  #time-panel .lab{font-size:10.5px !important;margin-bottom:2px !important;}
+  #time-panel .lab em{font-size:10px !important;}
+  #yearSlider{height:16px !important;}
+  #yearSlider::-webkit-slider-thumb{width:14px !important;height:14px !important;margin-top:-5px !important;}
+  #year-display{font-size:11.5px !important;padding:1px 5px !important;min-width:40px !important;}
+  #visible-count{font-size:9.5px !important;margin-top:1px !important;}
+  .tp-switches{gap:3px !important;}
+  .tp-sw{font-size:10px !important;padding:3px 6px !important;min-height:22px !important;}
+
+  /* 懸浮控件跟隨 */
+  #legend-toggle,#panel-toggle{top:calc(var(--hh) + 6px) !important;width:34px !important;height:34px !important;
+    border-radius:9px !important;font-size:15px !important;}
+  .leaflet-control-zoom{margin-top:calc(var(--hh) + 6px) !important;margin-left:6px !important;}
+  .leaflet-control-zoom a{width:26px !important;height:26px !important;line-height:26px !important;font-size:14px !important;}
+  .leaflet-control-layers{margin-bottom:calc(var(--bt) + 6px) !important;}
+  .leaflet-control-layers-toggle{width:30px !important;height:30px !important;margin-bottom:calc(var(--bt) + 6px) !important;}
+
+  /* 圖例改底部抽屜 */
+  #legend,#panel{top:auto !important;bottom:calc(var(--bt) + 4px) !important;right:6px !important;
+    width:min(300px,70vw) !important;max-height:min(56vh,220px) !important;
+    border-radius:10px !important;padding:7px 9px !important;}
+  .legend-item{min-height:26px !important;font-size:11.5px !important;margin:1px 0 !important;padding:2px 0 !important;}
+  .legend-title{font-size:10.5px !important;margin:5px 0 3px !important;}
+  .legend-note{display:none !important;}
+
+  /* 播放橫幅 */
+  #seq-banner{bottom:calc(var(--bt) + 4px) !important;left:6px !important;right:6px !important;
+    padding:5px 9px !important;border-radius:10px !important;}
+  #sb-year{font-size:15px !important;}
+  #sb-name{font-size:12px !important;}
+  #sb-meta,#sb-place{font-size:10px !important;}
+
+  /* 彈窗限高 */
+  .leaflet-popup-content{max-height:min(50vh,240px) !important;}
+  .leaflet-popup-content-wrapper{max-width:74vw !important;}
+
+  /* 名錄全屏 */
+  #list-panel{width:100vw !important;max-width:none !important;
+    top:env(safe-area-inset-top) !important;bottom:0 !important;height:auto !important;border-radius:0 !important;}
+  #tip{bottom:calc(var(--bt) + 4px) !important;font-size:10.5px !important;}
+}
+
+/* ui-tweak-patch */
+/* ① 時間軸：兩行佈局 */
+#time-panel .tp-r1{display:flex;align-items:center;gap:9px}
+#time-panel .tp-r2{display:flex;align-items:center;gap:9px;margin-top:5px}
+#time-panel .tp-title{font-size:12.5px;color:var(--green);font-weight:800;white-space:nowrap;flex-shrink:0}
+#time-panel .ylab{font-size:11.5px;color:var(--ink-3);flex-shrink:0;font-family:ui-monospace,monospace}
+#time-panel .tp-btns{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
+#time-panel .range-row{flex:1;min-width:0}
+#visible-count{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  text-align:left;margin:0 !important;font-size:12px !important}
+#time-panel .lab{display:none !important}
+
+/* ② 播放橫幅：點亮時不再顯示年代與廟名 */
+#seq-banner{display:none !important}
+
+/* ③ 地圖控件：圓形 + 左下角 */
+.leaflet-bottom.leaflet-left{display:flex !important;align-items:flex-end !important;gap:8px;
+  margin-left:12px !important;margin-bottom:calc(var(--bt, 130px) + 12px) !important;
+  pointer-events:none !important;z-index:9998}
+.leaflet-bottom.leaflet-left > *{pointer-events:auto !important}
+.leaflet-control-zoom{display:flex !important;flex-direction:column !important;gap:7px;
+  margin:0 !important;float:none !important;box-shadow:none !important;border:none !important;background:none !important}
+.leaflet-control-zoom a{width:38px !important;height:38px !important;line-height:36px !important;
+  border-radius:50% !important;font-size:19px !important;
+  background:rgba(248,245,240,.94) !important;color:var(--green) !important;
+  border:1px solid var(--line-g) !important;box-shadow:0 2px 12px rgba(31,56,49,.28) !important;
+  backdrop-filter:blur(10px);transition:.16s}
+.leaflet-control-zoom a:hover{background:#fff !important;transform:scale(1.06)}
+.leaflet-control-layers{margin:0 !important;float:none !important;box-shadow:none !important;
+  border:none !important;background:none !important}
+.leaflet-control-layers-toggle{width:38px !important;height:38px !important;border-radius:50% !important;
+  background:rgba(248,245,240,.94) !important;border:1px solid var(--line-g) !important;
+  box-shadow:0 2px 12px rgba(31,56,49,.28) !important;margin:0 !important;backdrop-filter:blur(10px)}
+.leaflet-control-layers-expanded{border-radius:14px !important;background:rgba(248,245,240,.96) !important;
+  border:1px solid var(--line-g) !important;padding:8px 10px !important;
+  box-shadow:0 4px 20px rgba(31,56,49,.3) !important;
+  margin:0 0 8px 0 !important;max-height:38vh;overflow-y:auto}
+
+@media (max-width:760px){
+  #time-panel .tp-title{display:none !important}
+  #time-panel .ylab{display:none !important}
+  #time-panel .tp-r1{gap:7px}
+  #time-panel .tp-r2{margin-top:4px;gap:7px}
+  #visible-count{font-size:11px !important}
+  .leaflet-bottom.leaflet-left{margin-left:8px !important;margin-bottom:calc(var(--bt, 130px) + 8px) !important}
+  .leaflet-control-zoom a{width:34px !important;height:34px !important;line-height:32px !important;font-size:17px !important}
+  .leaflet-control-layers-toggle{width:34px !important;height:34px !important}
+}
+@media (max-height:520px){
+  #time-panel .tp-title{display:none !important}
+  .leaflet-control-zoom a{width:32px !important;height:32px !important;line-height:30px !important;font-size:16px !important}
+  .leaflet-control-layers-toggle{width:32px !important;height:32px !important}
+  .leaflet-bottom.leaflet-left{margin-bottom:calc(var(--bt, 90px) + 8px) !important}
+}
+
+/* sheet-patch */
+#sheet{position:fixed;left:0;right:0;top:0;bottom:0;z-index:20000;
+  background:linear-gradient(168deg,#fffdf8 0%,var(--paper) 60%);
+  display:none;flex-direction:column;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+#sheet.show{display:flex;animation:sheetIn .26s cubic-bezier(.22,1,.36,1)}
+@keyframes sheetIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+
+#sheet-bar{flex-shrink:0;display:flex;align-items:center;gap:10px;
+  padding:10px 14px 9px;border-bottom:1px solid var(--line-g);
+  background:linear-gradient(120deg,rgba(200,162,78,.14),rgba(14,122,95,.10));
+  box-shadow:0 2px 12px rgba(31,56,49,.10)}
+#sheet-bar .grip{width:34px;height:4px;border-radius:2px;background:rgba(31,56,49,.22);
+  position:absolute;left:50%;transform:translateX(-50%);top:5px}
+#sheet-bar .st{font-size:14px;font-weight:800;color:var(--green);letter-spacing:.5px;flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sheet-close{flex-shrink:0;width:34px;height:34px;border-radius:50%;border:1px solid var(--line-g);
+  background:rgba(255,255,255,.9);color:var(--ink-2);font-size:16px;line-height:32px;text-align:center;
+  cursor:pointer;box-shadow:0 2px 10px rgba(31,56,49,.16)}
+#sheet-close:active{transform:scale(.92);background:var(--gold-soft)}
+
+#sheet-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;padding:0 0 0;display:flex;flex-direction:column}
+#sheet-scroll > *{flex-shrink:0}
+#sheet .p-body{flex:1;display:flex;flex-direction:column;padding:12px 15px 0}
+
+#sheet .p-head{padding:12px 15px 11px;background:none;border-bottom:none}
+#sheet .p-badges{gap:5px;flex-wrap:wrap}
+#sheet .p-badge{font-size:10.5px;padding:3px 8px;border-radius:8px}
+#sheet .p-name{font-size:20px;line-height:1.4;letter-spacing:.4px}
+#sheet .p-place{font-size:12.5px;margin-top:5px}
+#sheet .p-year{padding:12px 15px 13px;gap:12px}
+#sheet .p-year b{font-size:34px}
+#sheet .p-year span{font-size:12.5px;line-height:1.6}
+#sheet .p-body{padding:12px 15px 0}
+#sheet .p-tl{gap:9px}
+#sheet .tl-k{font-size:10.5px}
+#sheet .tl-v{font-size:13px}
+#sheet .p-row{padding:8px 0;font-size:13px}
+#sheet .p-row .k{font-size:11.5px;min-width:66px}
+#sheet .p-row .v{font-size:13px;line-height:1.7}
+#sheet .p-warn{font-size:12.5px;line-height:1.75;padding:10px 12px}
+#sheet .p-src{font-size:11px}
+
+#sheet .p-foot{position:sticky;bottom:0;flex-shrink:0;margin-top:auto;display:flex;align-items:center;gap:10px;
+  padding:10px 15px;padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line-g);background:linear-gradient(180deg,rgba(255,253,248,.92),#fffdf8);
+  backdrop-filter:blur(12px);box-shadow:0 -3px 16px rgba(31,56,49,.12)}
+#sheet .p-foot .p-src{flex:1;min-width:0;font-size:10.5px;color:var(--ink-3);line-height:1.5}
+#sheet .p-lit{flex-shrink:0;font-size:13px;padding:9px 16px;border-radius:22px;
+  background:linear-gradient(120deg,var(--green),#149c78);color:#fff;font-weight:800;
+  box-shadow:0 3px 12px rgba(14,122,95,.32)}
+#sheet .p-lit.on{background:linear-gradient(120deg,#ec4899,#f472b6);box-shadow:0 3px 12px rgba(236,72,153,.34)}
+#sheet .p-lit:active{transform:scale(.95)}
+
+/* 提示条：手机上更小并自动收起，给地图让位 */
+#tip{transition:opacity .5s, transform .5s}
+#tip.hide{opacity:0;transform:translateY(10px);pointer-events:none}
+@media (max-width:760px){
+  #tip{font-size:10.5px !important;padding:6px 10px !important;
+    bottom:calc(var(--bt,130px) + 4px) !important;left:8px !important;right:8px !important;
+    max-width:none !important;border-radius:10px !important;}
+}
+
+/* ctrl2-patch */
+:root{ --lgTop:150px; --lgSize:22px; }
+
+/* ① 移除縮放控件 */
+.leaflet-control-zoom{display:none !important}
+.leaflet-bottom.leaflet-left{display:none !important}
+
+/* ③ 右上角：圖例按鈕 + 圖層切換，上下並列，④ 各縮小一倍 */
+#legend-toggle,#panel-toggle{
+  top:calc(var(--lgTop) + env(safe-area-inset-top)) !important;
+  right:12px !important;
+  width:var(--lgSize) !important;height:var(--lgSize) !important;
+  border-radius:7px !important;font-size:11px !important;
+  box-shadow:0 2px 8px rgba(31,56,49,.20) !important;}
+
+.leaflet-top.leaflet-right{
+  margin-top:calc(var(--lgTop) + var(--lgSize) + 8px + env(safe-area-inset-top)) !important;
+  margin-right:12px !important;z-index:9998}
+.leaflet-control-layers{margin:0 !important;float:none !important;
+  box-shadow:none !important;border:none !important;background:none !important}
+.leaflet-control-layers-toggle{
+  width:var(--lgSize) !important;height:var(--lgSize) !important;
+  border-radius:7px !important;margin:0 !important;
+  background:rgba(248,245,240,.94) !important;border:1px solid var(--line-g) !important;
+  box-shadow:0 2px 8px rgba(31,56,49,.20) !important;backdrop-filter:blur(10px);
+  background-size:60% 60% !important;background-position:center !important}
+.leaflet-control-layers-expanded{
+  border-radius:12px !important;background:rgba(248,245,240,.96) !important;
+  border:1px solid var(--line-g) !important;padding:7px 9px !important;
+  box-shadow:0 3px 16px rgba(31,56,49,.24) !important;
+  margin:0 !important;max-height:34vh;overflow-y:auto;font-size:11.5px}
+.leaflet-control-layers-expanded label{display:flex;align-items:center;gap:6px;
+  padding:3px 0;font-size:11.5px;cursor:pointer}
+
+@media (max-width:760px){
+  :root{ --lgTop:76px; --lgSize:19px; }
+  #legend-toggle,#panel-toggle{right:8px !important;border-radius:6px !important;font-size:10px !important}
+  .leaflet-top.leaflet-right{margin-right:8px !important}
+}
+@media (max-height:520px){
+  :root{ --lgTop:72px; --lgSize:18px; }
+}
+</style>
+
+<script src="/maps/assets/tracker.js" data-slug="譚仙" data-title="🗺️ 全球譚仙分布交互地圖"></script>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="header">
+  <h1>🗺️ 全球譚仙分布交互地圖
+    <small>6 座廟宇 · 點擊點亮蓮花 · 拖動時間軸看信仰傳播</small>
+  </h1>
+  <div class="hrow">
+    <span id="progress-text">0 / 6</span>
+    <div id="progress-track"><div id="progress-fill"></div></div>
+  </div>
+  <div id="header-btns">
+    <button class="h-btn" id="btn-light" onclick="lightAll()">✨ 全部點亮</button>
+    <button class="h-btn" onclick="clearAll()">○ 全部熄滅</button>
+    <button class="h-btn" id="btn-list" onclick="toggleList()">📖 廟宇名錄</button>
+  </div>
+</div>
+
+<div id="legend-toggle" onclick="toggleLegend()">📋</div>
+<div id="legend">
+  <div class="legend-title">地區分類（點擊開關）</div>
+  <div class="legend-item" data-area="澳門" onclick="toggleArea('澳門')"><span class="legend-dot" style="background:#c8a24e;box-shadow:0 0 6px #c8a24e;"></span><span class="legend-name">澳門</span><span class="legend-n">2</span></div>
+  <div class="legend-item" data-area="香港" onclick="toggleArea('香港')"><span class="legend-dot" style="background:#0891b2;box-shadow:0 0 6px #0891b2;"></span><span class="legend-name">香港</span><span class="legend-n">1</span></div>
+  <div class="legend-item" data-area="嶺南" onclick="toggleArea('嶺南')"><span class="legend-dot" style="background:#ea580c;box-shadow:0 0 6px #ea580c;"></span><span class="legend-name">嶺南</span><span class="legend-n">1</span></div>
+  <div class="legend-item" data-area="東南亞" onclick="toggleArea('東南亞')"><span class="legend-dot" style="background:#14b8a6;box-shadow:0 0 6px #14b8a6;"></span><span class="legend-name">東南亞</span><span class="legend-n">1</span></div>
+  <div class="legend-item" data-area="北美" onclick="toggleArea('北美')"><span class="legend-dot" style="background:#0e7a5f;box-shadow:0 0 6px #0e7a5f;"></span><span class="legend-name">北美</span><span class="legend-n">1</span></div>
+  <div class="legend-title">廟宇性質（點擊開關）</div>
+  <div class="legend-item" data-kind="主祀廟宇" onclick="toggleKind('主祀廟宇')"><span class="legend-dot" style="background:#0e7a5f;"></span><span class="legend-name">廟</span><span class="legend-n">5</span></div>
+  <div class="legend-item" data-kind="配祀 / 合祀" onclick="toggleKind('配祀 / 合祀')"><span class="legend-dot" style="background:#0e7a5f;"></span><span class="legend-name">配祀</span><span class="legend-n">1</span></div>
+  <div class="legend-note">圓點為未點亮（顏色對應上方地區分類）；點亮後綻放蓮花並計入進度。年代不詳條目由下方「含年代不詳」開關控制。</div>
+</div>
+
+<div id="list-panel">
+  <div id="list-close" onclick="toggleList()">✕</div>
+  <div id="list-head">
+    <h2>📖 廟宇名錄 <span id="list-count"></span></h2>
+    <input id="list-search" placeholder="搜索廟名 / 地點 / 性質…" oninput="renderList()">
+  </div>
+  <div id="list-strip"></div>
+  <div id="list-body"></div>
+</div>
+
+<div id="time-panel">
+  <div class="range-row tp-r1">
+    <span class="tp-title">📅 時間軸</span>
+    <span class="ylab">1383</span>
+<input type="range" id="yearSlider" min="1383" max="2025" value="2025" step="1">
+    <span class="ylab">2025</span>
+    <span id="year-display">2025</span>
+  </div>
+  <div class="tp-r2">
+    <span id="visible-count"></span>
+    <span class="tp-btns">
+      <button class="mini-btn on" id="btn-unk" onclick="toggleUnknown()">含年代不詳</button>
+      <button class="mini-btn" id="btn-sec" onclick="toggleSecondary()">含次級條目</button>
+      <button class="mini-btn" onclick="playTimeline()">▶ 播放傳播</button>
+    </span>
+  </div>
+</div>
+
+<div id="sheet">
+  <div id="sheet-bar">
+    <span class="grip"></span>
+    <span class="st">廟宇考錄</span>
+    <span id="sheet-close" onclick="hideSheet()">✕</span>
+  </div>
+  <div id="sheet-scroll"></div>
+</div>
+<div id="seq-banner">
+  <div class="sb-row">
+    <span class="sb-n" id="sb-n">0 / 0</span>
+    <span class="sb-y" id="sb-y">—</span>
+    <span class="sb-name" id="sb-name">按年代順序點亮…</span>
+    <span class="sb-a" id="sb-a"></span>
+  </div>
+  <div class="sb-bar"><div class="sb-fill" id="sb-fill"></div></div>
+  <div class="sb-hint" id="sb-hint">每 0.3 秒點亮一座 · 點擊此處停止</div>
+</div>
+<div id="tip">💡 點擊圓點看考錄詳情 · 在彈窗內點亮即綻放蓮花 · 拖動時間軸按年代過濾</div>
+
+<script>
+var POINTS = [{"id": "M001", "rank": 1, "cont": "亞洲", "name": "路環譚公廟", "place": "澳門", "area": "澳門", "lon": 113.567, "lat": 22.122, "y": 1862, "ytext": "路環譚公廟（1862）", "kind": "廟", "knote": "", "est": "", "ev": "", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "", "chain": "", "flag": "正表", "prec": "local", "idx": 0, "tier": 0}, {"id": "M002", "rank": 2, "cont": "亞洲", "name": "觀音古廟", "place": "澳門", "area": "澳門", "lon": 113.5439, "lat": 22.1987, "y": 1900, "ytext": "澳門 · 3 座：觀音古廟（不早於1821）", "kind": "廟", "knote": "", "est": "", "ev": "", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "", "chain": "", "flag": "正表", "prec": "local", "idx": 1, "tier": 0}, {"id": "M003", "rank": 3, "cont": "亞洲", "name": "筲箕灣譚公廟", "place": "香港", "area": "香港", "lon": 114.23, "lat": 22.28, "y": 1730, "ytext": "筲箕灣譚公廟", "kind": "配祀", "knote": "", "est": "", "ev": "", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "", "chain": "", "flag": "正表", "prec": "local", "idx": 2, "tier": 0}, {"id": "M004", "rank": 4, "cont": "亞洲", "name": "惠東九龍峰譚公祖廟", "place": "嶺南", "area": "嶺南", "lon": 114.17, "lat": 22.32, "y": 1383, "ytext": "惠東九龍峰譚公祖廟", "kind": "廟", "knote": "", "est": "", "ev": "", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "", "chain": "", "flag": "正表", "prec": "local", "idx": 3, "tier": 0}, {"id": "M005", "rank": 5, "cont": "亞洲", "name": "山打根譚公聖祖廟", "place": "東南亞", "area": "東南亞", "lon": 103.8198, "lat": 1.3521, "y": 1900, "ytext": "山打根譚公聖祖廟", "kind": "廟", "knote": "", "est": "", "ev": "", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "", "chain": "", "flag": "正表", "prec": "region", "idx": 4, "tier": 0}, {"id": "M006", "rank": 6, "cont": "北美洲", "name": "加拿大維多利亞譚公廟", "place": "北美", "area": "北美", "lon": -98.5795, "lat": 39.8283, "y": 1876, "ytext": "加拿大維多利亞譚公廟", "kind": "廟", "knote": "", "est": "", "ev": "", "exs": "", "re": "", "level": "", "lineage": "", "scale": "", "note": "", "src": "", "chain": "", "flag": "正表", "prec": "region", "idx": 5, "tier": 0}];
+
+var AREA_COLOR = {"北美": "#0e7a5f", "嶺南": "#ea580c", "東南亞": "#14b8a6", "澳門": "#c8a24e", "香港": "#0891b2"};
+var GROUPS = ["澳門", "中國內地", "香港", "台灣", "日韓", "東南亞", "北美洲", "南美洲", "大洋洲", "歐洲", "非洲"];
+var G_COLOR = {"澳門": "#c8a24e", "中國內地": "#b91c1c", "香港": "#0891b2", "台灣": "#f97316", "日韓": "#d946ef", "東南亞": "#0e7a5f", "北美洲": "#3b82f6", "南美洲": "#d97706", "大洋洲": "#6366f1", "歐洲": "#7e22ce", "非洲": "#92400e"};
+var G_MAP = {"澳門": "澳門", "中國內地": "中國內地", "香港": "香港", "台灣": "台灣", "日本": "日韓", "韓國／朝鮮": "日韓", "越南": "東南亞", "泰國": "東南亞", "馬來西亞": "東南亞", "新加坡": "東南亞", "印尼": "東南亞", "菲律賓": "東南亞", "緬甸": "東南亞", "東南亞": "東南亞", "北美洲": "北美洲", "南美洲": "南美洲", "大洋洲": "大洋洲", "歐洲": "歐洲", "非洲": "非洲", "嶺南": "中國內地", "北美": "北美洲"};
+var TIER_LABEL = {"1": "世界遺產／全國重點文保", "2": "國定古蹟／法定古蹟／國家遺產", "3": "地方級文保／歷史建築"};
+
+var LOTUS = '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">'
+ +'<ellipse cx="32" cy="30" rx="8" ry="15" fill="#ec4899"/>'
+ +'<ellipse cx="21" cy="35" rx="7" ry="12" fill="#f472b6" transform="rotate(-28 21 35)"/>'
+ +'<ellipse cx="43" cy="35" rx="7" ry="12" fill="#f472b6" transform="rotate(28 43 35)"/>'
+ +'<ellipse cx="14" cy="42" rx="6" ry="9.5" fill="#f9a8d4" opacity=".7" transform="rotate(-48 14 42)"/>'
+ +'<ellipse cx="50" cy="42" rx="6" ry="9.5" fill="#f9a8d4" opacity=".7" transform="rotate(48 50 42)"/>'
+ +'<ellipse cx="32" cy="34" rx="5.5" ry="10" fill="#fce7f3"/>'
+ +'<ellipse cx="26" cy="38" rx="4.5" ry="7.5" fill="#fbcfe8" transform="rotate(-18 26 38)"/>'
+ +'<ellipse cx="38" cy="38" rx="4.5" ry="7.5" fill="#fbcfe8" transform="rotate(18 38 38)"/>'
+ +'<circle cx="32" cy="38" r="4.2" fill="#C8A24E"/><circle cx="32" cy="38" r="2.2" fill="#E8D9A8"/>'
+ +'</svg>';
+
+var map = L.map('map',{zoomControl:false,attributionControl:false,worldCopyJump:true,minZoom:1.2,zoomSnap:0.25,zoomDelta:0.5}).setView([22,80],2.3);
+/* 默認底圖：暗灰路網（第一個鍵即 L.control.layers 的選中項） */
+var DEFAULT_TILE='🌃 暗灰路網';
+var TILES = {
+ '🌃 暗灰路網':{u:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',f:'brightness(1.04) contrast(1.08)'},
+ '🌑 深色簡約':{u:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',f:'brightness(1.05) contrast(1.05)',s:'abcd'},
+ '☀️ 標準地圖':{u:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',f:'brightness(.96) contrast(1.06) saturate(.9)'},
+ '🛰️ 衛星影像':{u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',f:'brightness(.85) contrast(1.1) saturate(.9)'},
+ '⛰️ 地形地圖':{u:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',f:'brightness(.95)'},
+ '🏙️ 淺灰路網':{u:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',f:'brightness(.98) contrast(1.05)'}
+};
+var baseLayers={}, curName=null;
+Object.keys(TILES).forEach(function(k){
+  var t=TILES[k];
+  var ly=L.tileLayer(t.u,{maxZoom:18,subdomains:t.s||'abc'});
+  baseLayers[k]=ly;
+  if(k===DEFAULT_TILE){ ly.addTo(map); curName=k; applyFilter(t.f); }
+});
+if(!curName){ var k0=Object.keys(TILES)[0]; baseLayers[k0].addTo(map); curName=k0; applyFilter(TILES[k0].f); }
+function applyFilter(f){
+  var el=document.querySelector('.leaflet-tile-pane');
+  if(el) el.style.filter=f;
+}
+L.control.layers(baseLayers,null,{collapsed:true,position:'topleft'}).addTo(map);
+map.on('baselayerchange',function(e){applyFilter(TILES[e.name].f);curName=e.name;});
+
+/* ---------- 狀態 ---------- */
+var lit = {};                // idx -> true
+var visN = 0;                // 當前可見點數
+var spiderN = 0;             // 已微偏移展開的點位數
+var offArea = {};            // area -> true (關閉)
+var offKind = {};            // 性質組 -> true
+var includeUnknown = true;
+var year = 2025;
+var markers = {};
+
+var KG = {"主祀廟宇": ["廟"], "配祀 / 合祀": ["配祀"], "其他": []};
+function kindGroup(k){
+  for(var g in KG){ if(KG[g].indexOf(k)>=0) return g; }
+  return '其他';
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* 默認＝地區色圓點（與右上角圖例同色）；點亮後才綻放蓮花 */
+function makeIcon(p){
+  var c = AREA_COLOR[p.area] || '#94a3b8';
+  var t = p.tier||0;
+  var ring = t? '<span class="pt-ring t'+t+'"></span>' : '';
+  var lv = t? (TIER_LABEL[t]||'') : '無法定等級記錄';
+  var h = '<div class="pt-wrap" id="lw'+p.idx+'" title="'+esc(p.name)+' · '+esc(lv)+'">'
+        + '<span class="pt-halo" style="background:'+c+'"></span>'
+        + ring
+        + '<span class="pt-dot" style="background:'+c+'"></span>'
+        + '<div class="pt-lotus">'+LOTUS+'</div>'
+        + '<span class="pt-no">'+p.id+'</span></div>';
+  return L.divIcon({html:h,className:'lotus-icon',iconSize:[44,44],iconAnchor:[22,22],popupAnchor:[0,-18]});
+}
+/* 點亮切換：圓點 ⇄ 蓮花，兩組動畫分別觸發 */
+function setLitDom(i, on){
+  var el=document.getElementById('lw'+i);
+  if(!el) return;
+  el.classList.toggle('lit', !!on);
+  var lo=el.querySelector('.pt-lotus');
+  if(lo && on){ lo.style.animation='none'; void lo.offsetWidth; lo.style.animation=''; }
+}
+
+POINTS.forEach(function(p){
+  var m = L.marker([p.lat,p.lon],{icon:makeIcon(p),riseOnHover:true,keyboard:false}).addTo(map);
+  m.on('click',function(){ openPopup(p); });
+  markers[p.idx]=m;
+});
+
+/* 次級條目（候補／存疑／資料不足）在全球視野下抽稀，避免密集區糊成一團；
+   放大到 z>=5 自動展開，也可由「含次級條目」按鈕強制開關（secondManual 非空時以手動為準） */
+function isSecondary(p){ return p.flag==='候補'||p.flag==='存疑'||p.flag==='資料不足'; }
+var secondManual=null;
+function showSecondary(){
+  if(secondManual!==null) return secondManual;
+  return map.getZoom()>=5;
+}
+function visible(p){
+  if(offArea[p.area]) return false;
+  if(offKind[kindGroup(p.kind)]) return false;
+  if(isSecondary(p) && !showSecondary()) return false;
+  if(p.y===null){ if(!includeUnknown) return false; }
+  else if(p.y>year) return false;
+  return true;
+}
+/* ---------- 密集點位微偏移展開（澳門這類同址多廟） ---------- */
+var spiderLines = L.layerGroup().addTo(map);
+var SPIDER_MIN_Z = 9;          /* 低於此級別不展開，全球視野保持原貌 */
+function spiderGap(){
+  var s=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pt-size'))||11;
+  return s + 11;                 /* 圓點直徑外再留空隙 */
+}
+function clearSpider(){
+  spiderLines.clearLayers();
+  POINTS.forEach(function(p){
+    var m=markers[p.idx];
+    var ll=m.getLatLng();
+    if(Math.abs(ll.lat-p.lat)>1e-7 || Math.abs(ll.lng-p.lon)>1e-7) m.setLatLng([p.lat,p.lon]);
+  });
+}
+function applySpider(){
+  clearSpider();
+  var z=map.getZoom();
+  if(z < SPIDER_MIN_Z) return 0;
+  var gap=spiderGap();
+  var vis=[];
+  POINTS.forEach(function(p){
+    if(!map.hasLayer(markers[p.idx])) return;
+    var c=map.latLngToContainerPoint([p.lat,p.lon]);
+    vis.push({p:p,x:c.x,y:c.y});
+  });
+  if(vis.length<2) return 0;
+  /* 單鏈接聚類：屏幕距離小於 gap 的歸為一簇 */
+  var clusters=[];
+  vis.forEach(function(a){
+    var placed=false;
+    for(var k=0;k<clusters.length && !placed;k++){
+      var cl=clusters[k];
+      for(var m=0;m<cl.length;m++){
+        var b=cl[m];
+        if(Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)) < gap){ cl.push(a); placed=true; break; }
+      }
+    }
+    if(!placed) clusters.push([a]);
+  });
+  var moved=0;
+  clusters.forEach(function(cl){
+    if(cl.length<2) return;
+    moved+=cl.length;
+    var cx=0,cy=0;
+    cl.forEach(function(a){ cx+=a.x; cy+=a.y; });
+    cx/=cl.length; cy/=cl.length;
+    /* 按原方位角排序，展開方向跟隨點位自然分布 */
+    cl.forEach(function(a){ a.ang=Math.atan2(a.y-cy,a.x-cx); });
+    cl.sort(function(a,b){ return a.ang-b.ang; });
+    var r=Math.max(gap*0.85, 8+cl.length*3.2);
+    var a0=cl[0].ang;
+    cl.forEach(function(a,i){
+      var ang=a0 + i*2*Math.PI/cl.length;
+      var ox=Math.cos(ang)*r, oy=Math.sin(ang)*r;
+      var base=map.latLngToContainerPoint([a.p.lat,a.p.lon]);
+      var tgt=map.containerPointToLatLng([base.x+ox,base.y+oy]);
+      markers[a.p.idx].setLatLng(tgt);
+      var c=AREA_COLOR[a.p.area]||'#94a3b8';
+      L.polyline([[a.p.lat,a.p.lon],tgt],{color:c,weight:1,opacity:.5,interactive:false}).addTo(spiderLines);
+    });
+  });
+  return moved;
+}
+/* 展開條目的引線用虛線更輕盈 */
+spiderLines.eachLayer(function(){});
+
+/* 圓點尺寸 / 光暈 / 蓮花隨縮放等級自適應 */
+function zoomStyle(){
+  var z=map.getZoom(), rs=document.documentElement.style;
+  var s, halo, lot;
+  if(z<=3){ s=9;  halo=.16; lot=28; }
+  else if(z<=5){ s=11; halo=.20; lot=32; }
+  else if(z<=8){ s=13; halo=.26; lot=38; }
+  else        { s=15; halo=.32; lot=44; }
+  rs.setProperty('--pt-size', s+'px');
+  rs.setProperty('--pt-halo', halo);
+  rs.setProperty('--pt-lotus', lot+'px');
+}
+map.on('zoomend',function(){
+  zoomStyle();
+  /* 縮放會改變可見集合，播放中則中止以免序列錯亂 */
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  syncSecBtn(); refresh(); syncList();
+});
+
+function refresh(){
+  var n=0, hiddenSec=0;
+  POINTS.forEach(function(p){
+    var v=visible(p), m=markers[p.idx];
+    if(v){ if(!map.hasLayer(m)) m.addTo(map); n++; }
+    else {
+      if(map.hasLayer(m)) map.removeLayer(m);
+      if(isSecondary(p) && !showSecondary()) hiddenSec++;
+    }
+    setLitDom(p.idx, !!lit[p.idx]);
+  });
+  var lc=Object.keys(lit).length;
+  visN=n;
+  spiderN = applySpider();   /* 先算展開，再寫提示文案，避免計數滯後一幀 */
+  document.getElementById('progress-text').textContent = lc+' / '+POINTS.length;
+  document.getElementById('progress-fill').style.width = (lc/POINTS.length*100)+'%';
+  var tipTxt = hiddenSec? (' · 次級條目 '+hiddenSec+' 座已收起（放大或點「含次級條目」展開）') : '';
+  if(spiderN) tipTxt += ' · '+spiderN+' 座同址廟宇已微偏移展開';
+  document.getElementById('visible-count').innerHTML = '顯示 <b>'+n+'</b> / '+POINTS.length
+    +' 座廟宇 · 已點亮 <b>'+lc+'</b> 座'+tipTxt;
+  var lc2=document.getElementById('list-count');
+  if(lc2) lc2.textContent='共 '+n+' 座（當前篩選）';
+}
+
+function openPopup(p){
+  var m=markers[p.idx];
+  m.bindPopup(popupHTML(p),{maxWidth:340,minWidth:320,className:'p-card',autoPanPadding:[30,90]}).openPopup();
+  setTimeout(function(){ syncLitBtn(p); },30);
+}
+
+function syncLitBtn(p){
+  var b=document.getElementById('litbtn');
+  if(!b) return;
+  if(lit[p.idx]){ b.classList.add('on'); b.innerHTML='🌸 已點亮 · 點擊熄滅'; }
+  else { b.classList.remove('on'); b.innerHTML='○ 點亮蓮花'; }
+}
+
+function popupHTML(p){
+  var c = AREA_COLOR[p.area] || '#94a3b8';
+  var yv = (p.y===null)? '年代不詳' : p.y;
+  var ysub = (p.y===null)? '未見可靠紀年材料，僅列線索' : (p.ytext||'');
+  var tl='';
+  [[ '始建年代',p.est],['最早可證',p.ev],['現存建築',p.exs],['最近重修',p.re]].forEach(function(t){
+    if(!t[1]) return;
+    tl += '<div class="tl-cell"><div class="tl-k">'+t[0]+'</div><div class="tl-v">'+esc(t[1])+'</div></div>';
+  });
+  var rows='';
+  if(p.level)  rows+='<div class="p-row"><span class="k">法定等級</span><span class="v gold">'+esc(p.level)+'</span></div>';
+  if(p.lineage)rows+='<div class="p-row"><span class="k">系譜等級</span><span class="v">'+esc(p.lineage)+'</span></div>';
+  if(p.scale)  rows+='<div class="p-row"><span class="k">規模檔</span><span class="v">'+esc(p.scale)+'</span></div>';
+  if(p.knote)  rows+='<div class="p-row"><span class="k">性質說明</span><span class="v">'+esc(p.knote)+'</span></div>';
+  var flagCls = (p.flag==='正表')?'badge-flag ok':'badge-flag';
+  var lvMark = {1:'★ 世遺／國保',2:'☆ 法定古蹟',3:'○ 地方文保'}[p.tier||0];
+  var lvBadge = lvMark? '<span class="p-badge badge-lv'+(p.tier)+'">'+lvMark+'</span>' : '';
+  var warn = p.note? '<div class="p-warn"><b>⚠ 考訂</b> '+esc(p.note)+'</div>' : '';
+  var precTxt = {'exact':'精確','city':'城市級','region':'區域級','local':'地點級'}[p.prec]||p.prec;
+  return '<div class="p-head">'
+    + '<div class="p-badges">'
+    +   '<span class="p-badge badge-kind">'+esc(p.kind)+'</span>'
+    +   '<span class="p-badge badge-chain">'+esc(p.chain)+'</span>'
+    +   lvBadge
+    +   '<span class="p-badge '+flagCls+'">'+esc(p.flag)+'</span>'
+    +   '<span class="badge-rank">'+esc(p.id)+(p.rank?(' · 席'+p.rank):'')+'</span>'
+    + '</div>'
+    + '<div class="p-name">'+esc(p.name)+'</div>'
+    + '<div class="p-place"><i style="background:'+c+'"></i>'+esc(p.area)+' · '+esc(p.place)+'</div>'
+    + '</div>'
+    + '<div class="p-year"><b>'+esc(String(yv))+'</b><span>'+esc(ysub)+'</span></div>'
+    + '<div class="p-body">'
+    +   (tl? '<div class="p-tl">'+tl+'</div>' : '')
+    +   rows + warn
+    + '<div class="p-foot"><span class="p-src">出處：'+esc(p.src||'—')+' · 座標精度 '+esc(precTxt)+'</span>'
+    + '<span class="p-lit" id="litbtn" data-i="'+p.idx+'">○ 點亮蓮花</span></div>'
+    + '</div>';
+}
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest? e.target.closest('#litbtn'):null;
+  if(b){ var i=+b.getAttribute('data-i'); toggleLit(i); }
+});
+
+/* ---------- 點亮 ---------- */
+function toggleLit(i, silent){
+  var p=POINTS[i];
+  if(lit[i]){ delete lit[i]; }
+  else {
+    lit[i]=true;
+    var m=markers[i];
+    if(map.hasLayer(m)){
+      var pt=map.latLngToContainerPoint(m.getLatLng());
+      bloom(pt.x+map.getContainer().getBoundingClientRect().left, pt.y+map.getContainer().getBoundingClientRect().top);
+    }
+    if(!silent) chime();
+  }
+  refresh();
+  var b=document.getElementById('litbtn');
+  if(b && b.getAttribute('data-i')==String(i)) syncLitBtn(p);
+  if(document.getElementById('list-panel').classList.contains('show')) updateItem(i);
+}
+/* ---------- 按年代順序依次點亮 ---------- */
+var seqTimer=null, seqList=[], seqIdx=0, STEP=300;
+var seqLinkYear=false, seqStartYear=2025;
+
+function seqBtns(running){
+  var b=document.getElementById('btn-light');
+  if(b){ b.innerHTML = running? '⏹ 停止播放' : '✨ 全部點亮'; b.classList.toggle('on',running); }
+  var bn=document.getElementById('seq-banner');
+  if(bn) bn.classList.toggle('pick',running);
+}
+function stopSeq(finished){
+  if(seqTimer){ clearInterval(seqTimer); seqTimer=null; }
+  /* 中途停止：時間軸還原到播放前的年份；播完則停在最後一座的年代 */
+  if(!finished && seqLinkYear){
+    year = seqStartYear;
+    if(typeof slider!=='undefined' && slider){
+      slider.value = year;
+      document.getElementById('year-display').textContent = year;
+    }
+  }
+  seqLinkYear = false;
+  refresh();
+  var bn=document.getElementById('seq-banner');
+  seqBtns(false);
+  if(!bn) return;
+  if(finished){
+    bn.classList.add('done');
+    document.getElementById('sb-name').textContent='✅ 全部點亮完成';
+    document.getElementById('sb-hint').textContent='共 '+seqList.length+' 座 · 點擊關閉';
+    setTimeout(function(){
+      bn.classList.remove('show'); bn.classList.remove('done');
+      bn.classList.remove('pick');
+    },2600);
+  }else{
+    bn.classList.remove('show'); bn.classList.remove('pick');
+  }
+}
+/* 點位旁的浮標：名稱 + 年代 + 地區 */
+function flyLabel(p){
+  var m=markers[p.idx];
+  if(!map.hasLayer(m)) return;
+  function put(){
+    if(!map.hasLayer(m)) return;
+    var pt=map.latLngToContainerPoint(m.getLatLng());
+    var d=document.createElement('div');
+    d.className='seq-label';
+    d.innerHTML='<span class="sy">'+((p.y===null)?'年代不詳':p.y)+'</span>'
+      +'<span class="sn">'+esc(p.name)+'</span>'
+      +'<span class="sk">'+esc(p.kind)+'</span>'
+      +'<span class="sa">'+esc(p.area)+'</span>';
+    d.style.left=pt.x+'px'; d.style.top=pt.y+'px';
+    map.getContainer().appendChild(d);
+    setTimeout(function(){ d.classList.add('out'); },1250);
+    setTimeout(function(){ if(d.parentNode) d.remove(); },1900);
+  }
+  /* 只在點位處於視口內時彈標籤，避免逐點平移導致畫面抖動；
+     視口外的點位由底部橫幅統一顯示名稱與年代 */
+  var b=map.getBounds().pad(-0.12);
+  if(b.contains(L.latLng(p.lat,p.lon))) put();
+}
+function seqStep(){
+  if(seqIdx>=seqList.length){ stopSeq(true); syncList(); return; }
+  var p=seqList[seqIdx];
+  /* 時間軸聯動：先把年份推到當前廟宇年代，再落地圖可見性，
+     這樣點位是「隨年代逐一浮現 + 逐一綻放」，而不是一開始就全在圖上了 */
+  if(seqLinkYear && p.y!==null && p.y!==year){
+    year = p.y;
+    slider.value = year;
+    document.getElementById('year-display').textContent = year;
+    refresh();
+  }
+  lit[p.idx]=true;
+  setLitDom(p.idx, true);
+  var m=markers[p.idx];
+  if(map.hasLayer(m)){
+    var pt=map.latLngToContainerPoint(m.getLatLng());
+    var r=map.getContainer().getBoundingClientRect();
+    bloom(pt.x+r.left, pt.y+r.top);
+  }
+  chime(true);
+  flyLabel(p);
+  seqIdx++;
+  /* 時間軸聯動：滑塊與年份顯示跟着當前點亮廟宇的年代走 */
+  if(seqLinkYear && p.y!==null && p.y!==year){
+    year = p.y;
+    slider.value = year;
+    document.getElementById('year-display').textContent = year;
+  }
+  var bn=document.getElementById('seq-banner');
+  document.getElementById('sb-n').textContent = seqIdx+' / '+seqList.length;
+  document.getElementById('sb-y').textContent = (p.y===null)? '年代不詳' : p.y;
+  document.getElementById('sb-name').textContent = p.name;
+  document.getElementById('sb-a').textContent = p.area+' · '+p.place;
+  document.getElementById('sb-fill').style.width = (seqIdx/seqList.length*100)+'%';
+  var lc=Object.keys(lit).length;
+  document.getElementById('progress-text').textContent = lc+' / '+POINTS.length;
+  document.getElementById('progress-fill').style.width = (lc/POINTS.length*100)+'%';
+  document.getElementById('visible-count').innerHTML = '顯示 <b>'+visN+'</b> / '+POINTS.length+' 座廟宇 · 已點亮 <b>'+lc+'</b> 座';
+  if(document.getElementById('list-panel').classList.contains('show')) updateItem(p.idx);
+}
+function lightAll(){
+  if(seqTimer){ stopSeq(false); return; }   /* 播放中再點一次即停止 */
+  lit={}; refresh();
+  /* 關鍵：先按「當前篩選」取出完整序列，再把年份回捲到最早年代，
+     否則序列會被回捲後的年份條件截斷成只剩頭幾座 */
+  seqList = POINTS.filter(visible).slice().sort(function(a,b){
+    var ya=(a.y===null? 9999:a.y), yb=(b.y===null? 9999:b.y);
+    return ya-yb || a.idx-b.idx;
+  });
+  if(!seqList.length){ refresh(); return; }
+  seqStartYear = year;
+  seqLinkYear = true;
+  var ymin = null;
+  seqList.forEach(function(p){ if(p.y!==null && (ymin===null || p.y<ymin)) ymin=p.y; });
+  if(ymin!==null){
+    year = ymin; slider.value = year;
+    document.getElementById('year-display').textContent = year;
+    refresh();
+  }
+  seqIdx=0;
+  var bn=document.getElementById('seq-banner');
+  bn.classList.remove('done'); bn.classList.add('show');
+  document.getElementById('sb-fill').style.width='0%';
+  document.getElementById('sb-hint').textContent='每 0.3 秒點亮一座 · 時間軸同步推進 · 點擊此處停止';
+  seqBtns(true);
+  seqStep();
+  seqTimer=setInterval(seqStep,STEP);
+}
+function clearAll(){ stopSeq(false); lit={}; refresh(); syncList(); }
+function syncList(){ if(document.getElementById('list-panel').classList.contains('show')) renderList(); }
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest? e.target.closest('#seq-banner'):null;
+  if(b){ stopSeq(false); }
+});
+
+function bloom(x,y){
+  var d=document.createElement('div'); d.className='bloom';
+  d.style.left=x+'px'; d.style.top=y+'px';
+  var l=document.createElement('div'); l.className='bl'; l.innerHTML=LOTUS; d.appendChild(l);
+  var r=document.createElement('div'); r.className='rp'; d.appendChild(r);
+  for(var i=0;i<12;i++){
+    var q=document.createElement('div'); q.className='pt';
+    var a=Math.PI*2*i/12, r2=34+Math.random()*26;
+    q.style.setProperty('--px',(Math.cos(a)*r2)+'px');
+    q.style.setProperty('--py',(Math.sin(a)*r2)+'px');
+    q.style.animationDelay=(Math.random()*.16)+'s';
+    d.appendChild(q);
+  }
+  document.body.appendChild(d);
+  setTimeout(function(){ d.remove(); },1700);
+}
+
+/* ---------- 音效 ---------- */
+var ac=null;
+function chime(soft){
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.state==='suspended'){ ac.resume(); }
+    if(soft){
+      /* 順序連播：單音短促，避免 0.3s 間隔疊成噪音 */
+      var so=ac.createOscillator(), sg=ac.createGain();
+      so.type='sine'; so.frequency.value=880;
+      var st=ac.currentTime;
+      sg.gain.setValueAtTime(0,st); sg.gain.linearRampToValueAtTime(0.055,st+0.012);
+      sg.gain.exponentialRampToValueAtTime(0.0001,st+0.3);
+      so.connect(sg); sg.connect(ac.destination); so.start(st); so.stop(st+0.34);
+      return;
+    }
+    [523.25,659.25,783.99].forEach(function(f,i){
+      var o=ac.createOscillator(), g=ac.createGain();
+      o.type='sine'; o.frequency.value=f;
+      var t=ac.currentTime+i*0.07;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.09,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.9);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+1);
+    });
+  }catch(e){}
+}
+
+/* ---------- 圖例 ---------- */
+function toggleLegend(){ document.getElementById('legend').classList.toggle('show'); }
+function toggleArea(a){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  offArea[a]=!offArea[a];
+  document.querySelectorAll('.legend-item[data-area]').forEach(function(el){
+    if(el.getAttribute('data-area')===a) el.classList.toggle('off',!!offArea[a]);
+  });
+  refresh(); if(document.getElementById('list-panel').classList.contains('show')) renderList();
+}
+function toggleKind(k){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  offKind[k]=!offKind[k];
+  document.querySelectorAll('.legend-item[data-kind]').forEach(function(el){
+    if(el.getAttribute('data-kind')===k) el.classList.toggle('off',!!offKind[k]);
+  });
+  refresh(); if(document.getElementById('list-panel').classList.contains('show')) renderList();
+}
+function toggleUnknown(){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  includeUnknown=!includeUnknown;
+  document.getElementById('btn-unk').classList.toggle('on',includeUnknown);
+  refresh(); if(document.getElementById('list-panel').classList.contains('show')) renderList();
+}
+/* 次級條目（候補／存疑／資料不足）：null=隨縮放自動，true/false=手動鎖定 */
+function toggleSecondary(){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  secondManual = (secondManual===null)? true : (secondManual? false : null);
+  syncSecBtn(); refresh(); syncList();
+}
+function syncSecBtn(){
+  var b=document.getElementById('btn-sec');
+  if(!b) return;
+  var on = (secondManual===null)? showSecondary() : secondManual;
+  b.classList.toggle('on', !!on);
+  b.textContent = (secondManual===null)? '含次級條目' : (secondManual? '次級：全部顯示' : '次級：僅正表');
+}
+
+/* ---------- 時間軸 ---------- */
+var slider=document.getElementById('yearSlider');
+slider.addEventListener('input',function(){
+  if(typeof seqTimer!=='undefined' && seqTimer) stopSeq(false);
+  year=+slider.value;
+  document.getElementById('year-display').textContent = year;
+  refresh();
+});
+var playing=null;
+function playTimeline(){
+  if(playing){ clearInterval(playing); playing=null; return; }
+  year=1383; slider.value=1383; document.getElementById('year-display').textContent=1383; refresh();
+  playing=setInterval(function(){
+    year+=8;
+    if(year>=2025){ year=2025; clearInterval(playing); playing=null; }
+    slider.value=year; document.getElementById('year-display').textContent=year; refresh();
+  },110);
+}
+
+/* ---------- 名錄 ---------- */
+function toggleList(){
+  var el=document.getElementById('list-panel');
+  el.classList.toggle('show');
+  document.getElementById('btn-list').classList.toggle('on',el.classList.contains('show'));
+  if(el.classList.contains('show')) renderList();
+}
+/* 名錄統一按 11 個大區順序羅列（組內按年代升序） */
+var collapsedG = {}, stripLock = false;
+function grpOf(p){ return G_MAP[p.area] || '其他'; }
+
+function renderList(){
+  var q=(document.getElementById('list-search').value||'').trim().toLowerCase();
+  var groups={};
+  GROUPS.forEach(function(g){ groups[g]=[]; });
+  var extraG=[];
+  var tot=0;
+  POINTS.forEach(function(p){
+    if(!visible(p)) return;
+    if(q && (p.name+' '+p.place+' '+p.area+' '+grpOf(p)+' '+p.kind+' '+(p.lineage||'')+' '+(p.level||'')).toLowerCase().indexOf(q)<0) return;
+    var _g=grpOf(p);
+    if(!groups[_g]){ groups[_g]=[]; extraG.push(_g); }
+    groups[_g].push(p); tot++;
+  });
+  var ORDER=GROUPS.concat(extraG);
+  var h='';
+  ORDER.forEach(function(g){
+    var list=groups[g];
+    if(!list.length) return;
+    list.sort(function(a,b){
+      var ya=(a.y===null?9999:a.y), yb=(b.y===null?9999:b.y);
+      return ya-yb || (a.name<b.name?-1:1);
+    });
+    var c=G_COLOR[g]||'#94a3b8';
+    var litN=list.filter(function(p){ return !!lit[p.idx]; }).length;
+    h+='<div class="lg-group'+(collapsedG[g]?' collapsed':'')+'" data-g="'+g+'" id="grp-'+g+'">'
+      +'<div class="lg-title" data-toggle-g="'+g+'"><i style="background:'+c+'"></i><span>'+g+'</span>'
+      +'<span class="c">'+list.length+' 座'+(litN?(' · 已亮 '+litN):'')+'</span><span class="ar">▼</span></div>'
+      +'<div class="lg-items">';
+    list.forEach(function(p){
+      h+='<div class="lg-item'+(lit[p.idx]?' lit':'')+((p.y===null)?' unknown':'')
+        +'" data-i="'+p.idx+'" onclick="flyTo('+p.idx+')">'
+        +'<span class="lg-y">'+((p.y===null)?'年代不詳':p.y)+'</span>'
+        +(p.tier?('<span class="lg-star t'+p.tier+'" title="'+esc(TIER_LABEL[p.tier]||'')
+          +'">'+(p.tier===1?'★':'☆')+'</span>'):'')
+        +'<span class="lg-main"><span class="lg-n">'+esc(p.name)+'</span>'
+        +'<span class="lg-p">'+esc(p.place)+'</span></span>'
+        +'<span class="lg-t">'+esc(p.kind)+'</span></div>';
+    });
+    h+='</div></div>';
+  });
+  var body=document.getElementById('list-body');
+  body.innerHTML = h || '<div style="padding:22px 16px;color:#8a9490;font-size:12.5px;line-height:1.8">'
+    + '無匹配條目。<br>可清空搜索框，或檢查時間軸與地區／性質篩選。</div>';
+  document.getElementById('list-count').textContent='共 '+tot+' 座（當前篩選）';
+  renderStrip(groups);
+}
+/* 單條輕量更新：避免點亮時整表重渲染導致滾動跳位 */
+function updateItem(i){
+  var body=document.getElementById('list-body');
+  if(!body || !body.children.length) return;
+  var el=body.querySelector('.lg-item[data-i="'+i+'"]');
+  if(el) setLitDom(i, !!lit[i]);
+  var grp=document.getElementById('grp-'+grpOf(POINTS[i]));
+  if(grp){
+    var n=grp.querySelectorAll('.lg-item').length;
+    var ln=grp.querySelectorAll('.lg-item.lit').length;
+    var c=grp.querySelector('.lg-title .c');
+    if(c) c.textContent = n+' 座'+(ln?(' · 已亮 '+ln):'');
+  }
+}
+/* ---------- 大區滑條 ---------- */
+function renderStrip(groups){
+  var s=document.getElementById('list-strip'), h='';
+  var ORDER2=GROUPS.concat(Object.keys(groups).filter(function(g){return GROUPS.indexOf(g)<0;}));
+  ORDER2.forEach(function(g){
+    var n=(groups[g]||[]).length, c=G_COLOR[g]||'#94a3b8';
+    h+='<div class="strip-chip'+(n?'':' empty')+'" data-g="'+g+'"'
+      +(n?(' onclick="jumpGroup(\''+g+'\')"'):'')
+      +'><i style="background:'+c+'"></i>'+g+'<b>'+n+'</b></div>';
+  });
+  s.innerHTML=h;
+  syncStrip();
+}
+function jumpGroup(g){
+  var el=document.getElementById('grp-'+g), body=document.getElementById('list-body');
+  if(!el||!body) return;
+  if(collapsedG[g]){ collapsedG[g]=false; el.classList.remove('collapsed'); }
+  stripLock=true;
+  body.scrollTo({top:Math.max(0,el.offsetTop-2),behavior:'smooth'});
+  setActiveGroup(g);
+  setTimeout(function(){ stripLock=false; },700);
+}
+function setActiveGroup(g){
+  var nodes=document.querySelectorAll('#list-strip .strip-chip');
+  for(var k=0;k<nodes.length;k++){
+    nodes[k].classList.toggle('active', nodes[k].getAttribute('data-g')===g);
+  }
+  var chip=document.querySelector('#list-strip .strip-chip[data-g="'+g+'"]');
+  var strip=document.getElementById('list-strip');
+  if(!chip||!strip) return;
+  var l=chip.offsetLeft, r=l+chip.offsetWidth;
+  if(l<strip.scrollLeft) strip.scrollTo({left:Math.max(0,l-16),behavior:'smooth'});
+  else if(r>strip.scrollLeft+strip.clientWidth) strip.scrollTo({left:r-strip.clientWidth+16,behavior:'smooth'});
+}
+function syncStrip(){
+  var body=document.getElementById('list-body');
+  var gs=body.querySelectorAll('.lg-group');
+  if(!gs.length) return;
+  var top=body.scrollTop+8, cur=gs[0].getAttribute('data-g');
+  for(var k=0;k<gs.length;k++){ if(gs[k].offsetTop<=top) cur=gs[k].getAttribute('data-g'); }
+  setActiveGroup(cur);
+}
+(function(){
+  var body=document.getElementById('list-body');
+  body.addEventListener('scroll',function(){ if(!stripLock) syncStrip(); });
+  body.addEventListener('click',function(e){
+    var t=e.target.closest? e.target.closest('[data-toggle-g]'):null;
+    if(!t) return;
+    var g=t.getAttribute('data-toggle-g'), wrap=t.parentNode;
+    if(wrap&&wrap.classList){ wrap.classList.toggle('collapsed'); collapsedG[g]=wrap.classList.contains('collapsed'); }
+  },true);
+  /* 滑條支持鼠標拖動與滾輪橫向滾動 */
+  var s=document.getElementById('list-strip');
+  var down=false, moved=false, sx=0, sl=0;
+  s.addEventListener('mousedown',function(e){ down=true; moved=false; sx=e.clientX; sl=s.scrollLeft; s.classList.add('dragging'); });
+  window.addEventListener('mousemove',function(e){
+    if(!down) return;
+    if(Math.abs(e.clientX-sx)>4) moved=true;
+    s.scrollLeft=sl-(e.clientX-sx);
+  });
+  window.addEventListener('mouseup',function(){ if(down){ down=false; s.classList.remove('dragging'); } });
+  s.addEventListener('click',function(e){ if(moved){ e.stopPropagation(); e.preventDefault(); } },true);
+  s.addEventListener('wheel',function(e){
+    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){ s.scrollLeft+=e.deltaY; e.preventDefault(); }
+  },{passive:false});
+})();
+function flyTo(i){
+  var p=POINTS[i];
+  map.flyTo([p.lat,p.lon],Math.max(map.getZoom(),9),{duration:.9});
+  setTimeout(function(){ openPopup(p); },900);
+}
+function fitAll(){ map.flyTo([22,80],2.3,{duration:.9}); }
+
+/* ---------- 啓動 ---------- */
+zoomStyle(); syncSecBtn(); refresh();
+setTimeout(function(){ document.getElementById('tip').style.transition='opacity .8s'; document.getElementById('tip').style.opacity='0'; },7000);
+</script>
+
+<script id="mob-js">
+(function(){
+  var root = document.documentElement;
+  var head = document.getElementById('header');
+  var tp   = document.getElementById('time-panel');
+
+  /* 依寬度或高度判斷小螢幕：橫屏 844x390 也算 */
+  function isSmall(){ return window.innerWidth <= 760 || window.innerHeight <= 520; }
+  function sync(){
+    var hh = head ? head.offsetHeight : 0;
+    var bt = tp ? tp.offsetHeight : 0;
+    root.style.setProperty('--hh', hh + 'px');
+    root.style.setProperty('--bt', bt + 'px');
+    // 地圖容器避開頂欄與底欄，避免內容被壓在下面
+    var m = document.getElementById('map');
+    if(m && isSmall()){
+      var pad = Math.round(hh + bt);
+      L.DomUtil && map && map.invalidateSize && setTimeout(function(){ map.invalidateSize(); }, 60);
+    }
+  }
+  sync();
+  window.addEventListener('resize', sync);
+  window.addEventListener('orientationchange', function(){ setTimeout(sync, 250); });
+  window.addEventListener('load', sync);
+  if(window.ResizeObserver){
+    try{
+      var ro = new ResizeObserver(sync);
+      if(head) ro.observe(head);
+      if(tp) ro.observe(tp);
+    }catch(e){}
+  }
+  // 頂欄摺疊開關（僅手機）：點標題收起副標題與進度條，給地圖騰空間
+  var h1 = head ? head.querySelector('h1') : null;
+  if(h1){
+    var fold = document.createElement('span');
+    fold.className = 'fold';
+    fold.textContent = '⌃';
+    h1.appendChild(fold);
+    h1.style.cursor = 'pointer';
+    h1.title = '點擊收起／展開說明';
+    h1.addEventListener('click', function(e){
+      if(!isSmall()) return;
+      e.stopPropagation();
+      head.classList.toggle('mini');
+      fold.textContent = head.classList.contains('mini') ? '⌄' : '⌃';
+      setTimeout(sync, 60);
+    });
+  }
+  // 首次在手機上打開時默認摺疊一半，讓地圖先露出來
+  if(isSmall() && head){
+    head.classList.add('mini');
+    var f = head.querySelector('h1 .fold');
+    if(f) f.textContent = '⌄';
+    setTimeout(sync, 80);
+  }
+})();
+</script>
+
+<script id="ui-tweak-js">
+(function(){
+  /* 地圖控件移至左下角並改圓形 */
+  function moveControls(){
+    var tr = document.querySelector('.leaflet-top.leaflet-right');
+    if(!tr) return;
+    var l = document.querySelector('.leaflet-control-layers');
+    if(l && l.parentNode !== tr) tr.appendChild(l);
+    var z = document.querySelector('.leaflet-control-zoom');
+    if(z && z.parentNode) z.parentNode.removeChild(z);
+  }
+  moveControls();
+  setTimeout(moveControls, 300);
+  window.addEventListener('load', function(){ setTimeout(moveControls, 400); });
+})();
+</script>
+
+<script id="sheet-js">
+(function(){
+  /* 依寬度或高度判斷小螢幕 */
+  window.__isSmall = function(){
+    return window.innerWidth <= 760 || window.innerHeight <= 520;
+  };
+
+  var sheet = document.getElementById('sheet');
+  var scroll = document.getElementById('sheet-scroll');
+  var titleEl = document.querySelector('#sheet-bar .st');
+  var sheetP = null;
+
+  window.showSheet = function(p){
+    sheetP = p;
+    titleEl.textContent = p.name;
+    scroll.innerHTML = popupHTML(p);
+    scroll.scrollTop = 0;
+    sheet.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function(){ if(sheetP) syncLitBtn(sheetP); }, 30);
+  };
+  window.hideSheet = function(){
+    sheet.classList.remove('show');
+    document.body.style.overflow = '';
+    sheetP = null;
+  };
+  document.getElementById('sheet-close').addEventListener('click', function(e){
+    e.stopPropagation(); hideSheet();
+  });
+  /* 下滑關閉 */
+  var sy0 = null;
+  scroll.addEventListener('touchstart', function(e){ sy0 = e.touches[0].clientY; }, {passive:true});
+  scroll.addEventListener('touchmove', function(e){
+    if(sy0 === null) return;
+    var dy = e.touches[0].clientY - sy0;
+    if(dy > 90 && scroll.scrollTop <= 0){ hideSheet(); sy0 = null; }
+  }, {passive:true});
+
+  /* 小螢幕改為全屏卡片 */
+  var _orig = window.openPopup;
+  window.openPopup = function(p){
+    if(window.__isSmall()){
+      try{ map.closePopup(); }catch(e){}
+      showSheet(p);
+      return;
+    }
+    return _orig(p);
+  };
+
+  /* 旋屏／放大到桌面時關掉全屏卡片 */
+  window.addEventListener('resize', function(){
+    if(!window.__isSmall()){ hideSheet(); }
+  });
+
+  /* 提示條自動收起，騰出地圖空間 */
+  var tip = document.getElementById('tip');
+  if(tip){
+    setTimeout(function(){ tip.classList.add('hide'); }, 6000);
+    tip.addEventListener('click', function(){ tip.classList.add('hide'); });
+  }
+})();
+</script>
+
+<script id="ctrl2-js">
+(function(){
+  /* 右上角兩個圖標跟隨頂欄高度 */
+  var head = document.getElementById('header');
+  function syncTop(){
+    var h = head ? head.offsetHeight : 150;
+    var base = (window.innerWidth <= 760 || window.innerHeight <= 520) ? (h + 8) : (h + 12);
+    document.documentElement.style.setProperty('--lgTop', base + 'px');
+  }
+  syncTop();
+  window.addEventListener('resize', syncTop);
+  window.addEventListener('orientationchange', function(){ setTimeout(syncTop, 250); });
+  if(window.ResizeObserver && head){
+    try{ new ResizeObserver(syncTop).observe(head); }catch(e){}
+  }
+
+  /* ② 默認視圖 = 全球視野 */
+  function toWorld(){
+    if(typeof map === 'undefined' || !map) return;
+    var sm = window.innerWidth <= 760;
+    map.setView([22, 80], sm ? 1.5 : 2.3, {animate:false});
+  }
+  toWorld();
+  window.addEventListener('resize', function(){
+    clearTimeout(window.__rz);
+    window.__rz = setTimeout(toWorld, 300);
+  });
+
+  /* ① 移除縮放控件 DOM */
+  setTimeout(function(){
+    var z = document.querySelector('.leaflet-control-zoom');
+    if(z && z.parentNode) z.parentNode.removeChild(z);
+  }, 100);
+})();
+</script>
+</body>
+</html>
