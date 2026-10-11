@@ -2,56 +2,137 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>思辨遊戲｜破壁求真 總入口</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>思辨遊戲｜ 總入口</title>
+<!-- 51LA统计SDK -->
+<script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
+<script>LA.init({id:"3RHx8posHa7M4tGV",ck:"3RHx8posHa7M4tGV"})</script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Serif TC",serif;}
-body{background:#F8F5F0;color:#222;padding:3rem 1rem;min-height:100vh;}
-.container{max-width:800px;margin:0 auto;}
-h1{text-align:center;color:#0E7A5F;font-size:32px;margin-bottom:12px;}
-.subtitle{text-align:center;color:#555;margin-bottom:3rem;font-size:16px;}
-.card-wrap{display:grid;gap:2rem;}
-.card{background:#fff;border-radius:14px;padding:2rem;border:1px solid #ddd;transition:0.3s;cursor:pointer;}
-.card:hover{transform:translateY(-6px);box-shadow:0 8px 20px rgba(14,122,95,0.15);border-color:#0E7A5F;}
-.card h2{color:#0E7A5F;margin-bottom:10px;font-size:22px;}
-.card p{color:#444;line-height:1.6;margin-bottom:16px;}
-.card .tag{display:inline-block;background:#C8A24E;color:#fff;padding:4px 10px;border-radius:99px;font-size:14px;}
-a{text-decoration:none;}
-footer{margin-top:4rem;text-align:center;color:#777;font-size:14px;}
+/* ============================================================
+   EPI GUI 視覺系統（與 game / ritual / chart 同源）
+   嚴格三色：澳門綠 #0E7A5F · 思辨金 #C8A24E · 米白 #F8F5F0
+   ============================================================ */
+:root{
+--macau-green:#0E7A5F;
+--macau-green-deep:#0A5A47;
+--macau-green-light:#E6F3E6;
+--rice-white:#F8F5F0;
+--rice-white-soft:#F1EBE0;
+--gold:#C8A24E;
+--gold-light:#E3D3A6;
+--text:#1F3831;
+--text-soft:#4A5A53;
+--line:#D9CFB8;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-font-smoothing:antialiased}
+body{
+font-family:"Noto Sans TC","PingFang TC","Microsoft YaHei",sans-serif;
+background:var(--rice-white);color:var(--text);
+font-size:17px;line-height:1.7;min-height:100vh;padding-bottom:48px;
+}
+.container{max-width:800px;margin:0 auto;padding:0 16px}
+
+h1{text-align:center;color:var(--macau-green);font-size:clamp(24px,5.5vw,32px);
+   margin-bottom:10px;font-weight:700;letter-spacing:2px}
+.subtitle{text-align:center;color:var(--text-soft);margin-bottom:2.5rem;font-size:16px}
+
+.card-wrap{display:grid;gap:1.5rem;grid-template-columns:repeat(2,1fr)}
+
+.card{
+background:#FDFBF7;border:1px solid var(--line);border-radius:16px;
+padding:1.75rem;transition:all .28s;cursor:pointer;height:100%;
+box-shadow:0 6px 18px rgba(14,122,95,.08);position:relative;overflow:hidden;
+}
+.card::before{
+content:"";position:absolute;left:0;top:0;width:6px;height:100%;
+background:linear-gradient(180deg,var(--macau-green) 0%,var(--gold) 100%);
+}
+.card:hover{transform:translateY(-6px);box-shadow:0 14px 28px rgba(14,122,95,.18)}
+.card h2{color:var(--macau-green-deep);font-size:21px;margin-bottom:10px;
+         line-height:1.5;padding-left:4px}
+.card p{color:var(--text-soft);line-height:1.75;margin-bottom:14px;
+        font-size:15px;padding-left:4px}
+
+/* 綠金漸變按鈕（四張卡片一致） */
+.card .tag{
+display:inline-block;
+background:linear-gradient(90deg,var(--macau-green) 0%,var(--gold) 100%);
+color:#fff;padding:7px 15px;border-radius:99px;font-size:14px;font-weight:700;
+margin-left:4px;letter-spacing:1px;
+}
+a{text-decoration:none}
+
+/* ===== 第三張：港澳民俗（思辨金高亮） ===== */
+.card.c3{border:2px solid var(--gold)}
+.card.c3:hover{border-color:var(--gold);box-shadow:0 14px 28px rgba(200,162,78,.24)}
+
+/* ===== 第四張：88主神（澳門綠高亮） ===== */
+.card.c4{border:2px solid var(--macau-green);
+  background:linear-gradient(160deg,#FDFBF7 0%,var(--rice-white) 100%)}
+.card.c4:hover{border-color:var(--macau-green-deep);
+  box-shadow:0 16px 32px rgba(14,122,95,.24)}
+
+/* 數據徽章：澳門綠淡底 */
+.god88-meta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px 4px;font-size:13px}
+.god88-meta span{display:inline-flex;align-items:center;
+  background:var(--macau-green-light);color:var(--macau-green-deep);
+  padding:3px 10px;border-radius:99px;font-weight:600}
+
+footer{margin-top:3.5rem;text-align:center;color:var(--text-soft);
+       font-size:14px;opacity:.75}
+
+@media(max-width:680px){
+  .card-wrap{grid-template-columns:1fr;gap:1.1rem}
+  h1{font-size:24px}
+  .card{padding:1.4rem}
+  .card h2{font-size:19px}
+}
 </style>
+</script>
+<script src="/maps/assets/tracker.js" data-slug="index" data-title="思辨遊戲｜ 總入口" data-home="0"></script>
 </head>
 <body>
 <div class="container">
-  <h1>澳門世遺：思辨遊戲・破壁求真</h1>
-  <p class="subtitle">帶著思辨視角，探索澳門街頭巷尾煙火氣中的文明共生</p>
+<h1>澳門世遺：文明互鉴 · 思辨點亮</h1>
+<p class="subtitle">帶著思辨視角，探索澳門街頭巷尾煙火氣中的文明共生；點亮蓮花，點亮与澳門共鸣的世界華人信仰網絡</p>
+<div class="card-wrap">
 
-  <div class="card-wrap">
-    <a href="game.html">
-      <div class="card">
-        <h2>思辨遊戲 · 破壁求真</h2>
-        <p>互動史料卡片、時間線、思辨問答，歐洲旅行者與傳教士眼中的中國，對應澳門世遺場景。</p>
-        <span class="tag">主體遊戲頁</span>
-      </div>
-    </a>
+<a href="game.html">
+<div class="card">
+<h2>思辨遊戲 · 破壁求真</h2>
+<p>互動史料卡片、時間線、思辨問答，歐洲旅行者與傳教士眼中的中國，對應澳門世遺場景。</p>
+<span class="tag">主體遊戲頁</span>
+</div>
+</a>
 
-    <a href="ritual.html">
-      <div class="card">
-        <h2>華夏誕辰 · 人日倡議</h2>
-        <p>人日節史料、文化倡議文本，文明溯源與活態文化遺產研究。</p>
-        <span class="tag">文化倡議頁</span>
-      </div>
-    </a>
+<a href="ritual.html">
+<div class="card">
+<h2>華夏誕辰 · 人日倡議</h2>
+<p>人日節史料、文化倡議文本，文明溯源與活態文化遺產研究。</p>
+<span class="tag">文化倡議頁</span>
+</div>
+</a>
 
-    <a href="chart.html">
-      <div class="card">
-        <h2>港澳民俗 · 文明火種</h2>
-        <p>可交互ECharts圖表：文明模式雷達圖、南遷時間軸、神祇源流表、民俗分布圖。</p>
-        <span class="tag">數據可視化頁</span>
-      </div>
-    </a>
-  </div>
+<a href="chart.html">
+<div class="card c3">
+<h2>港澳民俗 · 文明火種</h2>
+<p>可交互ECharts圖表：文明模式雷達圖、南遷時間軸、神祇源流表、民俗分布圖。</p>
+<span class="tag">數據可視化頁</span>
+</div>
+</a>
 
-  <footer>© 2026 劉魁｜思辨遊戲·破壁求真</footer>
+<!-- ===== 第四張：88主神 · 全球點亮地圖 ===== -->
+<a href="/maps/">
+<div class="card c4">
+<h2>點亮遊戲 · 香火傳承</h2>
+<p>八十八位主神各一張全球分布地圖，點擊點位點亮蓮花，串起与澳門共鸣的世界華人信仰網絡。</p>
+<span class="tag">點亮遊戲頁</span>
+</div>
+</a>
+
+</div>
+<footer>© 2026 liukui2050｜《禮記・中庸》: 博學之，審問之，慎思之，明辨之，篤行之。</footer>
 </div>
 </body>
 </html>

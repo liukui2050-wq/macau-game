@@ -1,0 +1,13 @@
+{
+  "name": "liukui2050",
+  "version": "1.0.0",
+  "private": true,
+  "description": "思辨遊戲·破壁求真 ｜ 澳門世遺 + 88主神點亮 + 全球廟宇地圖合集（含埋點）",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
+  },
+  "dependencies": {
+    "@vercel/kv": "^1.0.1"
+  }
+}

@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net https://sdk.51.la 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.51.la https:;">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>人日·華夏誕辰｜思辨倡議 H5｜史料卡·思辨答題·勳章冊</title>
 <meta property="og:title" content="人日·華夏誕辰｜史料卡·思辨答題·勳章冊">
-<meta property="og:image" content="https://www.liukui2050.com/share-cover.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
 <meta property="og:description" content="正月初七，人人有份的生日。十站思辨答題，解鎖史料卡與勳章，簽署倡議書。">
+<!-- 51LA统计SDK -->
+<script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
+<script>LA.init({id:"3RHx8posHa7M4tGV",ck:"3RHx8posHa7M4tGV"})</script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <style>
 :root{
@@ -374,7 +373,7 @@ opacity:.3;border-radius:50%;filter:blur(2px);
 .final-hero .big{font-size:52px;margin-bottom:8px;animation:floatY 4s ease-in-out infinite}
 .final-hero h2{font-size:26px;letter-spacing:3px;margin-bottom:10px}
 .final-hero p{font-size:15px;line-height:1.9;color:var(--gold-light);max-width:560px;margin:0 auto 12px;position:relative;z-index:1}
-.final-hero .motto{font-size:17px;font-weight:700;color:var(--gold);letter-spacing:2px}
+.final-hero .motto{font-size:17px;font-weight:600;color:var(--gold);letter-spacing:2px}
 @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .lotus-top{text-align:center;font-size:36px;line-height:1.3;animation:floatY 4s ease-in-out infinite;margin-bottom:4px}
 .lotus-bottom{display:flex;justify-content:center;gap:12px;font-size:17px;opacity:.85;margin:12px 0 4px;animation:floatY 5s ease-in-out infinite}
@@ -499,6 +498,67 @@ font-size:16px;font-weight:700;cursor:pointer;letter-spacing:2px;margin-top:10px
 transition:filter .2s;
 }
 .about-close:hover{filter:brightness(1.08)}
+/* ========= 背景音樂播放器 ========= */
+.music-player{
+  position:fixed;left:12px;bottom:12px;z-index:950;
+  display:flex;align-items:center;gap:0;
+  background:rgba(248,245,240,.94);
+  border:1.5px solid var(--gold);border-radius:99px;
+  padding:5px;
+  box-shadow:0 8px 26px rgba(10,90,71,.18);
+  backdrop-filter:blur(6px);max-width:calc(100vw - 24px);
+  transition:gap .25s ease,padding .25s ease;
+}
+/* 展開態：點擊圓鈕後才露出進度與音量 */
+.music-player.open{gap:10px;padding:7px 14px 7px 8px;}
+.music-btn{
+  width:40px;height:40px;flex:none;border:none;border-radius:50%;
+  background:linear-gradient(135deg,var(--macau-green),var(--macau-green-deep));
+  color:var(--rice-white);font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:filter .2s,transform .25s;
+}
+.music-btn:hover{filter:brightness(1.1)}
+.music-btn .ico{display:inline-block;line-height:1}
+.music-btn.playing{animation:spin 6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* 展開時才顯示的部分 */
+.music-info{
+  display:none;flex-direction:column;justify-content:center;min-width:0;
+  font-family:"Songti SC","STSong",serif;
+}
+.music-player.open .music-info{display:flex;}
+.music-info .t{font-size:13.5px;font-weight:700;color:var(--macau-green-deep);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+.music-info .s{font-size:11px;color:var(--text-soft);letter-spacing:.5px}
+.music-vol{
+  display:none;-webkit-appearance:none;appearance:none;width:64px;height:4px;border-radius:99px;
+  background:linear-gradient(90deg,var(--gold) 0%,var(--  background:linear-gradient(90deg,var(--gold) 0%,var(--gold) 60%,var(--line) 60%);
+  cursor:pointer;flex:none;
+}
+.music-player.open .music-vol{display:block;}
+.music-vol::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--macau-green-deep);border:2px solid var(--gold);cursor:pointer;
+}
+.music-vol::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--macau-green-deep);border:2px solid var(--gold);cursor:pointer}
+.music-player .mute{
+  display:none;border:none;background:transparent;color:var(--text-soft);font-size:15px;cursor:pointer;padding:0 2px;flex:none;line-height:1;
+}
+.music-player.open .mute{display:block;}
+.music-tip{
+  position:absolute;bottom:56px;left:0;background:var(--macau-green-deep);color:var(--rice-white);
+  font-size:12.5px;padding:7px 12px;border-radius:8px;white-space:nowrap;
+  box-shadow:0 6px 18px rgba(10,90,71,.25);opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.music-tip.show{opacity:1}
+.music-tip::after{
+  content:"";position:absolute;bottom:-6px;left:20px;
+  border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid var(--macau-green-deep);
+}
+@media(max-width:520px){
+  .music-player.open .music-info .t{max-width:96px}
+  .music-player.open .music-vol{width:46px}
+}
 /* 魚躍龍門終章 */
 .koi-modal{position:fixed;inset:0;background:rgba(10,45,35,.72);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
 .koi-modal.show{display:flex}
@@ -532,7 +592,7 @@ transition:filter .2s;
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   .lotus-item.active{animation:none}
-  .lotus-svg-inline,.lotus-corner,.lotus-deco,.lotus-top,.lotus-bottom,.koi-fish,.mini-watermark{animation:none}
+  .lotus-svg-inline,.lotus-corner,.lotus-deco,.lotus-top,.lotus-bottom,.koi-fish,.music-btn.playing,.mini-watermark{animation:none}
 }
 /* will-change 性能提示 */
 .lotus-item.active,.lotus-svg-inline,.lotus-corner,.lotus-deco,.koi-fish,.mini-watermark{will-change:transform,opacity}
@@ -540,11 +600,13 @@ transition:filter .2s;
   .lotus-item.active,.lotus-svg-inline,.lotus-corner,.lotus-deco,.koi-fish,.mini-watermark{will-change:auto}
 }
 </style>
+
+<script src="/maps/assets/tracker.js" data-slug="ritual" data-title="人日·華夏誕辰｜思辨倡議 H5｜史料卡·思辨答題·勳章冊"></script>
 </head>
 <body>
 <!-- 粒子慶祝畫布 -->
 <canvas id="particleCanvas"></canvas>
-<!-- 開啟頁彈窗【文本已替換為後者文檔內容】 -->
+<!-- 開啟頁彈窗 -->
 <div class="hint-modal" id="hintModal">
 <div class="hint-card">
 <svg class="fret-mark" viewBox="0 0 84 62" aria-hidden="true">
@@ -812,6 +874,20 @@ transition:filter .2s;
 <p>正月初七 · 人人有份的生日｜史料卡 · 思辨答題 · 勳章冊</p>
 <div class="sub">誕辰 · 溯源 · 守藝 · 倡議 · 狂歡 · 共生</div>
 </header>
+<!-- 背景音樂播放器 -->
+<div class="music-player" id="musicPlayer">
+<span class="music-tip" id="musicTip">點擊播放 · 4 分 35 秒循環伴讀</span>
+<button class="music-btn playing" id="musicBtn" type="button" aria-label="播放 / 暫停背景音樂">
+<span class="ico" id="musicIco">⏸</span>
+</button>
+<span class="music-info">
+<span class="t">🪷 人日·華夏誕辰</span>
+<span class="s" id="musicTime">0:00 / 4:35</span>
+</span>
+<input class="music-vol" id="musicVol" type="range" min="0" max="100" value="60" aria-label="音量">
+<button class="mute" id="musicMute" type="button" aria-label="靜音">🔊</button>
+</div>
+<audio id="bgm" src="hitomi.mp3" preload="auto" loop>
 <div id="compare-chart"></div>
 <div class="progress-bar">
 <div class="progress-title">
@@ -868,6 +944,11 @@ function showToast(message, type, duration) {
   setTimeout(function() { toast.classList.remove('show'); setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300); }, duration);
 }
 window.alert = function(msg) { showToast(String(msg), 'info', 3500); };
+// 页面可见性
+document.addEventListener('visibilitychange', function() {
+  var bgm = document.getElementById('bgm');
+  if (bgm && document.hidden && !bgm.paused) bgm.pause();
+});
 // 全局错误捕获
 window.addEventListener('error', function(e) { console.warn('[Renri] 错误:', e.error ? e.error.message : e.message); });
 window.addEventListener('unhandledrejection', function(e) { console.warn('[Renri] 未处理Promise:', e.reason); });
@@ -1172,6 +1253,10 @@ document.getElementById("trapClose").onclick = function(){
 const reportModal = document.getElementById("reportModal");
 function openReport(){
   closeAllModals();
+  //=====51LA埋点｜打开思辨报告=====
+  if(window.LA && typeof window.LA.event === "function"){
+    LA.event("view_report",{score:score, h5_type:"renri"});
+  }
   const scoreEl = document.getElementById("reportScore");
   const levelEl = document.getElementById("reportLevel");
   if(scoreEl) scoreEl.innerText = score + " / 10";
@@ -1463,7 +1548,6 @@ function drawPosterCanvas(name, date){
   ctx.fillText("🪷 民間文化倡議 🪷",w/2,yPos+80);
   return canvas.toDataURL("image/png");
 }
-
 // ====================== 【數據】前1‑9站使用v2_優化版文本；第10站維持原版簽名倡議書不變 ======================
 const data = [
 {
@@ -1488,7 +1572,7 @@ const data = [
   "生日是現代才有的概念"
  ],
  correct:1,
- seal:"初遇人日"
+ table:true
 },
 {
  id:2,
@@ -1512,7 +1596,6 @@ const data = [
   "讓人日取代聖誕節"
  ],
  correct:2,
- seal:"文明平視",
  table:true
 },
 {
@@ -1708,18 +1791,16 @@ const data = [
 簽署人：{{SIGN_NAME}}
 簽署日期：{{SIGN_DATE}}`,
  points:[],
- callout:"<b>💡 行動提示：</b>填寫你的名字，生成簽名倡議書，再選擇複製 / TXT下載 / 生成海報分享。",
+ callout:"<b>💡 行動提示：</b>填寫你的名字，生成簽名版倡議書，再選擇複製 / TXT下載 / 生成海報分享。",
  end:true
 }
 ];
-
 // 渲染卡片函數
 function renderCard(){
   const s = data[current];
   currentIndex.textContent = current + 1;
   progressFill.style.width = ((current+1)/data.length*100) + "%";
   updateLotusLight();
-
   let tableHtml = "";
   if(s.table){
     tableHtml = `
@@ -1733,13 +1814,11 @@ function renderCard(){
       <tr><td>未來可能</td><td>—</td><td>全人類的共同生日</td></tr>
     </table>`;
   }
-
   let pointsHtml = "";
   if(s.points && s.points.length>0){
     pointsHtml = s.points.map(p=>`<li>${p}</li>`).join("");
     pointsHtml = `<ul class="point-list">${pointsHtml}</ul>`;
   }
-
   let proposalHtml="";
   if(s.proposalText){
     const savedName = safeStorageGet("renriSignName")||"";
@@ -1763,11 +1842,9 @@ function renderCard(){
     <div class="poster-preview"></div>
     `;
   }
-
   let questionBlockHtml = "";
-  let idxs;
   if(!s.end){
-    idxs = s.options.map((_, i) => i);
+    let idxs = s.options.map((_, i) => i);
     for(let i = idxs.length - 1; i > 0; i--){
       const j = Math.floor(Math.random() * (i + 1));
       [idxs[i], idxs[j]] = [idxs[j], idxs[i]];
@@ -1788,7 +1865,6 @@ function renderCard(){
     </div>
     `;
   }
-
   const _html = `
   <div class="station-card">
     <svg style="position:absolute;top:10px;right:10px" width="52" height="38" viewBox="0 0 84 62">
@@ -1798,7 +1874,6 @@ function renderCard(){
     <span class="station-number">第 ${current+1} / ${data.length} 站 · ${s.tag}</span>
     <h2>${s.title}${s.end?'<span class="end-tag">終章</span>':""}</h2>
     <div class="story-block">${s.story}</div>
-
     <button class="strip-toggle-btn" id="sourceStripToggle" type="button">📜 展開史料卡</button>
     <div class="source-strip-wrap" id="sourceStripWrap" style="display:none;">
       <div class="source-strip-head">
@@ -1835,14 +1910,11 @@ function renderCard(){
         <div class="strip-scrollbar-thumb" id="stripScrollbarThumb"></div>
       </div>
     </div>
-
     ${tableHtml}
     ${questionBlockHtml}
     ${proposalHtml}
-
     ${pointsHtml??""}
     ${s.callout?`<div class="callout">${s.callout}</div>`:""}
-
     <button class="next-btn ${s.end?"finish":""}" id="nextBtn">${s.end?"完成全部十站 · 人人如龍":"下一站 · "+(data[current+1]?.tag||"")}</button>
     ${current>0?`<button class="next-btn" style="background:var(--gold-light);color:var(--macau-green-deep);margin-top:10px" onclick="goBack()">⬅ 返回上一站</button>`:""}
     ${current>0&&s.end?`<button class="next-btn" style="background:#b8d8d0;color:var(--macau-green-deep);margin-top:10px" onclick="goHome()">🏠 返回首頁</button>`:""}
@@ -1851,10 +1923,8 @@ function renderCard(){
       <span>${s.end?"金蓮花終章":"人日倡議 · 逐站推進"}</span>
     </div>
   </div>`;
-
   if(!cardContainer) return;
   cardContainer.innerHTML = _html;
-
   if(!s.end){
     document.querySelectorAll(".option").forEach(btn => {
       btn.onclick = function(){
@@ -1863,11 +1933,9 @@ function renderCard(){
       };
     });
   }
-
   if(s.proposalText){
     bindProposalEvents(s);
   }
-
   const toggleBtn = document.getElementById('sourceStripToggle');
   const stripWrap = document.getElementById('sourceStripWrap');
   if(toggleBtn && stripWrap){
@@ -1886,14 +1954,12 @@ function renderCard(){
       }
     });
   }
-
   const nextBtn = document.getElementById("nextBtn");
   nextBtn.onclick = async function(){
     if(isClickLock) return;
     isClickLock = true;
     await new Promise(r=>setTimeout(r,300));
     isClickLock = false;
-
     if(s.end){
       celebrateModal.classList.add("show");
       startParticleEffect(35);
@@ -1904,9 +1970,16 @@ function renderCard(){
       answered[s.id] = idxs[choiceIdx];
       recomputeStats();
       saveState();
-
       const realAnswerIdx = idxs[choiceIdx];
       const isCorrect = realAnswerIdx === s.correct;
+      //=====51LA埋点｜完成一站答题=====
+      if(window.LA && typeof window.LA.event === "function"){
+        LA.event("finish_station",{
+          station_id: s.id,
+          h5_type:"renri",
+          is_correct: isCorrect
+        });
+      }
       const noteBox = document.getElementById("noteBox");
       if(noteBox){
         if(isCorrect){
@@ -1925,7 +1998,6 @@ function renderCard(){
     }
   };
 }
-
 function bindProposalEvents(s){
   const tplRaw = s.proposalText;
   const nameInp = document.getElementById('signNameInput');
@@ -1939,7 +2011,6 @@ function bindProposalEvents(s){
   const renderBox = document.getElementById('proposalRender');
   const previewDiv = document.querySelector(".poster-preview");
   let finalText = "";
-
   function handleGen(){
     let name = (nameInp.value || "匿名參與者").trim();
     safeStorageSet("renriSignName", name);
@@ -1950,23 +2021,23 @@ function bindProposalEvents(s){
     signNameGlobal = name;
     signDateGlobal = dateStr;
     renderBox.innerText = finalText;
-
     copyBtn.disabled = false;
     dlBtn.disabled = false;
     posterBtn.disabled = false;
     shareTextBtn.disabled = false;
-
     const st = getStat();
     st.signCount += 1;
     saveStat(st);
+    //=====51LA埋点｜生成签名倡议书=====
+    if(window.LA && typeof window.LA.event === "function"){
+      LA.event("gen_sign_proposal",{h5_type:"renri"});
+    }
     showToast("✅ 簽名倡議書已生成！", "success",2200);
   }
-
   genBtn.onclick = handleGen;
   nameInp.onkeydown = function(e){
     if(e.key === "Enter") handleGen();
   };
-
   copyBtn.onclick = async function(){
     if(!finalSignedText){ showToast("請先生成簽名倡議書","error");return; }
     await copyPlainText(finalSignedText);
@@ -1974,17 +2045,29 @@ function bindProposalEvents(s){
   };
   dlBtn.onclick = function(){
     if(!finalSignedText){ showToast("請先生成簽名倡議書","error");return; }
+    //=====51LA埋点｜下载TXT=====
+    if(window.LA && typeof window.LA.event === "function"){
+      LA.event("download_txt",{h5_type:"renri"});
+    }
     downloadTxtFile(finalSignedText,`人日_簽名倡議書_${signNameGlobal}_${signDateGlobal}.txt`);
     showToast("✅TXT檔案已開始下載","success");
   };
   posterBtn.onclick = function(){
     if(!signNameGlobal){ showToast("請先生成簽名倡議書","error");return; }
+    //=====51LA埋点｜生成分享海报=====
+    if(window.LA && typeof window.LA.event === "function"){
+      LA.event("gen_share_poster",{h5_type:"renri"});
+    }
     const imgUrl = drawPosterCanvas(signNameGlobal, signDateGlobal);
     previewDiv.innerHTML = `<h4 style="margin:8px 0">🖼️海報預覽（長按圖片可保存）</h4><img id="posterCanvas" src="${imgUrl}" style="max-width:100%;border-radius:12px">`;
     showToast("✅海報已生成，長按圖片保存","success",3000);
   };
   shareTextBtn.onclick = async function(){
     if(!finalSignedText){ showToast("請先生成簽名倡議書","error");return; }
+    //=====51LA埋点｜点击分享=====
+    if(window.LA && typeof window.LA.event === "function"){
+      LA.event("click_share",{h5_type:"renri"});
+    }
     const shareTitle = "🪷人日·華夏誕辰｜我簽署了人日民間倡議書";
     const shareDesc = finalSignedText.substring(0,180)+"……\n完整內容見本H5";
     const shareData = {title:shareTitle,text:shareDesc,url:location.href};
@@ -2008,7 +2091,6 @@ function bindProposalEvents(s){
     statModal.classList.add("show");
   };
 }
-
 function bindStripScroll(){
   const strip = document.getElementById("sourceStrip");
   if(!strip) return;
@@ -2032,7 +2114,6 @@ function updateStripScrollbar(){
   thumb.style.width = thumbW + "%";
   thumb.style.left = (moved * maxLeft) + "%";
 }
-
 function goBack(){
   if(current>0){
     current--;
@@ -2055,7 +2136,6 @@ function goHome(){
   if(hintModal) hintModal.classList.add("show");
   initLotus();
 }
-
 function restart(){
   current = 0;
   if(cardContainer) cardContainer.style.display = "block";
@@ -2065,7 +2145,6 @@ function restart(){
   renderCard();
   window.scrollTo({top:0,behavior:"smooth"});
 }
-
 celebrateOkBtn.onclick = function(){
   celebrateModal.classList.remove("show");
   if(cardContainer) cardContainer.style.display = "none";
@@ -2080,9 +2159,12 @@ statClearBtn.onclick = function(){
     clearStat(); renderStatModal(); showToast("✅本地統計已清除","success");
   }
 };
-
 // 首頁彈窗按鈕
 hintStartBtn.addEventListener("click",function(){
+  //=====51LA埋点｜打开H5入口=====
+  if(window.LA && typeof window.LA.event === "function"){
+    LA.event("h5_open",{h5_type:"renri"});
+  }
   // 重置進度為第一頁
   current = 0;
   score = 0;
@@ -2097,7 +2179,6 @@ hintStartBtn.addEventListener("click",function(){
 hintCheckLabel.addEventListener("click",function(e){
   if(e.target.tagName!=="INPUT") hintDontShow.checked = !hintDontShow.checked;
 });
-
 // header七次點擊喚起開啟頁
 let _tapCount=0,_tapTimer=null;
 document.addEventListener("click",function(e){
@@ -2113,7 +2194,6 @@ document.addEventListener("click",function(e){
     }
   }
 });
-
 //項目說明彈窗
 hintAboutBtn.addEventListener("click",function(){
   aboutModal.classList.add("show");
@@ -2121,7 +2201,6 @@ hintAboutBtn.addEventListener("click",function(){
 aboutCloseBtn.addEventListener("click",function(){
   aboutModal.classList.remove("show");
 });
-
 // ========== 蓮花初始化與更新 ==========
 function initLotus(){
   const lotusRow = document.getElementById("lotusRow");
@@ -2149,12 +2228,98 @@ function updateLotusLight(){
   }
   saveStat(stat);
 }
-
 function showHintIfNeeded(){
   initLotus();
   // 每次都顯示開啟頁，確保從第一頁開始
   hintModal.classList.add("show");
 }
+//背景音樂播放器
+(function(){
+  const bgm = document.getElementById("bgm");
+  const btn = document.getElementById("musicBtn");
+  const ico = document.getElementById("musicIco");
+  const tip = document.getElementById("musicTip");
+  const vol = document.getElementById("musicVol");
+  const muteBtn = document.getElementById("musicMute");
+  const timeTxt = document.getElementById("musicTime");
+  const KEY = "renri_bgm_muted";
+  let muted = safeStorageGet(KEY) === "1";
+  bgm.volume = 0.6;
+  let userVol = 60;
+  const totalDur = 275;
+  function fmt(s){
+    s=Math.max(0,Math.floor(s));
+    return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+  }
+  function updateVolBar(){
+    const pct = muted?0:userVol;
+    vol.style.background = "linear-gradient(90deg,var(--gold) 0%,var(--gold) "+pct+"%,var(--line) "+pct+"%)";
+  }
+  function setPlayingUI(p){
+    btn.classList.toggle("playing",p);
+    ico.textContent = p?"⏸":"▶";
+    btn.setAttribute("aria-label",p?"暫停背景音樂":"播放背景音樂");
+  }
+  function showTipMs(ms){
+    tip.classList.add("show");
+    clearTimeout(tip._t);
+    tip._t=setTimeout(()=>{tip.classList.remove("show");},ms);
+  }
+  function playBgm(){
+    const pr = bgm.play();
+    if(pr&&pr.then){
+      pr.then(()=>{setPlayingUI(true);}).catch(()=>{setPlayingUI(false);});
+    }
+  }
+  const player=document.getElementById("musicPlayer");
+  btn.addEventListener("click",function(){
+    if(player&&!player.classList.contains("open")){player.classList.add("open");}
+    if(bgm.paused){playBgm();}else{bgm.pause();setPlayingUI(false);}
+  });
+  document.addEventListener("click",function(ev){
+    if(!player) return;
+    if(player.contains(ev.target)) return;
+    if(!bgm.paused) return;
+    player.classList.remove("open");
+  });
+  bgm.addEventListener("play",()=>{setPlayingUI(true);});
+  bgm.addEventListener("pause",()=>{setPlayingUI(false);});
+  bgm.addEventListener("timeupdate",()=>{
+    timeTxt.textContent=fmt(bgm.currentTime)+" / "+fmt(totalDur);
+  });
+  bgm.addEventListener("ended",()=>{bgm.currentTime=0;bgm.play();});
+  vol.addEventListener("input",function(){
+    userVol=parseInt(vol.value,10);
+    bgm.volume=userVol/100;
+    if(userVol===0){
+      muted=true;safeStorageSet(KEY,"1");muteBtn.textContent="🔇";
+    }else{
+      muted=false;safeStorageSet(KEY,"");muteBtn.textContent="🔊";
+    }
+    updateVolBar();
+  });
+  muteBtn.addEventListener("click",function(){
+    muted=!muted;
+    safeStorageSet(KEY,muted?"1":"");
+    if(muted){bgm.volume=0;muteBtn.textContent="🔇";}
+    else{bgm.volume=userVol/100;muteBtn.textContent="🔊";}
+    updateVolBar();
+  });
+  setTimeout(()=>{if(bgm.paused) showTipMs(3200);},3000);
+  function startOnGesture(){
+    if(bgm.paused) playBgm();
+    if(player&&!player.classList.contains("open")) player.classList.add("open");
+    window.removeEventListener("click",startOnGesture);
+    window.removeEventListener("touchstart",startOnGesture);
+    window.removeEventListener("keydown",startOnGesture);
+  }
+  window.addEventListener("click",startOnGesture);
+  window.addEventListener("touchstart",startOnGesture);
+  window.addEventListener("keydown",startOnGesture);
+  if(muted){bgm.volume=0;muteBtn.textContent="🔇";}
+  updateVolBar();
+  setPlayingUI(false);
+})();
 // 兼容 DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function(){
   // 如果 window.onload 还没触发，确保基础元素就绪
@@ -2231,10 +2396,8 @@ window.onload = function(){
   }
 };
 </script>
-
 <div style="text-align:center;margin:3rem 0;">
   <a href="index.html" style="background:#0E7A5F;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;">返回總首頁</a>
 </div>
-
 </body>
 </html>
